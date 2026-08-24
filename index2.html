@@ -15,8 +15,9 @@
     <!-- Chart.js (体重・体脂肪グラフ用) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* --- テーマカラーとグローバル変数 (パステル系プリセット) --- */
         :root {
-            --theme-color: #B2D8D8;
+            --theme-color: #B2D8D8; /* 初期値: パステルセージ/ミント */
             --theme-text: #2C4A4A;
             --bg-color: #F8FAFC;
             --card-bg: #FFFFFF;
@@ -32,22 +33,27 @@
             --header-top-height: 104px;
             --footer-height: 75px;
 
+            /* --- PFC専用パステルソフトカラー (透明度4.5%) --- */
             --pfc-p-bg: rgba(147, 197, 253, 0.045);
             --pfc-p-border: rgba(147, 197, 253, 0.25);
             --pfc-p-bar: #93C5FD;
+            --pfc-p-text: #475569;
 
             --pfc-f-bg: rgba(253, 230, 138, 0.045);
             --pfc-f-border: rgba(253, 230, 138, 0.28);
             --pfc-f-bar: #FDE68A;
+            --pfc-f-text: #475569;
 
             --pfc-c-bg: rgba(167, 243, 208, 0.045);
             --pfc-c-border: rgba(167, 243, 208, 0.28);
             --pfc-c-bar: #A7F3D0;
+            --pfc-c-text: #475569;
 
             --cal-bar-color: #CBD5E1;
-            --over-limit-color: #EF4444;
+            --over-limit-color: #EF4444; /* 超過時の赤色 */
         }
 
+        /* --- ダークモード --- */
         body.dark-mode {
             --bg-color: #121824;
             --card-bg: #1E293B;
@@ -60,173 +66,872 @@
             --footer-bg: #1E293B;
             --footer-border: #334155;
             --send-btn-bg: var(--theme-color);
+
+            --pfc-p-bg: rgba(147, 197, 253, 0.07);
+            --pfc-p-border: rgba(147, 197, 253, 0.2);
+            --pfc-p-bar: #60A5FA;
+            --pfc-p-text: #94A3B8;
+
+            --pfc-f-bg: rgba(253, 230, 138, 0.07);
+            --pfc-f-border: rgba(253, 230, 138, 0.2);
+            --pfc-f-bar: #FCD34D;
+            --pfc-f-text: #94A3B8;
+
+            --pfc-c-bg: rgba(167, 243, 208, 0.07);
+            --pfc-c-border: rgba(167, 243, 208, 0.2);
+            --pfc-c-bar: #6EE7B7;
+            --pfc-c-text: #94A3B8;
+
             --cal-bar-color: #475569;
             --over-limit-color: #F87171;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        html { scroll-behavior: smooth; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--bg-color); color: var(--text-main);
-            padding-top: var(--header-top-height); padding-bottom: var(--footer-height); min-height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding-top: var(--header-top-height);
+            padding-bottom: var(--footer-height);
+            min-height: 100vh;
             transition: background-color 0.25s ease, color 0.25s ease;
         }
 
+        /* --- ヘッダー (最上部固定) --- */
         header {
-            position: fixed; top: 0; left: 0; width: 100%; height: var(--header-top-height);
-            background-color: var(--header-bg); border-bottom: 1px solid var(--card-border); z-index: 100;
-            display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--header-top-height);
+            background-color: var(--header-bg);
+            border-bottom: 1px solid var(--card-border);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            transition: background-color 0.25s ease;
         }
-        .header-top { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px 2px 16px; height: 48px; }
-        .header-title { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.05em; color: var(--header-text); }
-        .header-btn-group { display: flex; gap: 14px; align-items: center; }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px 2px 16px;
+            height: 48px;
+        }
+
+        .header-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: var(--header-text);
+        }
+
+        .header-btn-group {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
 
         .icon-btn {
-            background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            color: var(--header-text); padding: 6px; border-radius: 50%; transition: opacity 0.2s;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--header-text);
+            padding: 6px;
+            border-radius: 50%;
+            transition: opacity 0.2s;
         }
-        .icon-btn:active { opacity: 0.6; }
 
+        .icon-btn:active {
+            opacity: 0.6;
+        }
+
+        /* --- 週間カレンダー --- */
         .weekly-calendar {
-            display: flex; justify-content: space-between; padding: 6px 12px 8px 12px;
-            background-color: rgba(255, 255, 255, 0.45) !important; backdrop-filter: blur(4px);
-            border-top: 1px solid rgba(0, 0, 0, 0.04); gap: 4px;
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 12px 8px 12px;
+            background-color: rgba(255, 255, 255, 0.45) !important;
+            backdrop-filter: blur(4px);
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+            gap: 4px;
         }
+
         .week-day-cell {
-            flex: 1; display: flex; flex-direction: column; align-items: center; padding: 4px 2px; border-radius: 8px; cursor: pointer; background: transparent; transition: background-color 0.2s, transform 0.1s;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 4px 2px;
+            border-radius: 8px;
+            cursor: pointer;
+            background: transparent;
+            transition: background-color 0.2s, transform 0.1s;
         }
-        .week-day-cell:active { transform: scale(0.95); }
-        .week-day-cell.selected { background-color: rgba(255, 255, 255, 0.75) !important; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        .week-day-name { font-size: 0.65rem; font-weight: 600; color: var(--header-text) !important; opacity: 0.85; margin-bottom: 2px; }
+        .week-day-cell:active {
+            transform: scale(0.95);
+        }
+        .week-day-cell.selected {
+            background-color: rgba(255, 255, 255, 0.75) !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .week-day-name {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--header-text) !important;
+            opacity: 0.85;
+            margin-bottom: 2px;
+        }
+
         .week-day-date {
-            font-size: 0.85rem; font-weight: 700; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--header-text) !important; background: transparent;
+            font-size: 0.85rem;
+            font-weight: 700;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: var(--header-text) !important;
+            background: transparent;
         }
-        .week-day-cell.exceeded .week-day-date { background-color: #EF4444 !important; color: #FFFFFF !important; box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4); }
-        .week-day-cell.is-today .week-day-name { color: #1E40AF !important; font-weight: 700; }
 
-        .sticky-summary-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 8px 0 4px 0; margin-bottom: 4px; }
-        .nutrition-summary-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
-        .summary-header { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--card-border); }
-        .summary-cal-header-row { display: flex; justify-content: space-between; align-items: center; }
-        .summary-cal-badge { font-size: 0.94rem; font-weight: 600; color: var(--text-main); letter-spacing: 0.02em; }
-        .val-current.over-limit { color: var(--over-limit-color) !important; font-weight: 700; }
+        .week-day-cell.exceeded .week-day-date {
+            background-color: #EF4444 !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4);
+        }
 
-        .progress-bar-bg { width: 100%; height: 5px; background-color: rgba(0, 0, 0, 0.05); border-radius: 6px; overflow: hidden; }
-        body.dark-mode .progress-bar-bg { background-color: rgba(255, 255, 255, 0.08); }
-        .progress-bar-fill { height: 100%; border-radius: 6px; width: 0%; transition: width 0.3s ease, background-color 0.3s ease; }
-        .cal-bar-fill { background-color: var(--cal-bar-color); }
-        .cal-bar-fill.over-limit { background-color: var(--over-limit-color) !important; }
+        .week-day-cell.is-today .week-day-name {
+            color: #1E40AF !important;
+            font-weight: 700;
+        }
 
-        .pfc-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; }
-        .pfc-col { padding: 6px 4px; border-radius: 8px; display: flex; flex-direction: column; gap: 3px; border: 1px solid transparent; }
-        .pfc-col-p { background-color: var(--pfc-p-bg); border-color: var(--pfc-p-border); }
-        .pfc-col-f { background-color: var(--pfc-f-bg); border-color: var(--pfc-f-border); }
-        .pfc-col-c { background-color: var(--pfc-c-bg); border-color: var(--pfc-c-border); }
-        .pfc-label { font-size: 0.72rem; font-weight: 500; color: var(--text-sub); }
-        .pfc-value { font-size: 0.84rem; font-weight: 600; color: var(--text-main); }
+        /* --- 栄養サマリーカード (上部固定吸着) --- */
+        .sticky-summary-wrap {
+            position: sticky;
+            top: var(--header-top-height);
+            z-index: 90;
+            background-color: var(--bg-color);
+            padding: 8px 0 4px 0;
+            margin-bottom: 4px;
+        }
+
+        .nutrition-summary-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            transition: background-color 0.25s ease;
+        }
+
+        .summary-header {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .summary-cal-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .summary-cal-badge {
+            font-size: 0.94rem;
+            font-weight: 600;
+            color: var(--text-main);
+            letter-spacing: 0.02em;
+        }
+
+        .val-current.over-limit {
+            color: var(--over-limit-color) !important;
+            font-weight: 700;
+        }
+
+        /* プログレスバー共通スタイル */
+        .progress-bar-bg {
+            width: 100%;
+            height: 5px;
+            background-color: rgba(0, 0, 0, 0.05);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        body.dark-mode .progress-bar-bg {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            width: 0%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+
+        .cal-bar-fill {
+            background-color: var(--cal-bar-color);
+        }
+        .cal-bar-fill.over-limit {
+            background-color: var(--over-limit-color) !important;
+        }
+
+        .pfc-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+            text-align: center;
+        }
+
+        .pfc-col {
+            padding: 6px 4px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            border: 1px solid transparent;
+            transition: background-color 0.25s ease, border-color 0.25s ease;
+        }
+        .pfc-col-p {
+            background-color: var(--pfc-p-bg);
+            border-color: var(--pfc-p-border);
+        }
+        .pfc-col-f {
+            background-color: var(--pfc-f-bg);
+            border-color: var(--pfc-f-border);
+        }
+        .pfc-col-c {
+            background-color: var(--pfc-c-bg);
+            border-color: var(--pfc-c-border);
+        }
+
+        .pfc-label {
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text-sub);
+        }
+
+        .pfc-value {
+            font-size: 0.84rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
         .pfc-bar-p { background-color: var(--pfc-p-bar); }
         .pfc-bar-f { background-color: var(--pfc-f-bar); }
         .pfc-bar-c { background-color: var(--pfc-c-bar); }
+        .pfc-bar-fill.over-limit { background-color: var(--over-limit-color) !important; }
 
-        .sticky-chart-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 6px 0 4px 0; margin-bottom: 6px; }
-        .chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-        .chart-title { font-size: 0.92rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
-        .chart-legend-wrap { display: flex; gap: 12px; font-size: 0.74rem; font-weight: 600; margin-bottom: 6px; justify-content: flex-end; }
-        .legend-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+        /* --- 体重グラフ (上部固定吸着 sticky) --- */
+        .sticky-chart-wrap {
+            position: sticky;
+            top: var(--header-top-height);
+            z-index: 90;
+            background-color: var(--bg-color);
+            padding: 6px 0 4px 0;
+            margin-bottom: 6px;
+        }
 
-        .month-cal-header { display: flex; justify-content: space-between; align-items: center; padding: 4px 6px 12px 6px; }
-        .month-cal-title { font-size: 1.05rem; font-weight: 700; color: var(--text-main); }
-        .month-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
-        .month-cal-weekday { font-size: 0.75rem; font-weight: 600; color: var(--text-sub); padding-bottom: 6px; }
+        .chart-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            transition: background-color 0.25s ease;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .chart-title {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chart-legend-wrap {
+            display: flex;
+            gap: 12px;
+            font-size: 0.74rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            justify-content: flex-end;
+        }
+        .legend-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        /* --- 月間カレンダーモーダル用スタイル --- */
+        .month-cal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 6px 12px 6px;
+        }
+        .month-cal-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .month-cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            text-align: center;
+        }
+        .month-cal-weekday {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-sub);
+            padding-bottom: 6px;
+        }
         .month-cal-day {
-            aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-size: 0.88rem; font-weight: 600; border-radius: 50%; cursor: pointer; position: relative; color: var(--text-main); background: transparent;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.88rem;
+            font-weight: 600;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            color: var(--text-main);
+            background: transparent;
+            transition: background-color 0.15s, transform 0.1s, box-shadow 0.15s;
         }
-        .month-cal-day:hover { background-color: var(--input-bg); }
-        .month-cal-day.empty { cursor: default; pointer-events: none; }
-        .month-cal-day.exceeded { background-color: #EF4444 !important; color: #FFFFFF !important; box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4); }
-        .month-cal-day.selected { background-color: var(--theme-color); color: var(--theme-text); font-weight: 700; box-shadow: 0 0 0 2px var(--theme-text); }
-        .month-cal-day.is-today { border: 1.5px solid var(--send-btn-bg); }
+        .month-cal-day:hover {
+            background-color: var(--input-bg);
+        }
+        .month-cal-day:active {
+            transform: scale(0.92);
+        }
+        .month-cal-day.empty {
+            cursor: default;
+            pointer-events: none;
+        }
+        
+        .month-cal-day.exceeded {
+            background-color: #EF4444 !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4);
+        }
 
+        .month-cal-day.selected {
+            background-color: var(--theme-color);
+            color: var(--theme-text);
+            font-weight: 700;
+            box-shadow: 0 0 0 2px var(--theme-text);
+        }
+        .month-cal-day.selected.exceeded {
+            background-color: #EF4444 !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 0 0 2.5px #1E293B, 0 1px 4px rgba(239, 68, 68, 0.5) !important;
+        }
+
+        .month-cal-day.is-today {
+            border: 1.5px solid var(--send-btn-bg);
+        }
+
+        /* --- サイドスライドメニュー --- */
         .drawer-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.4);
-            z-index: 200; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
-        .drawer-overlay.active { opacity: 1; visibility: visible; }
+        .drawer-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
         .drawer-menu {
-            position: fixed; top: 0; left: -260px; width: 260px; height: 100vh; background-color: var(--card-bg);
-            z-index: 210; box-shadow: 2px 0 12px rgba(0,0,0,0.15); transition: transform 0.3s ease; display: flex; flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: -260px;
+            width: 260px;
+            height: 100vh;
+            background-color: var(--card-bg);
+            z-index: 210;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
         }
-        .drawer-overlay.active .drawer-menu { transform: translateX(260px); }
-        .drawer-header { padding: 20px 16px; background-color: var(--theme-color); color: var(--theme-text); font-size: 1.1rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
-        .drawer-list { list-style: none; padding: 12px 0; flex: 1; overflow-y: auto; }
-        .drawer-item { display: flex; align-items: center; gap: 14px; padding: 14px 20px; font-size: 0.95rem; font-weight: 500; color: var(--text-main); cursor: pointer; }
-        .drawer-item:active, .drawer-item.active { background-color: rgba(178, 216, 216, 0.25); color: var(--theme-text); font-weight: 700; }
+        .drawer-overlay.active .drawer-menu {
+            transform: translateX(260px);
+        }
 
-        main { padding: 0 14px 14px 14px; max-width: 600px; margin: 0 auto; }
-        .view-panel { display: none; }
-        .view-panel.active { display: block; }
+        .drawer-header {
+            padding: 20px 16px;
+            background-color: var(--theme-color);
+            color: var(--theme-text);
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-        .card-list { display: flex; flex-direction: column; gap: 6px; padding-bottom: 6px; }
+        .drawer-list {
+            list-style: none;
+            padding: 12px 0;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .drawer-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 20px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .drawer-item:active, .drawer-item.active {
+            background-color: rgba(178, 216, 216, 0.25);
+            color: var(--theme-text);
+            font-weight: 700;
+        }
+
+        /* --- メインコンテンツ --- */
+        main {
+            padding: 0 14px 14px 14px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .view-panel {
+            display: none;
+        }
+        .view-panel.active {
+            display: block;
+        }
+
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-bottom: 6px;
+        }
+
         .item-card {
-            border: 1px solid var(--card-border); border-left: 3.5px solid var(--theme-color); border-radius: 8px;
-            padding: 8px 12px; background: var(--card-bg); box-shadow: 0 1px 2px rgba(0,0,0,0.02); cursor: pointer;
+            border: 1px solid var(--card-border);
+            border-left: 3.5px solid var(--theme-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            background: var(--card-bg);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            transition: background-color 0.25s ease, border-color 0.25s ease, transform 0.1s;
+            cursor: pointer;
         }
-        .item-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
-        .item-title { font-size: 0.92rem; font-weight: 600; color: var(--text-main); }
-        .item-detail { font-size: 0.8rem; font-weight: 400; color: var(--text-sub); }
-        .blank-state { text-align: center; padding: 30px 20px; color: var(--text-sub); background: var(--card-bg); border-radius: 10px; border: 1px dashed var(--card-border); }
+        .item-card:active {
+            transform: scale(0.99);
+        }
 
-        .settings-container { display: flex; flex-direction: column; gap: 14px; padding-top: 10px; }
-        .setting-section { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
-        .setting-section-title { font-size: 0.92rem; font-weight: 600; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-        .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--card-border); }
-        .setting-row:last-child { border-bottom: none; }
-        .setting-label { font-size: 0.88rem; color: var(--text-main); }
-        .setting-sublabel { font-size: 0.75rem; color: var(--text-sub); margin-top: 2px; }
-        .setting-input-wrap { display: flex; align-items: center; gap: 6px; }
-        .setting-input { width: 80px; padding: 6px 8px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 0.9rem; text-align: right; outline: none; background: var(--input-bg); color: var(--text-main); }
-        .setting-input-full { width: 100%; padding: 8px 10px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 0.85rem; outline: none; background: var(--input-bg); color: var(--text-main); margin-top: 6px; }
-        .setting-unit { font-size: 0.8rem; color: var(--text-sub); width: 28px; }
-        .auth-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background-color: #4285F4; color: #FFFFFF; border: none; border-radius: 8px; padding: 10px; font-size: 0.88rem; font-weight: 600; cursor: pointer; margin-top: 8px; }
+        .item-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3px;
+        }
 
+        .item-title {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-main);
+            line-height: 1.25;
+        }
+
+        .item-detail {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: var(--text-sub);
+            line-height: 1.25;
+        }
+
+        .blank-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-sub);
+            background: var(--card-bg);
+            border-radius: 10px;
+            border: 1px dashed var(--card-border);
+        }
+
+        /* --- 設定画面スタイル --- */
+        .settings-container {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding-top: 10px;
+        }
+
+        .setting-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            transition: background-color 0.25s ease;
+        }
+
+        .setting-section-title {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--card-border);
+        }
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            font-size: 0.88rem;
+            color: var(--text-main);
+        }
+
+        .setting-sublabel {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            margin-top: 2px;
+        }
+
+        .setting-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .setting-input {
+            width: 80px;
+            padding: 6px 8px;
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            text-align: right;
+            outline: none;
+            color: var(--text-main);
+            background: var(--input-bg);
+        }
+        .setting-input:focus {
+            border-color: var(--theme-color);
+            background: var(--card-bg);
+        }
+
+        .setting-input-full {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            outline: none;
+            color: var(--text-main);
+            background: var(--input-bg);
+            margin-top: 6px;
+        }
+
+        .setting-unit {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            width: 28px;
+        }
+
+        .auth-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: #4285F4;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        /* --- フッター --- */
         footer {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: var(--footer-height);
-            background-color: var(--footer-bg); border-top: 1px solid var(--footer-border); display: flex; align-items: center; padding: 0 16px; z-index: 100;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--footer-height);
+            background-color: var(--footer-bg);
+            border-top: 1px solid var(--footer-border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 100;
+            transition: background-color 0.25s ease;
         }
-        .record-bar-wrapper { width: 100%; max-width: 600px; margin: 0 auto; }
-        .record-bar { display: flex; align-items: center; gap: 10px; }
-        .input-bubble { flex: 1; background-color: var(--input-bg); border-radius: 24px; padding: 8px 16px; display: flex; align-items: center; cursor: pointer; }
-        .input-bubble input { width: 100%; border: none; background: transparent; font-size: 0.92rem; outline: none; color: var(--text-main); }
-        .footer-icons { display: flex; gap: 12px; align-items: center; }
-        .footer-btn { background: none; border: none; color: var(--text-sub); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 6px; }
-        .send-btn { display: none; width: 40px; height: 40px; border-radius: 50%; background-color: var(--send-btn-bg); border: none; color: #ffffff; cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0; }
-        #gallery-input, #camera-input { display: none; }
 
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5);
-            z-index: 300; display: none; align-items: center; justify-content: center; padding: 16px; opacity: 0; transition: opacity 0.25s ease;
+        .record-bar-wrapper {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
         }
-        .modal-overlay.active { display: flex; opacity: 1; }
-        .modal-box { background: var(--card-bg); border-radius: 14px; width: 100%; max-width: 380px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); padding: 18px; max-height: 85vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; font-weight: 600; font-size: 1.05rem; }
-        .modal-form-group { margin-bottom: 12px; }
-        .modal-label { font-size: 0.8rem; font-weight: 600; color: var(--text-sub); margin-bottom: 4px; display: block; }
-        .modal-input { width: 100%; padding: 9px 12px; border: 1px solid var(--card-border); border-radius: 8px; font-size: 0.92rem; background: var(--input-bg); color: var(--text-main); outline: none; }
-        .modal-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
-        .modal-btn { flex: 1; padding: 10px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .modal-btn-primary { background-color: var(--theme-color); color: var(--theme-text); }
-        .modal-btn-danger { background-color: #EF4444; color: #FFFFFF; }
-        .modal-btn-secondary { background-color: var(--input-bg); color: var(--text-main); }
+
+        .record-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-bubble {
+            flex: 1;
+            background-color: var(--input-bg);
+            border-radius: 24px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .input-bubble input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 0.92rem;
+            outline: none;
+            color: var(--text-main);
+        }
+
+        .input-bubble input::placeholder {
+            color: var(--text-sub);
+        }
+
+        .footer-icons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .footer-btn {
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+            border-radius: 6px;
+            transition: color 0.2s, background-color 0.2s;
+        }
+
+        .footer-btn:active {
+            color: var(--theme-color);
+            background-color: var(--input-bg);
+        }
+
+        .send-btn {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--send-btn-bg);
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            transition: transform 0.1s, opacity 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-btn:active {
+            transform: scale(0.92);
+            opacity: 0.9;
+        }
+
+        #gallery-input, #camera-input {
+            display: none;
+        }
+
+        /* --- モーダル共通 --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 300;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-box {
+            background: var(--card-bg);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            padding: 18px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        .modal-form-group {
+            margin-bottom: 12px;
+        }
+
+        .modal-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-sub);
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            font-size: 0.92rem;
+            background: var(--input-bg);
+            color: var(--text-main);
+            outline: none;
+        }
+        .modal-input:focus {
+            border-color: var(--theme-color);
+            background: var(--card-bg);
+        }
+
+        .modal-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .modal-btn-primary {
+            background-color: var(--theme-color);
+            color: var(--theme-text);
+        }
+        .modal-btn-danger {
+            background-color: #EF4444;
+            color: #FFFFFF;
+        }
+        .modal-btn-secondary {
+            background-color: var(--input-bg);
+            color: var(--text-main);
+        }
 
         .toast {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px); background: #10B981; color: #FFFFFF;
-            padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; z-index: 400; opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: #10B981;
+            color: #FFFFFF;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            z-index: 400;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
         }
-        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -249,7 +954,7 @@
                 </button>
             </div>
         </div>
-        <!-- 週間カレンダーバー（デフォルトは本日が一番右） -->
+        <!-- 週間カレンダーバー（通常は本日が一番右、カレンダー選択時のみその日が一番右） -->
         <div class="weekly-calendar" id="weekly-calendar"></div>
     </header>
 
@@ -609,7 +1314,7 @@
         };
     </script>
 
-    <!-- アプリ本体のロジック -->
+    <!-- アプリ本体のロジック (Gemini API解析を完全に組み込み) -->
     <script>
         lucide.createIcons();
 
