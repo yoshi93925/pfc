@@ -1316,29 +1316,47 @@
             handleInputChange();
         }
 
-        async function fetchGeminiNutrients(foodText, apiKey) {
-            // 公式に正しいエンドポイントURL構造
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-            const prompt = `「${foodText}」の推定栄養素を計算し、次のJSON形式のみで返してください。余計な文章やマークダウンのバッククォートは含めないでください。{"cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
+async function fetchGeminiNutrients(foodText, apiKey) {
+    // 試行するモデルの候補リスト（上から順にフォールバック）
+    const candidateModels = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-1.5-flash"];
+    const prompt = `「${foodText}」の推定栄養素を計算し、次のJSON形式のみで返してください。余計な文章やマークダウンのバッククォートは含めないでください。{"cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
 
+    let lastError = null;
+
+    for (const model of candidateModels) {
+        try {
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
             });
             const data = await response.json();
+            
             if (data.error) {
-                throw new Error(data.error.message || "API制限または認証エラー");
+                throw new Error(data.error.message || `[${model}] API制限または認証エラー`);
             }
             if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-                throw new Error("AIからの応答が空です");
+                throw new Error(`[${model}] AIからの応答が空です`);
             }
+            
             const rawText = data.candidates[0].content.parts[0].text;
             const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
             const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
-            if (jsonMatch) return JSON.parse(jsonMatch[0]);
+            
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
             throw new Error("JSON形式にパースできませんでした");
+        } catch (err) {
+            lastError = err;
+            console.warn(`Model ${model} failed, trying next...`, err);
         }
+    }
+    
+    // すべてのモデルで失敗した場合
+    throw lastError || new Error("すべてのAIモデルでの解析に失敗しました。");
+}
 
         function handleInputChange() {
             const inputVal = document.getElementById('record-input').value.trim();
