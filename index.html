@@ -249,7 +249,7 @@
                 </button>
             </div>
         </div>
-        <!-- 週間カレンダーバー（原則として常に本日が一番右に固定） -->
+        <!-- 週間カレンダーバー（通常は本日が一番右に固定） -->
         <div class="weekly-calendar" id="weekly-calendar"></div>
     </header>
 
@@ -618,6 +618,7 @@
         let selectedDateStr = new Date().toISOString().split('T')[0];
         let calViewingDate = new Date();
         window.geminiApiKey = localStorage.getItem('gemini_api_key') || "";
+        let forceAnchorDate = null; // 月間カレンダーから選択されたときのみ一時的にセットされる例外用変数
 
         // --- 初期データ管理 ---
         let foodRecords = JSON.parse(localStorage.getItem('pfc_food_records') || '[]');
@@ -697,6 +698,7 @@
 
         function goToToday() {
             selectedDateStr = new Date().toISOString().split('T')[0];
+            forceAnchorDate = null; // 今日へ戻る時は本日本来の右端固定に戻す
             closeModal('monthly-calendar-modal');
             renderWeeklyCalendar();
             renderFoodList(true);
@@ -760,9 +762,10 @@
             lucide.createIcons();
         }
 
-        // 月間カレンダーから選択されたときのみ、その日が一番右に来るようにする
+        // 月間カレンダーから選択されたときのみ、例外としてその日が一番右に来るようにする
         function selectDateAndAlignWeekly(dateISO) {
             selectedDateStr = dateISO;
+            forceAnchorDate = dateISO; // 例外フラグセット
             closeModal('monthly-calendar-modal');
             renderWeeklyCalendar();
             renderFoodList(true);
@@ -770,9 +773,7 @@
             if (currentCategory === 'weight') renderWeightList(true);
         }
 
-        // --- 週間カレンダー (通常は常に「本日」が一番右に固定、月間から選んだときのみ例外としてその日が右端) ---
-        let forceAnchorDate = null; // 例外フラグ
-
+        // --- 週間カレンダー (通常は常に「本日」が一番右に固定、月間からの選択時のみその日が右端) ---
         function renderWeeklyCalendar() {
             const calendarEl = document.getElementById('weekly-calendar');
             calendarEl.innerHTML = '';
@@ -780,7 +781,7 @@
             const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
             const todayISO = new Date().toISOString().split('T')[0];
             
-            // 通常は常に本日(todayISO)を基準に右端にする。月間カレンダーで明示的に選ばれた時のみ forceAnchorDate を使う
+            // forceAnchorDate があればそれを使い、なければ常に本日の日付を右端の基準にする
             const anchor = forceAnchorDate ? forceAnchorDate : todayISO;
             const anchorDate = new Date(anchor);
 
@@ -812,7 +813,7 @@
                 cell.className = `week-day-cell ${isToday ? 'is-today' : ''} ${isSelected ? 'selected' : ''} ${isExceeded ? 'exceeded' : ''}`;
                 cell.onclick = () => {
                     selectedDateStr = dateKey;
-                    forceAnchorDate = dateKey; // 週間カレンダーから直接タップした場合はその日を右端に固定
+                    // 週間カレンダー内のタップでは右端（本日基準）をずらさない仕様
                     renderWeeklyCalendar();
                     renderFoodList(true);
                     if (currentCategory === 'exercise') renderExerciseList(true);
@@ -1301,6 +1302,8 @@
                     }
                 } catch (err) {
                     console.error("Gemini API Error:", err);
+                    window.foodRecords = window.foodRecords.filter(f => f.id !== newFoodId);
+                    renderFoodList(true);
                     alert("Gemini APIでの解析に失敗しました。APIキーまたは通信状態をご確認ください。");
                 }
             }
