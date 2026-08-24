@@ -79,14 +79,24 @@
             display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
         }
         .header-top { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px 2px 16px; height: 48px; }
-        .header-title { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.05em; color: var(--header-text); }
-        .header-btn-group { display: flex; gap: 14px; align-items: center; }
+        
+        /* ヘッダー内ナビゲーションアイコン群 */
+        .header-nav-tabs { display: flex; gap: 6px; align-items: center; background: rgba(255, 255, 255, 0.35); padding: 3px 6px; border-radius: 20px; }
+        .header-tab-btn {
+            background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            color: var(--header-text); width: 32px; height: 32px; border-radius: 50%; transition: background-color 0.2s, transform 0.1s;
+        }
+        .header-tab-btn:active { transform: scale(0.92); }
+        .header-tab-btn.active { background-color: rgba(255, 255, 255, 0.85); box-shadow: 0 1px 3px rgba(0,0,0,0.08); font-weight: bold; }
+
+        .header-btn-group { display: flex; gap: 10px; align-items: center; }
 
         .icon-btn {
             background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
             color: var(--header-text); padding: 6px; border-radius: 50%; transition: opacity 0.2s;
         }
         .icon-btn:active { opacity: 0.6; }
+        .icon-btn.active-settings { background-color: rgba(255, 255, 255, 0.5); }
 
         .weekly-calendar {
             display: flex; justify-content: space-between; padding: 6px 12px 8px 12px;
@@ -149,21 +159,6 @@
         .month-cal-day.exceeded { background-color: #EF4444 !important; color: #FFFFFF !important; box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4); }
         .month-cal-day.selected { background-color: var(--theme-color); color: var(--theme-text); font-weight: 700; box-shadow: 0 0 0 2px var(--theme-text); }
         .month-cal-day.is-today { border: 1.5px solid var(--send-btn-bg); }
-
-        .drawer-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.4);
-            z-index: 200; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .drawer-overlay.active { opacity: 1; visibility: visible; }
-        .drawer-menu {
-            position: fixed; top: 0; left: -260px; width: 260px; height: 100vh; background-color: var(--card-bg);
-            z-index: 210; box-shadow: 2px 0 12px rgba(0,0,0,0.15); transition: transform 0.3s ease; display: flex; flex-direction: column;
-        }
-        .drawer-overlay.active .drawer-menu { transform: translateX(260px); }
-        .drawer-header { padding: 20px 16px; background-color: var(--theme-color); color: var(--theme-text); font-size: 1.1rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
-        .drawer-list { list-style: none; padding: 12px 0; flex: 1; overflow-y: auto; }
-        .drawer-item { display: flex; align-items: center; gap: 14px; padding: 14px 20px; font-size: 0.95rem; font-weight: 500; color: var(--text-main); cursor: pointer; }
-        .drawer-item:active, .drawer-item.active { background-color: rgba(178, 216, 216, 0.25); color: var(--theme-text); font-weight: 700; }
 
         main { padding: 0 14px 14px 14px; max-width: 600px; margin: 0 auto; }
         .view-panel { display: none; }
@@ -251,15 +246,24 @@
     <!-- ヘッダーエリア -->
     <header id="header">
         <div class="header-top">
-            <button class="icon-btn" onclick="toggleDrawer(true)" title="メニュー">
-                <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
-            </button>
-            <div class="header-title" id="page-title">食事</div>
+            <!-- ヘッダー内切り替えアイコンタブ群 -->
+            <div class="header-nav-tabs">
+                <button class="header-tab-btn active" id="tab-btn-food" onclick="switchView('food')" title="食事">
+                    <i data-lucide="utensils" style="width: 18px; height: 18px;"></i>
+                </button>
+                <button class="header-tab-btn" id="tab-btn-weight" onclick="switchView('weight')" title="体重">
+                    <i data-lucide="user" style="width: 18px; height: 18px;"></i>
+                </button>
+                <button class="header-tab-btn" id="tab-btn-exercise" onclick="switchView('exercise')" title="運動">
+                    <i data-lucide="dumbbell" style="width: 18px; height: 18px;"></i>
+                </button>
+            </div>
+
             <div class="header-btn-group">
                 <button class="icon-btn" onclick="openMonthlyCalendarModal()" title="月間カレンダー">
                     <i data-lucide="calendar" style="width: 22px; height: 22px;"></i>
                 </button>
-                <button class="icon-btn" onclick="switchView('settings')" title="設定">
+                <button class="icon-btn" id="settings-toggle-btn" onclick="toggleSettingsView()" title="設定">
                     <i data-lucide="settings" style="width: 22px; height: 22px;"></i>
                 </button>
             </div>
@@ -267,21 +271,6 @@
         <!-- 週間カレンダーバー -->
         <div class="weekly-calendar" id="weekly-calendar"></div>
     </header>
-
-    <!-- サイドドロワーメニュー -->
-    <div class="drawer-overlay" id="drawer-overlay" onclick="toggleDrawer(false)">
-        <div class="drawer-menu" onclick="event.stopPropagation()">
-            <div class="drawer-header">
-                <span>メニュー</span>
-                <button class="icon-btn" onclick="toggleDrawer(false)" style="color: inherit;"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
-            </div>
-            <ul class="drawer-list">
-                <li class="drawer-item active" id="menu-food" onclick="selectMenu('food')"><i data-lucide="utensils" style="width: 20px; height: 20px;"></i><span>食事</span></li>
-                <li class="drawer-item" id="menu-weight" onclick="selectMenu('weight')"><i data-lucide="scale" style="width: 20px; height: 20px;"></i><span>体重</span></li>
-                <li class="drawer-item" id="menu-exercise" onclick="selectMenu('exercise')"><i data-lucide="activity" style="width: 20px; height: 20px;"></i><span>運動</span></li>
-            </ul>
-        </div>
-    </div>
 
     <!-- メインコンテンツ -->
     <main>
@@ -633,7 +622,7 @@
         let calViewingDate = new Date();
         window.geminiApiKey = localStorage.getItem('gemini_api_key') || "";
         let forceAnchorDate = null;
-        let base64Image = null; // 写真データ保持用
+        let base64Image = null;
 
         let foodRecords = JSON.parse(localStorage.getItem('pfc_food_records') || '[]');
         if (foodRecords.length === 0) {
@@ -1264,11 +1253,9 @@
             }
         }
 
-        // --- AI解析 (品名＋栄養素を画像から自動特定) ---
         async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
             const candidateModels = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-1.5-flash"];
             
-            // 写真の場合はAIに品名も自動で判定させるプロンプトにする
             let prompt = "";
             if (imageBase64) {
                 prompt = `この写真に写っている料理の一般的な品名（例: 牛丼、唐揚げ定食、サラダなど）を特定し、その推定栄養素を計算してください。次のJSON形式のみで返し、余計な文章やマークダウンは含めないでください。{"name": "品名", "cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
@@ -1350,7 +1337,6 @@
                     return;
                 }
 
-                // 仮の登録
                 window.foodRecords.push({
                     id: newFoodId,
                     date: selectedDateStr,
@@ -1364,7 +1350,6 @@
                     const result = await fetchGeminiNutrients(text, apiKey, base64Image);
                     const target = window.foodRecords.find(f => f.id === newFoodId);
                     if (target && result) {
-                        // AIが特定した品名（result.name）を反映、なければ入力値や「食事」にする
                         const determinedName = result.name || (isPhoto ? "食事" : text);
                         target.name = determinedName;
                         target.foodName = determinedName;
@@ -1376,7 +1361,7 @@
                         localStorage.setItem('pfc_food_records', JSON.stringify(window.foodRecords));
                         if (window.syncDataToCloud) window.syncDataToCloud();
                         
-                        base64Image = null; // クリア
+                        base64Image = null;
                         hideLoading();
                         
                         renderWeeklyCalendar();
@@ -1415,12 +1400,10 @@
         function handleImageSelection(event) {
             const file = event.target.files[0];
             if (file) {
-                // 入力欄をクリアしてポップアップを表示
                 document.getElementById('record-input').value = "";
                 handleInputChange();
                 showLoading("AIが写真を解析して品名と栄養素を計算中...");
 
-                // 画像をBase64にエンコードして自動送信
                 const reader = new FileReader();
                 reader.onload = async function(e) {
                     base64Image = e.target.result.split(',')[1];
@@ -1434,22 +1417,30 @@
             if (e.key === 'Enter') submitRecord(false);
         });
 
+        // 画面切り替え処理
         function switchView(viewName) {
             document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
-            const titleEl = document.getElementById('page-title');
-            const inputEl = document.getElementById('record-input');
+            document.querySelectorAll('.header-tab-btn').forEach(btn => btn.classList.remove('active'));
             
+            const settingsBtn = document.getElementById('settings-toggle-btn');
+            if (settingsBtn) settingsBtn.classList.remove('active-settings');
+
+            const targetTab = document.getElementById(`tab-btn-${viewName}`);
+            if (targetTab) targetTab.classList.add('active');
+
+            const inputEl = document.getElementById('record-input');
             const favBtn = document.getElementById('fav-btn');
             const galleryBtn = document.getElementById('gallery-btn');
             const cameraBtn = document.getElementById('camera-btn');
 
             if (viewName === 'settings') {
+                currentCategory = 'settings';
                 document.getElementById('view-settings').classList.add('active');
-                titleEl.textContent = '設定';
+                if (settingsBtn) settingsBtn.classList.add('active-settings');
+                document.querySelectorAll('.header-tab-btn').forEach(btn => btn.classList.remove('active'));
             } else if (viewName === 'weight') {
                 currentCategory = 'weight';
                 document.getElementById('view-weight').classList.add('active');
-                titleEl.textContent = '体重';
                 inputEl.placeholder = 'タップして体重・体脂肪を入力';
                 inputEl.readOnly = true;
                 favBtn.style.display = 'none';
@@ -1459,7 +1450,6 @@
             } else if (viewName === 'exercise') {
                 currentCategory = 'exercise';
                 document.getElementById('view-exercise').classList.add('active');
-                titleEl.textContent = '運動';
                 inputEl.placeholder = '運動内容を入力';
                 inputEl.readOnly = false;
                 favBtn.style.display = 'flex';
@@ -1469,7 +1459,6 @@
             } else {
                 currentCategory = 'food';
                 document.getElementById('view-food').classList.add('active');
-                titleEl.textContent = '食事';
                 inputEl.placeholder = '何を食べましたか？';
                 inputEl.readOnly = false;
                 favBtn.style.display = 'flex';
@@ -1479,18 +1468,13 @@
             }
         }
 
-        function toggleDrawer(open) {
-            const overlay = document.getElementById('drawer-overlay');
-            if (open) overlay.classList.add('active');
-            else overlay.classList.remove('active');
-        }
-
-        function selectMenu(category) {
-            toggleDrawer(false);
-            document.querySelectorAll('.drawer-item').forEach(item => item.classList.remove('active'));
-            const activeMenuItem = document.getElementById(`menu-${category}`);
-            if (activeMenuItem) activeMenuItem.classList.add('active');
-            switchView(category);
+        // 設定ボタンを押した時のトグル動作（設定画面なら食事に戻る、それ以外なら設定を開く）
+        function toggleSettingsView() {
+            if (currentCategory === 'settings') {
+                switchView('food');
+            } else {
+                switchView('settings');
+            }
         }
 
         function openModal(id) { document.getElementById(id).classList.add('active'); }
@@ -1513,7 +1497,7 @@
             alert('設定を保存しました！');
             renderWeeklyCalendar();
             renderFoodList(false);
-            switchView(currentCategory);
+            switchView('food');
         };
 
         window.addEventListener('DOMContentLoaded', () => {
