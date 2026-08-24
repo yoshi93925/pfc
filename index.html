@@ -249,7 +249,7 @@
                 </button>
             </div>
         </div>
-        <!-- 週間カレンダーバー（通常は常に本日が一番右に固定） -->
+        <!-- 週間カレンダーバー -->
         <div class="weekly-calendar" id="weekly-calendar"></div>
     </header>
 
@@ -316,7 +316,6 @@
                         </span>
                         <span style="font-size: 0.8rem; color: var(--text-sub);" id="latest-weight-stat">最新: -- kg</span>
                     </div>
-                    <!-- 体重・体脂肪推移の文字の下、同じ行の左側に期間プルダウンを設置 -->
                     <div style="margin-bottom: 8px; display: flex; justify-content: flex-start;">
                         <select id="weight-range-select" onchange="initOrUpdateWeightChart()" style="font-size: 0.78rem; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--card-border); background: var(--input-bg); color: var(--text-main); outline: none;">
                             <option value="1m">1か月</option>
@@ -450,7 +449,7 @@
         </div>
     </div>
 
-    <!-- 体重・体脂肪 記録/編集モーダル（時間編集つき） -->
+    <!-- 体重・体脂肪 記録/編集モーダル -->
     <div class="modal-overlay" id="weight-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -471,7 +470,7 @@
         </div>
     </div>
 
-    <!-- Firebase SDK (Googleログイン・クラウド同期) -->
+    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -550,7 +549,7 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     if (data.foodLogs) {
-                        window.foodRecords = data.foodLogs.map(item => ({
+                        window.foodLogs = data.foodLogs.map(item => ({
                             id: item.id || ('f_' + Math.random()),
                             date: item.date || new Date().toISOString().split('T')[0],
                             name: item.name || item.foodName || "名称未設定",
@@ -618,9 +617,9 @@
         let selectedDateStr = new Date().toISOString().split('T')[0];
         let calViewingDate = new Date();
         window.geminiApiKey = localStorage.getItem('gemini_api_key') || "";
-        let forceAnchorDate = null; // 月間カレンダーから選択されたときのみセットされる例外用変数
+        let forceAnchorDate = null;
+        let base64Image = null; // 写真データ保持用
 
-        // --- 初期データ管理 ---
         let foodRecords = JSON.parse(localStorage.getItem('pfc_food_records') || '[]');
         if (foodRecords.length === 0) {
             const today = new Date().toISOString().split('T')[0];
@@ -682,7 +681,6 @@
             if (window.syncDataToCloud) window.syncDataToCloud();
         };
 
-        // --- カレンダー管理 ---
         function openMonthlyCalendarModal() {
             calViewingDate = new Date(selectedDateStr);
             renderMonthlyCalendarGrid();
@@ -698,7 +696,7 @@
 
         function goToToday() {
             selectedDateStr = new Date().toISOString().split('T')[0];
-            forceAnchorDate = null; // 本日に戻す時は強制アンカーを解除し、本日を右端にする
+            forceAnchorDate = null;
             closeModal('monthly-calendar-modal');
             renderWeeklyCalendar();
             renderFoodList(true);
@@ -762,10 +760,9 @@
             lucide.createIcons();
         }
 
-        // 月間カレンダーから選択されたときのみ、例外としてその日が一番右に来るようにする
         function selectDateAndAlignWeekly(dateISO) {
             selectedDateStr = dateISO;
-            forceAnchorDate = dateISO; // 例外フラグセット（月間カレンダーからの選択時のみ）
+            forceAnchorDate = dateISO;
             closeModal('monthly-calendar-modal');
             renderWeeklyCalendar();
             renderFoodList(true);
@@ -773,15 +770,12 @@
             if (currentCategory === 'weight') renderWeightList(true);
         }
 
-        // --- 週間カレンダー (通常は常に「本日」が一番右に固定) ---
         function renderWeeklyCalendar() {
             const calendarEl = document.getElementById('weekly-calendar');
             calendarEl.innerHTML = '';
 
             const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
             const todayISO = new Date().toISOString().split('T')[0];
-            
-            // forceAnchorDate があればそれを使い、なければ常に本日の日付を右端の基準にする
             const anchor = forceAnchorDate ? forceAnchorDate : todayISO;
             const anchorDate = new Date(anchor);
 
@@ -813,7 +807,7 @@
                 cell.className = `week-day-cell ${isToday ? 'is-today' : ''} ${isSelected ? 'selected' : ''} ${isExceeded ? 'exceeded' : ''}`;
                 cell.onclick = () => {
                     selectedDateStr = dateKey;
-                    forceAnchorDate = null; // 週間カレンダーから選んだ場合は、右端を本日に戻す
+                    forceAnchorDate = null;
                     renderWeeklyCalendar();
                     renderFoodList(true);
                     if (currentCategory === 'exercise') renderExerciseList(true);
@@ -828,7 +822,6 @@
             }
         }
 
-        // --- 食事リスト描画 ---
         function renderFoodList(autoScrollToBottom = true) {
             const list = document.getElementById('food-list');
             list.innerHTML = '';
@@ -995,7 +988,6 @@
             }
         }
 
-        // --- 体重・体脂肪 2軸グラフ ---
         function initOrUpdateWeightChart() {
             const ctx = document.getElementById('weightChart');
             if (!ctx) return;
@@ -1083,7 +1075,6 @@
             renderWeightList(true);
         }
 
-        // 選択した日付のものだけを表示
         function renderWeightList(autoScrollToBottom = true) {
             const list = document.getElementById('weight-list');
             if (!list) return;
@@ -1211,7 +1202,6 @@
             }
         };
 
-        // --- 運動機能 ---
         function renderExerciseList(autoScrollToBottom = true) {
             const list = document.getElementById('exercise-list');
             list.innerHTML = '';
@@ -1250,7 +1240,58 @@
             }
         }
 
-        // --- AI解析 ＆ 送信 (API失敗時は例外をキャッチして明確にエラー通知) ---
+        // --- AI解析 (フォールバック付き & 画像対応) ---
+        async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
+            const candidateModels = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-1.5-flash"];
+            const prompt = `「${foodText}」の推定栄養素を計算し、次のJSON形式のみで返してください。余計な文章やマークダウンのバッククォートは含めないでください。{"cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
+
+            let lastError = null;
+
+            for (const model of candidateModels) {
+                try {
+                    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                    
+                    let parts = [{ text: prompt }];
+                    if (imageBase64) {
+                        parts.push({
+                            inlineData: {
+                                mimeType: "image/jpeg",
+                                data: imageBase64
+                            }
+                        });
+                    }
+
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: parts }] })
+                    });
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        throw new Error(data.error.message || `[${model}] API制限または認証エラー`);
+                    }
+                    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+                        throw new Error(`[${model}] AIからの応答が空です`);
+                    }
+                    
+                    const rawText = data.candidates[0].content.parts[0].text;
+                    const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+                    const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
+                    
+                    if (jsonMatch) {
+                        return JSON.parse(jsonMatch[0]);
+                    }
+                    throw new Error("JSON形式にパースできませんでした");
+                } catch (err) {
+                    lastError = err;
+                    console.warn(`Model ${model} failed, trying next...`, err);
+                }
+            }
+            
+            throw lastError || new Error("すべてのAIモデルでの解析に失敗しました。");
+        }
+
         async function submitRecord() {
             const input = document.getElementById('record-input');
             const text = input.value.trim();
@@ -1277,7 +1318,6 @@
                     return;
                 }
 
-                // 仮のプレースホルダーを追加
                 window.foodRecords.push({
                     id: newFoodId,
                     date: selectedDateStr,
@@ -1288,7 +1328,8 @@
                 renderFoodList(true);
 
                 try {
-                    const result = await fetchGeminiNutrients(text, apiKey);
+                    // 画像があれば base64Image を渡して解析
+                    const result = await fetchGeminiNutrients(text, apiKey, base64Image);
                     const target = window.foodRecords.find(f => f.id === newFoodId);
                     if (target && result) {
                         target.cal = result.cal || result.calories || 0;
@@ -1297,6 +1338,9 @@
                         target.c = result.c || result.carbs || 0;
                         localStorage.setItem('pfc_food_records', JSON.stringify(window.foodRecords));
                         if (window.syncDataToCloud) window.syncDataToCloud();
+                        
+                        base64Image = null; // 送信後にクリア
+                        
                         renderWeeklyCalendar();
                         renderFoodList(true);
                         showToast(`✨ AI解析完了: 「${text}」`);
@@ -1305,7 +1349,6 @@
                     }
                 } catch (err) {
                     console.error("Gemini API Error:", err);
-                    // 失敗した場合はリストから削除してアラート通知
                     window.foodRecords = window.foodRecords.filter(f => f.id !== newFoodId);
                     renderFoodList(true);
                     alert("Gemini APIでの解析に失敗しました。「設定」からAPIキーが正しいか、または通信状態をご確認ください。エラー内容: " + err.message);
@@ -1315,48 +1358,6 @@
             input.value = '';
             handleInputChange();
         }
-
-async function fetchGeminiNutrients(foodText, apiKey) {
-    // 試行するモデルの候補リスト（上から順にフォールバック）
-    const candidateModels = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-1.5-flash"];
-    const prompt = `「${foodText}」の推定栄養素を計算し、次のJSON形式のみで返してください。余計な文章やマークダウンのバッククォートは含めないでください。{"cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
-
-    let lastError = null;
-
-    for (const model of candidateModels) {
-        try {
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
-            const data = await response.json();
-            
-            if (data.error) {
-                throw new Error(data.error.message || `[${model}] API制限または認証エラー`);
-            }
-            if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-                throw new Error(`[${model}] AIからの応答が空です`);
-            }
-            
-            const rawText = data.candidates[0].content.parts[0].text;
-            const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-            const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
-            
-            if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
-            }
-            throw new Error("JSON形式にパースできませんでした");
-        } catch (err) {
-            lastError = err;
-            console.warn(`Model ${model} failed, trying next...`, err);
-        }
-    }
-    
-    // すべてのモデルで失敗した場合
-    throw lastError || new Error("すべてのAIモデルでの解析に失敗しました。");
-}
 
         function handleInputChange() {
             const inputVal = document.getElementById('record-input').value.trim();
@@ -1377,6 +1378,13 @@ async function fetchGeminiNutrients(foodText, apiKey) {
             if (file) {
                 document.getElementById('record-input').value = file.name.split('.')[0] || "食事写真";
                 handleInputChange();
+
+                // 画像をBase64にエンコード
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    base64Image = e.target.result.split(',')[1];
+                };
+                reader.readAsDataURL(file);
             }
         }
 
@@ -1384,7 +1392,6 @@ async function fetchGeminiNutrients(foodText, apiKey) {
             if (e.key === 'Enter') submitRecord();
         });
 
-        // --- 画面切り替え ---
         function switchView(viewName) {
             document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
             const titleEl = document.getElementById('page-title');
