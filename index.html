@@ -80,7 +80,6 @@
         }
         .header-top { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px 2px 16px; height: 48px; }
         
-        /* ヘッダー内ナビゲーションアイコン群 */
         .header-nav-tabs { display: flex; gap: 6px; align-items: center; background: rgba(255, 255, 255, 0.35); padding: 3px 6px; border-radius: 20px; }
         .header-tab-btn {
             background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -246,7 +245,6 @@
     <!-- ヘッダーエリア -->
     <header id="header">
         <div class="header-top">
-            <!-- ヘッダー内切り替えアイコンタブ群 -->
             <div class="header-nav-tabs">
                 <button class="header-tab-btn active" id="tab-btn-food" onclick="switchView('food')" title="食事">
                     <i data-lucide="utensils" style="width: 18px; height: 18px;"></i>
@@ -474,6 +472,21 @@
         </div>
     </div>
 
+    <!-- お気に入り（リスト）選択モーダル -->
+    <div class="modal-overlay" id="favorite-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span>📋 リストから選択</span>
+                <button class="icon-btn" onclick="closeModal('favorite-modal')"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
+            </div>
+            <div class="modal-form-group" style="margin-bottom: 8px;">
+                <input type="text" class="modal-input" id="fav-search-input" placeholder="メニュー名で検索..." oninput="renderFavoriteList()">
+            </div>
+            <div id="favorite-list-container" style="max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;"></div>
+            <button class="modal-btn modal-btn-secondary" style="width: 100%;" onclick="closeModal('favorite-modal')">閉じる</button>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -566,6 +579,10 @@
                     }
                     if (data.weightLogs) window.weightDataHistory = data.weightLogs;
                     if (data.exerciseLogs) window.exerciseRecords = data.exerciseLogs;
+                    if (data.favoritesList) {
+                        window.favoritesList = data.favoritesList;
+                        localStorage.setItem('pfc_favorites_list', JSON.stringify(window.favoritesList));
+                    }
                     if (data.userSettings) {
                         const s = data.userSettings;
                         if (s.calories) document.getElementById('target-calories').value = s.calories;
@@ -602,6 +619,7 @@
                     foodLogs: window.foodRecords || [],
                     weightLogs: window.weightDataHistory || [],
                     exerciseLogs: window.exerciseRecords || [],
+                    favoritesList: window.favoritesList || [],
                     userSettings: { calories: cal, protein: p, fat: f, carb: c },
                     geminiApiKey: apiKey,
                     updatedAt: new Date().toISOString()
@@ -623,6 +641,18 @@
         window.geminiApiKey = localStorage.getItem('gemini_api_key') || "";
         let forceAnchorDate = null;
         let base64Image = null;
+
+        // お気に入り（よく食べるもの）リストの初期データ
+        let favoritesList = JSON.parse(localStorage.getItem('pfc_favorites_list') || '[]');
+        if (favoritesList.length === 0) {
+            favoritesList = [
+                { id: 'fav1', name: 'ソイプロテイン', cal: 120, p: 20.0, f: 1.5, c: 2.0 },
+                { id: 'fav2', name: 'おにぎり(1個)', cal: 180, p: 3.0, f: 0.8, c: 38.0 },
+                { id: 'fav3', name: 'ゆで卵(1個)', cal: 76, p: 6.2, f: 5.2, c: 0.4 }
+            ];
+            localStorage.setItem('pfc_favorites_list', JSON.stringify(favoritesList));
+        }
+        window.favoritesList = favoritesList;
 
         let foodRecords = JSON.parse(localStorage.getItem('pfc_food_records') || '[]');
         if (foodRecords.length === 0) {
@@ -692,6 +722,65 @@
             window.geminiApiKey = val.trim();
             localStorage.setItem('gemini_api_key', window.geminiApiKey);
             if (window.syncDataToCloud) window.syncDataToCloud();
+        };
+
+        // お気に入り選択モーダルを開く処理
+        window.openFavoriteModal = function() {
+            const searchInput = document.getElementById('fav-search-input');
+            if (searchInput) searchInput.value = "";
+            renderFavoriteList();
+            openModal('favorite-modal');
+        };
+
+        function renderFavoriteList() {
+            const container = document.getElementById('favorite-list-container');
+            if (!container) return;
+            container.innerHTML = "";
+
+            const query = (document.getElementById('fav-search-input').value || "").toLowerCase().trim();
+            const list = (window.favoritesList || []).filter(item => 
+                !query || (item.name || "").toLowerCase().includes(query)
+            );
+
+            if (list.length === 0) {
+                container.innerHTML = `<div style="text-align: center; color: var(--text-sub); padding: 20px; font-size: 0.85rem;">登録されているアイテムがありません</div>`;
+                return;
+            }
+
+            list.forEach(item => {
+                const card = document.createElement('div');
+                card.style.cssText = "background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;";
+                card.onclick = () => selectFavoriteItem(item);
+                card.innerHTML = `
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">${item.name}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-sub); margin-top: 2px;">P: ${item.p}g / F: ${item.f}g / C: ${item.c}g (${item.cal} kcal)</div>
+                    </div>
+                    <button style="background: var(--theme-color); color: var(--theme-text); border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">追加</button>
+                `;
+                container.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        window.selectFavoriteItem = function(item) {
+            window.foodRecords.push({
+                id: 'f_' + Date.now(),
+                date: selectedDateStr,
+                name: item.name,
+                cal: item.cal || 0,
+                p: item.p || 0,
+                f: item.f || 0,
+                c: item.c || 0,
+                timestamp: Date.now()
+            });
+
+            localStorage.setItem('pfc_food_records', JSON.stringify(window.foodRecords));
+            if (window.syncDataToCloud) window.syncDataToCloud();
+            closeModal('favorite-modal');
+            renderWeeklyCalendar();
+            renderFoodList(true);
+            showToast(`✨ 「${item.name}」を追加しました`);
         };
 
         function openMonthlyCalendarModal() {
@@ -1468,7 +1557,6 @@
             }
         }
 
-        // 設定ボタンを押した時のトグル動作（設定画面なら食事に戻る、それ以外なら設定を開く）
         function toggleSettingsView() {
             if (currentCategory === 'settings') {
                 switchView('food');
