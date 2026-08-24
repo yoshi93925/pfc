@@ -186,6 +186,19 @@
         .setting-unit { font-size: 0.8rem; color: var(--text-sub); width: 28px; }
         .auth-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background-color: #4285F4; color: #FFFFFF; border: none; border-radius: 8px; padding: 10px; font-size: 0.88rem; font-weight: 600; cursor: pointer; margin-top: 8px; }
 
+        /* テーマカラーパレット選択用 */
+        .theme-picker { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
+        .theme-color-circle { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s; }
+        .theme-color-circle:active { transform: scale(0.9); }
+        .theme-color-circle.selected { border-color: #334155; transform: scale(1.15); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+
+        /* 設定保存ボタン */
+        .setting-save-btn {
+            width: 100%; background-color: var(--theme-color); color: var(--theme-text); border: none; border-radius: 10px;
+            padding: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.06); transition: opacity 0.2s;
+        }
+        .setting-save-btn:active { opacity: 0.8; }
+
         footer {
             position: fixed; bottom: 0; left: 0; width: 100%; height: var(--footer-height);
             background-color: var(--footer-bg); border-top: 1px solid var(--footer-border); display: flex; align-items: center; padding: 0 16px; z-index: 100;
@@ -370,6 +383,22 @@
                     </div>
                 </div>
 
+                <!-- テーマカラー選択セクション -->
+                <div class="setting-section">
+                    <div class="setting-section-title"><i data-lucide="palette" style="width: 18px; height: 18px; color: var(--theme-color);"></i>テーマカラー設定</div>
+                    <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                        <span class="setting-label">パステルカラーを選択</span>
+                        <div class="theme-picker">
+                            <div class="theme-color-circle selected" style="background-color: #B2D8D8;" onclick="changeThemeColor('#B2D8D8', '#2C4A4A', this)" title="ミント"></div>
+                            <div class="theme-color-circle" style="background-color: #BAE6FD;" onclick="changeThemeColor('#BAE6FD', '#0369A1', this)" title="スカイブルー"></div>
+                            <div class="theme-color-circle" style="background-color: #DDD6FE;" onclick="changeThemeColor('#DDD6FE', '#6D28D9', this)" title="ラベンダー"></div>
+                            <div class="theme-color-circle" style="background-color: #FBCFE8;" onclick="changeThemeColor('#FBCFE8', '#BE185D', this)" title="ピンク"></div>
+                            <div class="theme-color-circle" style="background-color: #FEF08A;" onclick="changeThemeColor('#FEF08A', '#854D0E', this)" title="イエロー"></div>
+                            <div class="theme-color-circle" style="background-color: #FED7AA;" onclick="changeThemeColor('#FED7AA', '#C2410C', this)" title="ピーチ"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="setting-section">
                     <div class="setting-section-title"><i data-lucide="sparkles" style="width: 18px; height: 18px; color: #4285F4;"></i>Googleアカウント ＆ Gemini AI設定</div>
                     <div style="margin-bottom: 12px;">
@@ -398,7 +427,7 @@
                     <input type="text" id="record-input" placeholder="何を食べましたか？" oninput="handleInputChange()">
                 </div>
                 <div class="footer-icons" id="footer-icons">
-                    <button class="footer-btn" id="fav-btn" title="お気に入り" onclick="openFavoriteModal()"><i data-lucide="bookmark" style="width: 20px; height: 20px;"></i></button>
+                    <button class="footer-btn" id="fav-btn" title="お気に入り" onclick="openFavoriteModal()"><i data-lucide="star" style="width: 20px; height: 20px;"></i></button>
                     <label class="footer-btn" id="gallery-btn" title="写真ライブラリから選択" style="cursor: pointer;"><i data-lucide="image" style="width: 20px; height: 20px;"></i><input type="file" id="gallery-input" accept="image/*" onchange="handleImageSelection(event)"></label>
                     <label class="footer-btn" id="camera-btn" title="カメラ起動" style="cursor: pointer;"><i data-lucide="camera" style="width: 20px; height: 20px;"></i><input type="file" id="camera-input" accept="image/*" capture="environment" onchange="handleImageSelection(event)"></label>
                 </div>
@@ -430,12 +459,17 @@
     <div class="modal-overlay" id="food-edit-modal">
         <div class="modal-box">
             <div class="modal-header">
-                <span>食事メニューの編集</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span>食事メニューの編集</span>
+                    <button class="icon-btn" id="edit-fav-toggle-btn" onclick="toggleFavoriteFromEdit()" title="お気に入り登録/解除" style="padding: 2px;">
+                        <i data-lucide="star-off" style="width: 18px; height: 18px;"></i>
+                    </button>
+                </div>
                 <button class="icon-btn" onclick="closeModal('food-edit-modal')"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
             </div>
             <input type="hidden" id="edit-food-id">
             <div class="modal-form-group"><label class="modal-label">日付</label><input type="date" class="modal-input" id="edit-food-date"></div>
-            <div class="modal-form-group"><label class="modal-label">品名</label><input type="text" class="modal-input" id="edit-food-name"></div>
+            <div class="modal-form-group"><label class="modal-label">品名</label><input type="text" class="modal-input" id="edit-food-name" oninput="updateEditFavoriteIconState()"></div>
             <div class="modal-grid-2">
                 <div class="modal-form-group"><label class="modal-label">カロリー (kcal)</label><input type="number" class="modal-input" id="edit-food-cal"></div>
                 <div class="modal-form-group"><label class="modal-label">たんぱく質 P (g)</label><input type="number" step="0.1" class="modal-input" id="edit-food-p"></div>
@@ -476,7 +510,10 @@
     <div class="modal-overlay" id="favorite-modal">
         <div class="modal-box">
             <div class="modal-header">
-                <span>📋 リストから選択</span>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="list" style="width: 18px; height: 18px;"></i>
+                    <span>リストから選択</span>
+                </div>
                 <button class="icon-btn" onclick="closeModal('favorite-modal')"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
             </div>
             <div class="modal-form-group" style="margin-bottom: 8px;">
@@ -589,6 +626,7 @@
                         if (s.protein) document.getElementById('target-protein').value = s.protein;
                         if (s.fat) document.getElementById('target-fat').value = s.fat;
                         if (s.carb) document.getElementById('target-carb').value = s.carb;
+                        if (s.themeColor) window.applyThemeColor(s.themeColor, s.themeText || '#2C4A4A');
                     }
                     if (data.geminiApiKey) {
                         window.geminiApiKey = data.geminiApiKey;
@@ -614,13 +652,15 @@
                 const f = document.getElementById('target-fat').value;
                 const c = document.getElementById('target-carb').value;
                 const apiKey = document.getElementById('gemini-api-key').value.trim();
+                const currentTheme = localStorage.getItem('pfc_theme_color') || '#B2D8D8';
+                const currentThemeText = localStorage.getItem('pfc_theme_text') || '#2C4A4A';
 
                 await setDoc(userDocRef, {
                     foodLogs: window.foodRecords || [],
                     weightLogs: window.weightDataHistory || [],
                     exerciseLogs: window.exerciseRecords || [],
                     favoritesList: window.favoritesList || [],
-                    userSettings: { calories: cal, protein: p, fat: f, carb: c },
+                    userSettings: { calories: cal, protein: p, fat: f, carb: c, themeColor: currentTheme, themeText: currentThemeText },
                     geminiApiKey: apiKey,
                     updatedAt: new Date().toISOString()
                 }, { merge: true });
@@ -642,7 +682,6 @@
         let forceAnchorDate = null;
         let base64Image = null;
 
-        // お気に入り（よく食べるもの）リストの初期データ
         let favoritesList = JSON.parse(localStorage.getItem('pfc_favorites_list') || '[]');
         if (favoritesList.length === 0) {
             favoritesList = [
@@ -724,7 +763,23 @@
             if (window.syncDataToCloud) window.syncDataToCloud();
         };
 
-        // お気に入り選択モーダルを開く処理
+        // テーマカラー変更処理
+        window.changeThemeColor = function(bgColor, textColor, element) {
+            window.applyThemeColor(bgColor, textColor);
+            localStorage.setItem('pfc_theme_color', bgColor);
+            localStorage.setItem('pfc_theme_text', textColor);
+            
+            document.querySelectorAll('.theme-color-circle').forEach(el => el.classList.remove('selected'));
+            if (element) element.classList.add('selected');
+        };
+
+        window.applyThemeColor = function(bgColor, textColor) {
+            document.documentElement.style.setProperty('--theme-color', bgColor);
+            document.documentElement.style.setProperty('--theme-text', textColor);
+            const metaTheme = document.getElementById('metaThemeColor');
+            if (metaTheme) metaTheme.setAttribute('content', bgColor);
+        };
+
         window.openFavoriteModal = function() {
             const searchInput = document.getElementById('fav-search-input');
             if (searchInput) searchInput.value = "";
@@ -749,21 +804,22 @@
 
             list.forEach(item => {
                 const card = document.createElement('div');
-                card.style.cssText = "background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;";
-                card.onclick = () => selectFavoriteItem(item);
+                card.style.cssText = "background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;";
                 card.innerHTML = `
                     <div>
                         <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">${item.name}</div>
                         <div style="font-size: 0.75rem; color: var(--text-sub); margin-top: 2px;">P: ${item.p}g / F: ${item.f}g / C: ${item.c}g (${item.cal} kcal)</div>
                     </div>
-                    <button style="background: var(--theme-color); color: var(--theme-text); border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">追加</button>
+                    <button style="background: var(--theme-color); color: var(--theme-text); border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; cursor: pointer;" onclick="selectFavoriteItem(event, ${JSON.stringify(item).replace(/"/g, '&quot;')})">追加</button>
                 `;
                 container.appendChild(card);
             });
             lucide.createIcons();
         }
 
-        window.selectFavoriteItem = function(item) {
+        // 複数追加できるようにモーダルを閉じない仕様に変更
+        window.selectFavoriteItem = function(event, item) {
+            if (event) event.stopPropagation();
             window.foodRecords.push({
                 id: 'f_' + Date.now(),
                 date: selectedDateStr,
@@ -777,10 +833,54 @@
 
             localStorage.setItem('pfc_food_records', JSON.stringify(window.foodRecords));
             if (window.syncDataToCloud) window.syncDataToCloud();
-            closeModal('favorite-modal');
             renderWeeklyCalendar();
             renderFoodList(true);
             showToast(`✨ 「${item.name}」を追加しました`);
+        };
+
+        function updateEditFavoriteIconState() {
+            const nameVal = (document.getElementById('edit-food-name').value || "").trim();
+            const btn = document.getElementById('edit-fav-toggle-btn');
+            if (!btn) return;
+
+            const isFav = (window.favoritesList || []).some(f => f.name === nameVal);
+            btn.innerHTML = isFav 
+                ? `<i data-lucide="star" style="width: 18px; height: 18px; fill: currentColor;"></i>`
+                : `<i data-lucide="star-off" style="width: 18px; height: 18px;"></i>`;
+            lucide.createIcons();
+        }
+
+        window.toggleFavoriteFromEdit = function() {
+            const nameVal = (document.getElementById('edit-food-name').value || "").trim();
+            if (!nameVal) {
+                alert("品名を入力してください");
+                return;
+            }
+
+            const calVal = parseFloat(document.getElementById('edit-food-cal').value) || 0;
+            const pVal = parseFloat(document.getElementById('edit-food-p').value) || 0;
+            const fVal = parseFloat(document.getElementById('edit-food-f').value) || 0;
+            const cVal = parseFloat(document.getElementById('edit-food-c').value) || 0;
+
+            const index = window.favoritesList.findIndex(f => f.name === nameVal);
+            if (index >= 0) {
+                window.favoritesList.splice(index, 1);
+                showToast(`⭐ 「${nameVal}」をリストから外しました`);
+            } else {
+                window.favoritesList.push({
+                    id: 'fav_' + Date.now(),
+                    name: nameVal,
+                    cal: calVal,
+                    p: pVal,
+                    f: fVal,
+                    c: cVal
+                });
+                showToast(`⭐ 「${nameVal}」をリストに登録しました`);
+            }
+
+            localStorage.setItem('pfc_favorites_list', JSON.stringify(window.favoritesList));
+            if (window.syncDataToCloud) window.syncDataToCloud();
+            updateEditFavoriteIconState();
         };
 
         function openMonthlyCalendarModal() {
@@ -1050,6 +1150,8 @@
             document.getElementById('edit-food-p').value = item.p !== undefined ? item.p : (item.protein || 0);
             document.getElementById('edit-food-f').value = item.f !== undefined ? item.f : (item.fat || 0);
             document.getElementById('edit-food-c').value = item.c !== undefined ? item.c : (item.carbs || 0);
+            
+            updateEditFavoriteIconState();
             openModal('food-edit-modal');
         }
 
@@ -1506,7 +1608,6 @@
             if (e.key === 'Enter') submitRecord(false);
         });
 
-        // 画面切り替え処理
         function switchView(viewName) {
             document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.header-tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -1604,9 +1705,26 @@
                 document.getElementById('gemini-api-key').value = savedKey;
             }
 
+            const savedTheme = localStorage.getItem('pfc_theme_color');
+            const savedText = localStorage.getItem('pfc_theme_text');
+            if (savedTheme) {
+                window.applyThemeColor(savedTheme, savedText || '#2C4A4A');
+                document.querySelectorAll('.theme-color-circle').forEach(el => {
+                    if (el.style.backgroundColor === savedTheme || el.style.backgroundColor === hexToRgbString(savedTheme)) {
+                        el.classList.add('selected');
+                    } else {
+                        el.classList.remove('selected');
+                    }
+                });
+            }
+
             renderWeeklyCalendar();
             renderFoodList(true);
         });
+
+        function hexToRgbString(hex) {
+            return hex;
+        }
     </script>
 </body>
 </html>
