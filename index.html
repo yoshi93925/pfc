@@ -249,7 +249,7 @@
                 </button>
             </div>
         </div>
-        <!-- 週間カレンダーバー（通常は本日が一番右に固定） -->
+        <!-- 週間カレンダーバー（通常は常に本日が一番右に固定） -->
         <div class="weekly-calendar" id="weekly-calendar"></div>
     </header>
 
@@ -618,7 +618,7 @@
         let selectedDateStr = new Date().toISOString().split('T')[0];
         let calViewingDate = new Date();
         window.geminiApiKey = localStorage.getItem('gemini_api_key') || "";
-        let forceAnchorDate = null; // 月間カレンダーから選択されたときのみ一時的にセットされる例外用変数
+        let forceAnchorDate = null; // 月間カレンダーから選択されたときのみセットされる例外用変数
 
         // --- 初期データ管理 ---
         let foodRecords = JSON.parse(localStorage.getItem('pfc_food_records') || '[]');
@@ -698,7 +698,7 @@
 
         function goToToday() {
             selectedDateStr = new Date().toISOString().split('T')[0];
-            forceAnchorDate = null; // 今日へ戻る時は本日本来の右端固定に戻す
+            forceAnchorDate = null; // 本日に戻す時は強制アンカーを解除し、本日を右端にする
             closeModal('monthly-calendar-modal');
             renderWeeklyCalendar();
             renderFoodList(true);
@@ -765,7 +765,7 @@
         // 月間カレンダーから選択されたときのみ、例外としてその日が一番右に来るようにする
         function selectDateAndAlignWeekly(dateISO) {
             selectedDateStr = dateISO;
-            forceAnchorDate = dateISO; // 例外フラグセット
+            forceAnchorDate = dateISO; // 例外フラグセット（月間カレンダーからの選択時のみ）
             closeModal('monthly-calendar-modal');
             renderWeeklyCalendar();
             renderFoodList(true);
@@ -773,7 +773,7 @@
             if (currentCategory === 'weight') renderWeightList(true);
         }
 
-        // --- 週間カレンダー (通常は常に「本日」が一番右に固定、月間からの選択時のみその日が右端) ---
+        // --- 週間カレンダー (通常は常に「本日」が一番右に固定) ---
         function renderWeeklyCalendar() {
             const calendarEl = document.getElementById('weekly-calendar');
             calendarEl.innerHTML = '';
@@ -813,7 +813,7 @@
                 cell.className = `week-day-cell ${isToday ? 'is-today' : ''} ${isSelected ? 'selected' : ''} ${isExceeded ? 'exceeded' : ''}`;
                 cell.onclick = () => {
                     selectedDateStr = dateKey;
-                    // 週間カレンダー内のタップでは右端（本日基準）をずらさない仕様
+                    forceAnchorDate = null; // 週間カレンダーから選んだ場合は、右端を本日に戻す
                     renderWeeklyCalendar();
                     renderFoodList(true);
                     if (currentCategory === 'exercise') renderExerciseList(true);
@@ -1250,7 +1250,7 @@
             }
         }
 
-        // --- AI解析 ＆ 送信 (APIエラー時はフォールバックなしで明確に通知) ---
+        // --- AI解析 ＆ 送信 (API失敗時は例外をキャッチして明確にエラー通知) ---
         async function submitRecord() {
             const input = document.getElementById('record-input');
             const text = input.value.trim();
@@ -1277,6 +1277,7 @@
                     return;
                 }
 
+                // 仮のプレースホルダーを追加
                 window.foodRecords.push({
                     id: newFoodId,
                     date: selectedDateStr,
@@ -1290,21 +1291,24 @@
                     const result = await fetchGeminiNutrients(text, apiKey);
                     const target = window.foodRecords.find(f => f.id === newFoodId);
                     if (target && result) {
-                        target.cal = result.cal || 0;
-                        target.p = result.p || 0;
-                        target.f = result.f || 0;
-                        target.c = result.c || 0;
+                        target.cal = result.cal || result.calories || 0;
+                        target.p = result.p || result.protein || 0;
+                        target.f = result.f || result.fat || 0;
+                        target.c = result.c || result.carbs || 0;
                         localStorage.setItem('pfc_food_records', JSON.stringify(window.foodRecords));
                         if (window.syncDataToCloud) window.syncDataToCloud();
                         renderWeeklyCalendar();
                         renderFoodList(true);
                         showToast(`✨ AI解析完了: 「${text}」`);
+                    } else {
+                        throw new Error("正しい栄養素データを取得できませんでした");
                     }
                 } catch (err) {
                     console.error("Gemini API Error:", err);
+                    // 失敗した場合はリストから削除してアラート通知
                     window.foodRecords = window.foodRecords.filter(f => f.id !== newFoodId);
                     renderFoodList(true);
-                    alert("Gemini APIでの解析に失敗しました。APIキーまたは通信状態をご確認ください。");
+                    alert("Gemini APIでの解析に失敗しました。「設定」からAPIキーが正しいか、または通信状態をご確認ください。エラー内容: " + err.message);
                 }
             }
 
@@ -1313,8 +1317,9 @@
         }
 
         async function fetchGeminiNutrients(foodText, apiKey) {
+            // 公式に正しいエンドポイントURL構造
             const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-            const prompt = `「${foodText}」の推定栄養素を計算し、次のJSON形式のみで返してください。余計な文章は含めないでください。{"cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
+            const prompt = `「${foodText}」の推定栄養素を計算し、次のJSON形式のみで返してください。余計な文章やマークダウンのバッククォートは含めないでください。{"cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
 
             const response = await fetch(endpoint, {
                 method: 'POST',
@@ -1323,12 +1328,16 @@
             });
             const data = await response.json();
             if (data.error) {
-                throw new Error(data.error.message || "APIエラーが発生しました");
+                throw new Error(data.error.message || "API制限または認証エラー");
+            }
+            if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+                throw new Error("AIからの応答が空です");
             }
             const rawText = data.candidates[0].content.parts[0].text;
-            const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+            const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+            const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
             if (jsonMatch) return JSON.parse(jsonMatch[0]);
-            throw new Error("JSON形式のデータを取得できませんでした");
+            throw new Error("JSON形式にパースできませんでした");
         }
 
         function handleInputChange() {
