@@ -186,9 +186,9 @@
         .setting-unit { font-size: 0.8rem; color: var(--text-sub); width: 28px; }
         .auth-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background-color: #4285F4; color: #FFFFFF; border: none; border-radius: 8px; padding: 10px; font-size: 0.88rem; font-weight: 600; cursor: pointer; margin-top: 8px; }
 
-        /* テーマカラーパレット選択用 */
-        .theme-picker { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
-        .theme-color-circle { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s; }
+        /* テーマカラーパレット選択用（スマホ2段：1行6個） */
+        .theme-picker { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; align-items: center; margin-top: 8px; width: 100%; }
+        .theme-color-circle { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s; justify-self: center; }
         .theme-color-circle:active { transform: scale(0.9); }
         .theme-color-circle.selected { border-color: #334155; transform: scale(1.15); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
 
@@ -383,24 +383,27 @@
                     </div>
                 </div>
 
-                <!-- テーマカラー選択セクション -->
+                <!-- テーマカラー選択セクション（12色・2段グリッド） -->
                 <div class="setting-section">
                     <div class="setting-section-title"><i data-lucide="palette" style="width: 18px; height: 18px; color: var(--theme-color);"></i>テーマカラー設定</div>
-                    <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
-                        <span class="setting-label">パステルカラーを選択</span>
-                        <div class="theme-picker">
-                            <div class="theme-color-circle selected" style="background-color: #B2D8D8;" onclick="changeThemeColor('#B2D8D8', '#2C4A4A', this)" title="ミント"></div>
-                            <div class="theme-color-circle" style="background-color: #BAE6FD;" onclick="changeThemeColor('#BAE6FD', '#0369A1', this)" title="スカイブルー"></div>
-                            <div class="theme-color-circle" style="background-color: #DDD6FE;" onclick="changeThemeColor('#DDD6FE', '#6D28D9', this)" title="ラベンダー"></div>
-                            <div class="theme-color-circle" style="background-color: #FBCFE8;" onclick="changeThemeColor('#FBCFE8', '#BE185D', this)" title="ピンク"></div>
-                            <div class="theme-color-circle" style="background-color: #FEF08A;" onclick="changeThemeColor('#FEF08A', '#854D0E', this)" title="イエロー"></div>
-                            <div class="theme-color-circle" style="background-color: #FED7AA;" onclick="changeThemeColor('#FED7AA', '#C2410C', this)" title="ピーチ"></div>
-                        </div>
+                    <div class="theme-picker">
+                        <div class="theme-color-circle selected" style="background-color: #B2D8D8;" onclick="changeThemeColor('#B2D8D8', '#2C4A4A', this)" title="ミントグリーン"></div>
+                        <div class="theme-color-circle" style="background-color: #BAE6FD;" onclick="changeThemeColor('#BAE6FD', '#0369A1', this)" title="スカイブルー"></div>
+                        <div class="theme-color-circle" style="background-color: #DDD6FE;" onclick="changeThemeColor('#DDD6FE', '#6D28D9', this)" title="ラベンダー"></div>
+                        <div class="theme-color-circle" style="background-color: #FBCFE8;" onclick="changeThemeColor('#FBCFE8', '#BE185D', this)" title="パステルピンク"></div>
+                        <div class="theme-color-circle" style="background-color: #FEF08A;" onclick="changeThemeColor('#FEF08A', '#854D0E', this)" title="パステルイエロー"></div>
+                        <div class="theme-color-circle" style="background-color: #FED7AA;" onclick="changeThemeColor('#FED7AA', '#C2410C', this)" title="ピーチオレンジ"></div>
+                        <div class="theme-color-circle" style="background-color: #94A3B8;" onclick="changeThemeColor('#94A3B8', '#0F172A', this)" title="スレートグレー"></div>
+                        <div class="theme-color-circle" style="background-color: #64748B;" onclick="changeThemeColor('#64748B', '#F1F5F9', this)" title="ダークチャコール"></div>
+                        <div class="theme-color-circle" style="background-color: #065F46;" onclick="changeThemeColor('#065F46', '#ECFDF5', this)" title="ディープフォレスト"></div>
+                        <div class="theme-color-circle" style="background-color: #1E3A8A;" onclick="changeThemeColor('#1E3A8A', '#EFF6FF', this)" title="ロイヤルネイビー"></div>
+                        <div class="theme-color-circle" style="background-color: #581C87;" onclick="changeThemeColor('#581C87', '#F5F3FF', this)" title="ディープパープル"></div>
+                        <div class="theme-color-circle" style="background-color: #881337;" onclick="changeThemeColor('#881337', '#FFF1F2', this)" title="バーガンディ"></div>
                     </div>
                 </div>
 
                 <div class="setting-section">
-                    <div class="setting-section-title"><i data-lucide="sparkles" style="width: 18px; height: 18px; color: #4285F4;"></i>Googleアカウント ＆ Gemini AI設定</div>
+                    <div class="setting-section-title"><i data-lucide="cloud" style="width: 18px; height: 18px; color: #4285F4;"></i>クラウド同期 ＆ AI設定</div>
                     <div style="margin-bottom: 12px;">
                         <div class="setting-label">クラウド同期ログイン</div>
                         <div class="setting-sublabel" id="google-auth-status">未連携（Googleログインしてデータを同期）</div>
@@ -763,7 +766,6 @@
             if (window.syncDataToCloud) window.syncDataToCloud();
         };
 
-        // テーマカラー変更処理
         window.changeThemeColor = function(bgColor, textColor, element) {
             window.applyThemeColor(bgColor, textColor);
             localStorage.setItem('pfc_theme_color', bgColor);
@@ -817,7 +819,6 @@
             lucide.createIcons();
         }
 
-        // 複数追加できるようにモーダルを閉じない仕様に変更
         window.selectFavoriteItem = function(event, item) {
             if (event) event.stopPropagation();
             window.foodRecords.push({
@@ -845,7 +846,7 @@
 
             const isFav = (window.favoritesList || []).some(f => f.name === nameVal);
             btn.innerHTML = isFav 
-                ? `<i data-lucide="star" style="width: 18px; height: 18px; fill: currentColor;"></i>`
+                ? `<i data-lucide="star" style="width: 18px; height: 18px;"></i>`
                 : `<i data-lucide="star-off" style="width: 18px; height: 18px;"></i>`;
             lucide.createIcons();
         }
