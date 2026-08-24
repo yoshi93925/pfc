@@ -145,7 +145,6 @@
         .chart-legend-wrap { display: flex; gap: 12px; font-size: 0.74rem; font-weight: 600; margin-bottom: 6px; justify-content: flex-end; }
         .legend-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
 
-        /* スタイリッシュなカスタムプルダウン */
         .custom-select-wrap { position: relative; display: inline-block; }
         .custom-select {
             appearance: none; -webkit-appearance: none;
@@ -199,13 +198,11 @@
         .setting-unit { font-size: 0.8rem; color: var(--text-sub); width: 28px; }
         .auth-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background-color: #4285F4; color: #FFFFFF; border: none; border-radius: 8px; padding: 10px; font-size: 0.88rem; font-weight: 600; cursor: pointer; margin-top: 8px; }
 
-        /* テーマカラーパレット選択用（スマホ2段：1行6個） */
         .theme-picker { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; align-items: center; margin-top: 8px; width: 100%; }
         .theme-color-circle { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s; justify-self: center; }
         .theme-color-circle:active { transform: scale(0.9); }
         .theme-color-circle.selected { border-color: #334155; transform: scale(1.15); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
 
-        /* 設定保存ボタン */
         .setting-save-btn {
             width: 100%; background-color: var(--theme-color); color: var(--theme-text); border: none; border-radius: 10px;
             padding: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.06); transition: opacity 0.2s;
@@ -242,7 +239,6 @@
         .modal-btn-danger { background-color: #EF4444; color: #FFFFFF; }
         .modal-btn-secondary { background-color: var(--input-bg); color: var(--text-main); }
 
-        /* 解析中ローディングモーダル */
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.6);
             z-index: 500; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 12px; color: #FFFFFF;
@@ -375,7 +371,7 @@
         <section id="view-settings" class="view-panel">
             <div class="settings-container">
                 <div class="setting-section">
-                    <div class="setting-section-title"><i data-lucide="target" style="width: 18px; height: 18px; color: var(--theme-color);"></i>1日の目標設定</div>
+                    <div class="setting-section-title"><i data-lucide="target" style="width: 18px; height: 18px; color: var(--text-sub);"></i>1日の目標設定</div>
                     <div class="setting-row">
                         <span class="setting-label">目標カロリー</span>
                         <div class="setting-input-wrap"><input type="number" class="setting-input" id="target-calories" value="2000"><span class="setting-unit">kcal</span></div>
@@ -398,9 +394,9 @@
                     </div>
                 </div>
 
-                <!-- テーマカラー選択セクション（12色・2段グリッド：淡いパステル～落ち着いた色） -->
+                <!-- テーマカラー選択セクション -->
                 <div class="setting-section">
-                    <div class="setting-section-title"><i data-lucide="palette" style="width: 18px; height: 18px; color: var(--theme-color);"></i>テーマカラー設定</div>
+                    <div class="setting-section-title"><i data-lucide="palette" style="width: 18px; height: 18px; color: var(--text-sub);"></i>テーマカラー設定</div>
                     <div class="theme-picker">
                         <div class="theme-color-circle selected" style="background-color: #B2D8D8;" onclick="changeThemeColor('#B2D8D8', '#2C4A4A', this)" title="ミント"></div>
                         <div class="theme-color-circle" style="background-color: #BAE6FD;" onclick="changeThemeColor('#BAE6FD', '#0369A1', this)" title="スカイ"></div>
@@ -409,16 +405,16 @@
                         <div class="theme-color-circle" style="background-color: #FEF08A;" onclick="changeThemeColor('#FEF08A', '#854D0E', this)" title="イエロー"></div>
                         <div class="theme-color-circle" style="background-color: #FED7AA;" onclick="changeThemeColor('#FED7AA', '#C2410C', this)" title="ピーチ"></div>
                         <div class="theme-color-circle" style="background-color: #E2E8F0;" onclick="changeThemeColor('#E2E8F0', '#334155', this)" title="ライトグレー"></div>
-                        <div class="theme-color-circle" style="background-color: #CBD5E1;" onclick="changeThemeColor('#CBD5E1', '#1E293B', this)" title="シルバー"></div>
-                        <div class="theme-color-circle" style="background-color: #A7F3D0;" onclick="changeThemeColor('#A7F3D0', '#065F46', this)" title="ライトセージ"></div>
-                        <div class="theme-color-circle" style="background-color: #BFDBFE;" onclick="changeThemeColor('#BFDBFE', '#1E3A8A', this)" title="ペールブルー"></div>
-                        <div class="theme-color-circle" style="background-color: #E9D5FF;" onclick="changeThemeColor('#E9D5FF', '#581C87', this)" title="ペールパープル"></div>
-                        <div class="theme-color-circle" style="background-color: #FECDD3;" onclick="changeThemeColor('#FECDD3', '#881337', this)" title="ペールローズ"></div>
+                        <div class="theme-color-circle" style="background-color: #E6FFFA;" onclick="changeThemeColor('#E6FFFA', '#234E52', this)" title="アクアミント"></div>
+                        <div class="theme-color-circle" style="background-color: #F0F4F8;" onclick="changeThemeColor('#F0F4F8', '#334E68', this)" title="アイスグレー"></div>
+                        <div class="theme-color-circle" style="background-color: #FAF5FF;" onclick="changeThemeColor('#FAF5FF', '#553C9A', this)" title="ペールライラック"></div>
+                        <div class="theme-color-circle" style="background-color: #FFF5F5;" onclick="changeThemeColor('#FFF5F5', '#742A2A', this)" title="ペールブラッシュ"></div>
+                        <div class="theme-color-circle" style="background-color: #FFFFF0;" onclick="changeThemeColor('#FFFFF0', '#744210', this)" title="アイボリークリーム"></div>
                     </div>
                 </div>
 
                 <div class="setting-section">
-                    <div class="setting-section-title"><i data-lucide="cloud" style="width: 18px; height: 18px; color: #4285F4;"></i>クラウド同期 ＆ AI設定</div>
+                    <div class="setting-section-title"><i data-lucide="cloud" style="width: 18px; height: 18px; color: var(--text-sub);"></i>クラウド同期 ＆ AI設定</div>
                     <div style="margin-bottom: 12px;">
                         <div class="setting-label">クラウド同期ログイン</div>
                         <div class="setting-sublabel" id="google-auth-status">未連携（Googleログインしてデータを同期）</div>
@@ -503,7 +499,7 @@
         </div>
     </div>
 
-    <!-- 運動記録編集モーダル（新規追加） -->
+    <!-- 運動記録編集モーダル（メモ欄追加） -->
     <div class="modal-overlay" id="exercise-edit-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -513,6 +509,7 @@
             <input type="hidden" id="edit-exercise-id">
             <div class="modal-form-group"><label class="modal-label">日付</label><input type="date" class="modal-input" id="edit-exercise-date"></div>
             <div class="modal-form-group"><label class="modal-label">メニュー名</label><input type="text" class="modal-input" id="edit-exercise-name"></div>
+            <div class="modal-form-group"><label class="modal-label">メモ欄</label><input type="text" class="modal-input" id="edit-exercise-detail" placeholder="詳細や時間を入力"></div>
             <div class="modal-actions">
                 <button class="modal-btn modal-btn-danger" onclick="deleteCurrentExercise()"><i data-lucide="trash-2" style="width:16px;height:16px;"></i> 削除</button>
                 <button class="modal-btn modal-btn-primary" onclick="saveExerciseEdit()"><i data-lucide="check" style="width:16px;height:16px;"></i> 保存</button>
@@ -520,7 +517,7 @@
         </div>
     </div>
 
-    <!-- お気に入り詳細・編集モーダル（新規追加） -->
+    <!-- お気に入り詳細・編集モーダル -->
     <div class="modal-overlay" id="favorite-edit-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -649,7 +646,7 @@
                 subscribeCloudData(user.uid);
             } else {
                 currentUser = null;
-                if (statusEl) statusEl.textContent = '未連携（Googleログインしてデータを同期）';
+                if (statusEl) statusEl.textContent = '未連携（Googleログインしてクラウド同期）';
                 if (loginBtn) loginBtn.style.display = 'block';
                 if (logoutBtn) logoutBtn.style.display = 'none';
             }
@@ -863,8 +860,11 @@
             list.forEach(item => {
                 const card = document.createElement('div');
                 card.style.cssText = "background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;";
-                // お気に入りアイテムタップで編集画面を開く
-                card.onclick = () => openFavoriteEditModal(item);
+                // お気に入りリストをタップしたらリストを閉じてから編集画面を開く
+                card.onclick = () => {
+                    closeModal('favorite-modal');
+                    openFavoriteEditModal(item);
+                };
                 card.innerHTML = `
                     <div style="flex: 1; min-width: 0;">
                         <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">${item.name}</div>
@@ -897,7 +897,6 @@
             showToast(`✨ 「${item.name}」を追加しました`);
         };
 
-        // お気に入り個別編集モーダルを開く
         function openFavoriteEditModal(item) {
             document.getElementById('edit-fav-id').value = item.id;
             document.getElementById('edit-fav-name').value = item.name;
@@ -928,7 +927,7 @@
             localStorage.setItem('pfc_favorites_list', JSON.stringify(window.favoritesList));
             if (window.syncDataToCloud) window.syncDataToCloud();
             closeModal('favorite-edit-modal');
-            renderFavoriteList();
+            openFavoriteModal();
             showToast("⭐ お気に入りを更新しました");
         };
 
@@ -939,16 +938,16 @@
                 localStorage.setItem('pfc_favorites_list', JSON.stringify(window.favoritesList));
                 if (window.syncDataToCloud) window.syncDataToCloud();
                 closeModal('favorite-edit-modal');
-                renderFavoriteList();
+                openFavoriteModal();
                 showToast("🗑️ お気に入りを削除しました");
             }
         };
 
-        // 運動編集モーダルを開く
         function openExerciseEditModal(item) {
             document.getElementById('edit-exercise-id').value = item.id;
             document.getElementById('edit-exercise-date').value = item.date;
             document.getElementById('edit-exercise-name').value = item.name;
+            document.getElementById('edit-exercise-detail').value = item.detail || "";
             openModal('exercise-edit-modal');
         }
 
@@ -956,12 +955,13 @@
             const id = document.getElementById('edit-exercise-id').value;
             const date = document.getElementById('edit-exercise-date').value;
             const name = document.getElementById('edit-exercise-name').value.trim();
+            const detail = document.getElementById('edit-exercise-detail').value.trim();
 
             if (!name) { alert("メニュー名を入力してください"); return; }
 
             window.exerciseRecords = window.exerciseRecords.map(item => {
                 if (String(item.id) === String(id)) {
-                    return { ...item, date, name };
+                    return { ...item, date, name, detail };
                 }
                 return item;
             });
@@ -985,6 +985,7 @@
             }
         };
 
+        // お気に入り登録ボタン（未登録時はアウトラインのstar、登録済みは塗りつぶしのstar）
         function updateEditFavoriteIconState() {
             const nameVal = (document.getElementById('edit-food-name').value || "").trim();
             const btn = document.getElementById('edit-fav-toggle-btn');
@@ -992,8 +993,8 @@
 
             const isFav = (window.favoritesList || []).some(f => f.name === nameVal);
             btn.innerHTML = isFav 
-                ? `<i data-lucide="star" style="width: 18px; height: 18px;"></i>`
-                : `<i data-lucide="star-off" style="width: 18px; height: 18px;"></i>`;
+                ? `<i data-lucide="star" style="width: 18px; height: 18px; fill: currentColor;"></i>`
+                : `<i data-lucide="star" style="width: 18px; height: 18px;"></i>`;
             lucide.createIcons();
         }
 
@@ -1575,7 +1576,6 @@
             dayExercises.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'item-card';
-                // 運動項目タップで編集モーダルを開く
                 card.onclick = () => openExerciseEditModal(item);
                 card.innerHTML = `
                     <div class="item-card-header">
@@ -1834,7 +1834,7 @@
 
             renderWeeklyCalendar();
             renderFoodList(false);
-            switchView('food'); // アラートなしで勝手にトップ画面（食事）に遷移
+            switchView('food');
         };
 
         window.addEventListener('DOMContentLoaded', () => {
