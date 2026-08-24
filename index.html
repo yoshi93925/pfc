@@ -1,1514 +1,2188 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>カロミール</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PFCバランス記録</title>
+    <!-- PWA & 全画面化設定 -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" id="metaThemeColor" content="#B2D8D8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="PFC記録">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js (体重・体脂肪グラフ用) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* --- テーマカラーとグローバル変数 (パステル系プリセット) --- */
+        :root {
+            --theme-color: #B2D8D8; /* 初期値: パステルセージ/ミント */
+            --theme-text: #2C4A4A;
+            --bg-color: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --card-border: #E2E8F0;
+            --text-main: #334155;
+            --text-sub: #64748B;
+            --header-bg: var(--theme-color);
+            --header-text: var(--theme-text);
+            --input-bg: #F1F5F9;
+            --footer-bg: #FFFFFF;
+            --footer-border: #E2E8F0;
+            --send-btn-bg: #2B5C8F;
+            --header-top-height: 104px;
+            --footer-height: 75px;
 
-  <!-- PWA & 全画面化設定 -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" id="metaThemeColor" content="#ffffff">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" id="metaStatusBar" content="default">
-  <meta name="apple-mobile-web-app-title" content="カロミール">
-  <link rel="apple-touch-icon" href="icon.png">
+            /* --- PFC専用パステルソフトカラー (透明度4.5%) --- */
+            --pfc-p-bg: rgba(147, 197, 253, 0.045);
+            --pfc-p-border: rgba(147, 197, 253, 0.25);
+            --pfc-p-bar: #93C5FD;
+            --pfc-p-text: #475569;
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js グラフ描画ライブラリ -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    :root {
-      --primary-color: #ec4899;
-      --primary-hover: #db2777;
-      --primary-light: #fce7f3;
-      --primary-border: #fbcfe8;
-      --primary-text: #be185d;
-      --primary-contrast: #ffffff;
-    }
+            --pfc-f-bg: rgba(253, 230, 138, 0.045);
+            --pfc-f-border: rgba(253, 230, 138, 0.28);
+            --pfc-f-bar: #FDE68A;
+            --pfc-f-text: #475569;
 
-    body { overflow-x: hidden; touch-action: pan-y; background-color: #ffffff; }
-    body.theme-dark { background-color: #090d16 !important; color: #f1f5f9 !important; }
+            --pfc-c-bg: rgba(167, 243, 208, 0.045);
+            --pfc-c-border: rgba(167, 243, 208, 0.28);
+            --pfc-c-bar: #A7F3D0;
+            --pfc-c-text: #475569;
 
-    .calendar-day-over { border: 2px solid #ef4444 !important; background-color: #fee2e2 !important; color: #991b1b !important; font-weight: bold; border-radius: 9999px; }
-    body.theme-dark .calendar-day-over { border: 2px solid #f87171 !important; background-color: #450a0a !important; color: #fca5a5 !important; }
-    .calendar-day-green { background-color: #d1fae5; color: #059669; font-weight: bold; border-radius: 9999px; }
+            --cal-bar-color: #CBD5E1;
+            --over-limit-color: #EF4444; /* 超過時の赤色 */
+        }
 
-    .bg-theme-main { background-color: var(--primary-color) !important; }
-    .bg-theme-hover:hover { background-color: var(--primary-hover) !important; }
-    .bg-theme-light { background-color: var(--primary-light) !important; }
-    .border-theme-light { border-color: var(--primary-border) !important; }
-    .text-theme-main { color: var(--primary-color) !important; }
-    .text-theme-dark { color: var(--primary-text) !important; }
-    .text-theme-contrast { color: var(--primary-contrast) !important; }
+        /* --- ダークモード --- */
+        body.dark-mode {
+            --bg-color: #121824;
+            --card-bg: #1E293B;
+            --card-border: #334155;
+            --text-main: #F1F5F9;
+            --text-sub: #94A3B8;
+            --header-bg: var(--theme-color);
+            --header-text: var(--theme-text);
+            --input-bg: #0F172A;
+            --footer-bg: #1E293B;
+            --footer-border: #334155;
+            --send-btn-bg: var(--theme-color);
 
-    body[data-theme="white"] .bg-theme-main { border: 1px solid #cbd5e1; }
-    body.theme-dark[data-theme="white"] .bg-theme-main { border: 1px solid #475569; }
+            --pfc-p-bg: rgba(147, 197, 253, 0.07);
+            --pfc-p-border: rgba(147, 197, 253, 0.2);
+            --pfc-p-bar: #60A5FA;
+            --pfc-p-text: #94A3B8;
 
-    @keyframes slideUp {
-      from { transform: translateY(100%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    .sheet-animate { animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+            --pfc-f-bg: rgba(253, 230, 138, 0.07);
+            --pfc-f-border: rgba(253, 230, 138, 0.2);
+            --pfc-f-bar: #FCD34D;
+            --pfc-f-text: #94A3B8;
 
-    .pill-scroll-container {
-      display: flex; gap: 6px; overflow-x: auto; padding-top: 1px; padding-bottom: 1px;
-      -webkit-overflow-scrolling: touch; scrollbar-width: none;
-    }
-    .pill-scroll-container::-webkit-scrollbar { display: none; }
-    .pill-quick-chip {
-      height: 34px; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center;
-      padding-left: 12px; padding-right: 12px; flex-shrink: 0; white-space: nowrap; max-width: 140px;
-    }
+            --pfc-c-bg: rgba(167, 243, 208, 0.07);
+            --pfc-c-border: rgba(167, 243, 208, 0.2);
+            --pfc-c-bar: #6EE7B7;
+            --pfc-c-text: #94A3B8;
 
-    body.theme-dark #appContainer { background-color: #090d16 !important; border: none !important; }
-    body.theme-dark .sticky { background-color: #090d16 !important; border-color: #1e293b !important; }
-    body.theme-dark #weekDaysContainer { background-color: #131b2e !important; border-color: #1e293b !important; }
-    body.theme-dark #fullSummaryCard, body.theme-dark .bg-slate-50, body.theme-dark #weightSection, body.theme-dark #workoutSection {
-      background-color: #131b2e !important; border-color: #1e293b !important; color: #f1f5f9 !important;
-    }
-    body.theme-dark input[type="text"], body.theme-dark input[type="number"], body.theme-dark input[type="password"], body.theme-dark input[type="date"] {
-      background-color: #090d16 !important; border-color: #334155 !important; color: #f8fafc !important;
-    }
-    body.theme-dark .bg-white { background-color: #131b2e !important; border-color: #1e293b !important; color: #f1f5f9 !important; }
-    body.theme-dark #bottomNav { background-color: #131b2e !important; border-color: #1e293b !important; }
-    body.theme-dark .bottom-nav-item { color: #94a3b8 !important; }
-    body.theme-dark .bottom-nav-item.active { color: var(--primary-color) !important; }
+            --cal-bar-color: #475569;
+            --over-limit-color: #F87171;
+        }
 
-    body.theme-dark .bg-slate-900\/60, body.theme-dark #recordActionModal {
-      background-color: rgba(2, 6, 23, 0.85) !important;
-    }
-    body.theme-dark #targetModal > div,
-    body.theme-dark #selectFavoriteModal > div,
-    body.theme-dark #editFavoriteModal > div,
-    body.theme-dark #calendarModal > div,
-    body.theme-dark #favoriteModal > div,
-    body.theme-dark #editModal > div,
-    body.theme-dark #weightModal > div,
-    body.theme-dark #workoutModal > div,
-    body.theme-dark #recordActionModal > div {
-      background-color: #131b2e !important; border: 1px solid #1e293b !important; color: #f1f5f9 !important;
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    body.theme-dark .text-slate-800, body.theme-dark .text-slate-700, body.theme-dark .text-slate-600 { color: #ffffff !important; }
-    body.theme-dark .text-slate-500, body.theme-dark .text-slate-400 { color: #cbd5e1 !important; }
-    body:not(.theme-dark) .text-slate-800, body:not(.theme-dark) .text-slate-700, body:not(.theme-dark) .text-slate-600 { color: #000000 !important; }
+        html {
+            scroll-behavior: smooth;
+        }
 
-    .slide-left { animation: slideLeft 0.25s cubic-bezier(0.25, 1, 0.5, 1); }
-    .slide-right { animation: slideRight 0.25s cubic-bezier(0.25, 1, 0.5, 1); }
-    @keyframes slideLeft { 0% { transform: translateX(20px); opacity: 0.6; } 100% { transform: translateX(0); opacity: 1; } }
-    @keyframes slideRight { 0% { transform: translateX(-20px); opacity: 0.6; } 100% { transform: translateX(0); opacity: 1; } }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding-top: var(--header-top-height);
+            padding-bottom: var(--footer-height);
+            min-height: 100vh;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
 
-    .toast-show { animation: toastIn 0.25s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
-    @keyframes toastIn { 0% { opacity: 0; transform: translate(-50%, 20px); } 100% { opacity: 1; transform: translate(-50%, 0); } }
+        /* --- ヘッダー (最上部固定) --- */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--header-top-height);
+            background-color: var(--header-bg);
+            border-bottom: 1px solid var(--card-border);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            transition: background-color 0.25s ease;
+        }
 
-    .summary-transition { transition: opacity 0.15s ease-in-out; }
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px 2px 16px;
+            height: 48px;
+        }
 
-    .shiratama-container { flex-shrink: 0; user-select: none; transition: opacity 0.2s ease; cursor: pointer; }
-    .shiratama-body {
-      position: relative; width: 52px; height: 52px;
-      background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-      border-radius: 50%; border: 1.5px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-      display: flex; justify-content: center; align-items: center; transition: transform 0.15s ease;
-    }
-    body.theme-dark .shiratama-body { border: 1.5px solid #475569; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
-    .shiratama-body.jump { animation: shiratamaJump 0.3s ease; }
-    @keyframes shiratamaJump {
-      0% { transform: translateY(0) scale(1); }
-      50% { transform: translateY(-12px) scale(1.08, 0.92); }
-      100% { transform: translateY(0) scale(1); }
-    }
+        .header-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: var(--header-text);
+        }
 
-    .shiratama-eye { width: 5px; height: 5px; background-color: #334155; border-radius: 50%; position: absolute; top: 36%; }
-    .shiratama-eye::after { content: ''; position: absolute; top: 1px; right: 1px; width: 1.8px; height: 1.8px; background: #ffffff; border-radius: 50%; }
-    .shiratama-eye.left { left: 26%; }
-    .shiratama-eye.right { right: 26%; }
-    .shiratama-eye.sick { background: transparent !important; font-size: 10px; font-weight: bold; color: #334155; top: 25%; }
-    .shiratama-eye.sick::after { display: none; }
+        .header-btn-group {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
 
-    .shiratama-cheek { width: 8px; height: 4px; background-color: #fda4af; border-radius: 50%; position: absolute; top: 48%; opacity: 0.7; transition: background-color 0.2s; }
-    .shiratama-cheek.left { left: 14%; }
-    .shiratama-cheek.right { right: 14%; }
-    .shiratama-cheek.sick { background-color: #a5b4fc; }
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--header-text);
+            padding: 6px;
+            border-radius: 50%;
+            transition: opacity 0.2s;
+        }
 
-    .shiratama-mouth { position: absolute; top: 48%; transition: all 0.2s; }
-    .shiratama-mouth.happy { width: 6px; height: 3px; border-bottom: 1.5px solid #334155; border-radius: 0 0 6px 6px; }
-    .shiratama-mouth.hungry { width: 6px; height: 3px; border-top: 1.5px solid #334155; border-radius: 6px 6px 0 0; top: 52%; }
-    .shiratama-mouth.sick { width: 8px; height: 3px; border-bottom: 1.5px dashed #334155; }
+        .icon-btn:active {
+            opacity: 0.6;
+        }
 
-    .shiratama-sweat { position: absolute; top: -5px; right: -3px; font-size: 11px; display: none; }
-    .shiratama-sweat.active { display: block; }
+        /* --- 週間カレンダー --- */
+        .weekly-calendar {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 12px 8px 12px;
+            background-color: rgba(255, 255, 255, 0.45) !important;
+            backdrop-filter: blur(4px);
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+            gap: 4px;
+        }
 
-    .speech-bubble {
-      position: relative; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px;
-      padding: 6px 8px; font-size: 10.5px; font-weight: 500; color: #475569;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.03); width: 110px; line-height: 1.35; word-break: break-all;
-    }
-    body.theme-dark .speech-bubble { background: #1e293b; border-color: #334155; color: #e2e8f0; }
-    .speech-bubble::after {
-      content: ''; position: absolute; left: -6px; top: 50%; transform: translateY(-50%);
-      width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-right: 6px solid #ffffff;
-    }
-    body.theme-dark .speech-bubble::after { border-right-color: #1e293b; }
+        .week-day-cell {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 4px 2px;
+            border-radius: 8px;
+            cursor: pointer;
+            background: transparent;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .week-day-cell:active {
+            transform: scale(0.95);
+        }
+        .week-day-cell.selected {
+            background-color: rgba(255, 255, 255, 0.75) !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
 
-    .theme-circle.active { box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #0f172a; transform: scale(1.1); }
-    body.theme-dark .theme-circle.active { box-shadow: 0 0 0 2px #1e293b, 0 0 0 4px #ffffff; }
-  </style>
+        .week-day-name {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--header-text) !important;
+            opacity: 0.85;
+            margin-bottom: 2px;
+        }
+
+        .week-day-date {
+            font-size: 0.85rem;
+            font-weight: 700;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: var(--header-text) !important;
+            background: transparent;
+        }
+
+        .week-day-cell.exceeded .week-day-date {
+            background-color: #EF4444 !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4);
+        }
+
+        .week-day-cell.is-today .week-day-name {
+            color: #1E40AF !important;
+            font-weight: 700;
+        }
+
+        /* --- 栄養サマリーカード (上部固定吸着) --- */
+        .sticky-summary-wrap {
+            position: sticky;
+            top: var(--header-top-height);
+            z-index: 90;
+            background-color: var(--bg-color);
+            padding: 8px 0 4px 0;
+            margin-bottom: 4px;
+        }
+
+        .nutrition-summary-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            transition: background-color 0.25s ease;
+        }
+
+        .summary-header {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .summary-cal-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .summary-cal-badge {
+            font-size: 0.94rem;
+            font-weight: 600;
+            color: var(--text-main);
+            letter-spacing: 0.02em;
+        }
+
+        .val-current.over-limit {
+            color: var(--over-limit-color) !important;
+            font-weight: 700;
+        }
+
+        /* プログレスバー共通スタイル */
+        .progress-bar-bg {
+            width: 100%;
+            height: 5px;
+            background-color: rgba(0, 0, 0, 0.05);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        body.dark-mode .progress-bar-bg {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            width: 0%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+
+        .cal-bar-fill {
+            background-color: var(--cal-bar-color);
+        }
+        .cal-bar-fill.over-limit {
+            background-color: var(--over-limit-color) !important;
+        }
+
+        .pfc-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+            text-align: center;
+        }
+
+        .pfc-col {
+            padding: 6px 4px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            border: 1px solid transparent;
+            transition: background-color 0.25s ease, border-color 0.25s ease;
+        }
+        .pfc-col-p {
+            background-color: var(--pfc-p-bg);
+            border-color: var(--pfc-p-border);
+        }
+        .pfc-col-f {
+            background-color: var(--pfc-f-bg);
+            border-color: var(--pfc-f-border);
+        }
+        .pfc-col-c {
+            background-color: var(--pfc-c-bg);
+            border-color: var(--pfc-c-border);
+        }
+
+        .pfc-label {
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text-sub);
+        }
+
+        .pfc-value {
+            font-size: 0.84rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .pfc-bar-p { background-color: var(--pfc-p-bar); }
+        .pfc-bar-f { background-color: var(--pfc-f-bar); }
+        .pfc-bar-c { background-color: var(--pfc-c-bar); }
+        .pfc-bar-fill.over-limit { background-color: var(--over-limit-color) !important; }
+
+        /* --- 体重グラフ (上部固定吸着 sticky) --- */
+        .sticky-chart-wrap {
+            position: sticky;
+            top: var(--header-top-height);
+            z-index: 90;
+            background-color: var(--bg-color);
+            padding: 6px 0 4px 0;
+            margin-bottom: 6px;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            transition: background-color 0.25s ease;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .chart-title {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chart-legend-wrap {
+            display: flex;
+            gap: 12px;
+            font-size: 0.74rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            justify-content: flex-end;
+        }
+        .legend-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        /* --- 月間カレンダーモーダル用スタイル --- */
+        .month-cal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 6px 12px 6px;
+        }
+        .month-cal-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .month-cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            text-align: center;
+        }
+        .month-cal-weekday {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-sub);
+            padding-bottom: 6px;
+        }
+        .month-cal-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.88rem;
+            font-weight: 600;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            color: var(--text-main);
+            background: transparent;
+            transition: background-color 0.15s, transform 0.1s, box-shadow 0.15s;
+        }
+        .month-cal-day:hover {
+            background-color: var(--input-bg);
+        }
+        .month-cal-day:active {
+            transform: scale(0.92);
+        }
+        .month-cal-day.empty {
+            cursor: default;
+            pointer-events: none;
+        }
+        
+        .month-cal-day.exceeded {
+            background-color: #EF4444 !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4);
+        }
+
+        .month-cal-day.selected {
+            background-color: var(--theme-color);
+            color: var(--theme-text);
+            font-weight: 700;
+            box-shadow: 0 0 0 2px var(--theme-text);
+        }
+        .month-cal-day.selected.exceeded {
+            background-color: #EF4444 !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 0 0 2.5px #1E293B, 0 1px 4px rgba(239, 68, 68, 0.5) !important;
+        }
+
+        .month-cal-day.is-today {
+            border: 1.5px solid var(--send-btn-bg);
+        }
+
+        /* --- サイドスライドメニュー --- */
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .drawer-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .drawer-menu {
+            position: fixed;
+            top: 0;
+            left: -260px;
+            width: 260px;
+            height: 100vh;
+            background-color: var(--card-bg);
+            z-index: 210;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .drawer-overlay.active .drawer-menu {
+            transform: translateX(260px);
+        }
+
+        .drawer-header {
+            padding: 20px 16px;
+            background-color: var(--theme-color);
+            color: var(--theme-text);
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .drawer-list {
+            list-style: none;
+            padding: 12px 0;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .drawer-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 20px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .drawer-item:active, .drawer-item.active {
+            background-color: rgba(178, 216, 216, 0.25);
+            color: var(--theme-text);
+            font-weight: 700;
+        }
+
+        /* --- メインコンテンツ --- */
+        main {
+            padding: 0 14px 14px 14px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .view-panel {
+            display: none;
+        }
+        .view-panel.active {
+            display: block;
+        }
+
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-bottom: 6px;
+        }
+
+        .item-card {
+            border: 1px solid var(--card-border);
+            border-left: 3.5px solid var(--theme-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            background: var(--card-bg);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            transition: background-color 0.25s ease, border-color 0.25s ease, transform 0.1s;
+            cursor: pointer;
+        }
+        .item-card:active {
+            transform: scale(0.99);
+        }
+
+        .item-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3px;
+        }
+
+        .item-title {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-main);
+            line-height: 1.25;
+        }
+
+        .item-detail {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: var(--text-sub);
+            line-height: 1.25;
+        }
+
+        .blank-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-sub);
+            background: var(--card-bg);
+            border-radius: 10px;
+            border: 1px dashed var(--card-border);
+        }
+
+        /* --- 設定画面スタイル --- */
+        .settings-container {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding-top: 10px;
+        }
+
+        .setting-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            transition: background-color 0.25s ease;
+        }
+
+        .setting-section-title {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--card-border);
+        }
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            font-size: 0.88rem;
+            color: var(--text-main);
+        }
+
+        .setting-sublabel {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            margin-top: 2px;
+        }
+
+        .setting-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .setting-input {
+            width: 80px;
+            padding: 6px 8px;
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            text-align: right;
+            outline: none;
+            color: var(--text-main);
+            background: var(--input-bg);
+        }
+        .setting-input:focus {
+            border-color: var(--theme-color);
+            background: var(--card-bg);
+        }
+
+        .setting-input-full {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            outline: none;
+            color: var(--text-main);
+            background: var(--input-bg);
+            margin-top: 6px;
+        }
+
+        .setting-unit {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            width: 28px;
+        }
+
+        .auth-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: #4285F4;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        /* --- フッター --- */
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--footer-height);
+            background-color: var(--footer-bg);
+            border-top: 1px solid var(--footer-border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 100;
+            transition: background-color 0.25s ease;
+        }
+
+        .record-bar-wrapper {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .record-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-bubble {
+            flex: 1;
+            background-color: var(--input-bg);
+            border-radius: 24px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .input-bubble input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 0.92rem;
+            outline: none;
+            color: var(--text-main);
+        }
+
+        .input-bubble input::placeholder {
+            color: var(--text-sub);
+        }
+
+        .footer-icons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .footer-btn {
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+            border-radius: 6px;
+            transition: color 0.2s, background-color 0.2s;
+        }
+
+        .footer-btn:active {
+            color: var(--theme-color);
+            background-color: var(--input-bg);
+        }
+
+        .send-btn {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--send-btn-bg);
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            transition: transform 0.1s, opacity 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-btn:active {
+            transform: scale(0.92);
+            opacity: 0.9;
+        }
+
+        #gallery-input, #camera-input {
+            display: none;
+        }
+
+        /* --- モーダル共通 --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 300;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-box {
+            background: var(--card-bg);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            padding: 18px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        .modal-form-group {
+            margin-bottom: 12px;
+        }
+
+        .modal-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-sub);
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            font-size: 0.92rem;
+            background: var(--input-bg);
+            color: var(--text-main);
+            outline: none;
+        }
+        .modal-input:focus {
+            border-color: var(--theme-color);
+            background: var(--card-bg);
+        }
+
+        .modal-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .modal-btn-primary {
+            background-color: var(--theme-color);
+            color: var(--theme-text);
+        }
+        .modal-btn-danger {
+            background-color: #EF4444;
+            color: #FFFFFF;
+        }
+        .modal-btn-secondary {
+            background-color: var(--input-bg);
+            color: var(--text-main);
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: #10B981;
+            color: #FFFFFF;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 400;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
 </head>
-<body class="bg-white min-h-screen p-2 md:p-6 pb-24 flex justify-center items-start text-slate-800">
+<body>
 
-  <div id="appContainer" class="max-w-md w-full bg-white rounded-3xl p-4 md:p-5 space-y-4 my-1 select-none transition-all relative">
-    
-    <!-- 上部固定エリア -->
-    <div class="sticky top-0 bg-white z-30 pt-1 pb-1.5 -mx-4 px-4 md:-mx-5 md:px-5 space-y-2 border-b border-slate-100/80 shadow-xs">
-      
-      <!-- ヘッダー（Googleログイン時、ログイン中は非表示） -->
-      <div id="headerAuthRow" class="flex justify-end items-center">
-        <div id="authArea">
-          <button id="loginBtn" onclick="loginWithGoogle()" class="text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded-xl transition shadow-sm flex items-center gap-1 active:scale-95">
-            <span>Googleログイン</span>
-          </button>
-        </div>
-      </div>
+    <div class="toast" id="toast-msg">登録しました</div>
 
-      <!-- 7日間の日付＆曜日タブナビゲーション -->
-      <div>
-        <div id="weekDaysContainer" class="grid grid-cols-7 gap-1 p-1 rounded-2xl border text-center touch-pan-x cursor-grab" style="background-color: var(--primary-light); opacity: 0.95; border-color: var(--primary-border);"></div>
-      </div>
-
-      <!-- スクロール追従用 コンパクトサマリーバー -->
-      <div id="compactSummaryBar" class="hidden px-2.5 py-2 rounded-2xl grid grid-cols-4 gap-1 text-center font-mono summary-transition items-center shadow-2xs border" style="background-color: var(--primary-light); border-color: var(--primary-border);">
-        <div>
-          <div class="text-[9px] text-slate-500 font-bold leading-none">残りカロリー</div>
-          <div id="compactRemCal" class="text-xs font-black leading-tight mt-0.5">0 kcal</div>
-        </div>
-        <div>
-          <div class="text-[9px] text-slate-500 font-bold leading-none">タンパク質</div>
-          <div id="compactProtein" class="text-xs font-bold leading-tight mt-0.5">0 / 100g</div>
-        </div>
-        <div>
-          <div class="text-[9px] text-slate-500 font-bold leading-none">脂質</div>
-          <div id="compactFat" class="text-xs font-bold leading-tight mt-0.5">0 / 50g</div>
-        </div>
-        <div>
-          <div class="text-[9px] text-slate-500 font-bold leading-none">炭水化物</div>
-          <div id="compactCarbs" class="text-xs font-bold leading-tight mt-0.5">0 / 250g</div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- メインビュー切り替えコンテナ -->
-    <div id="viewContainer" class="space-y-4">
-
-      <!-- ==================== ① ホームビュー ==================== -->
-      <div id="homeView" class="space-y-4">
-        <!-- 通常時サマリーカード -->
-        <div id="fullSummaryCard" class="bg-slate-50 border border-slate-200 p-3.5 rounded-3xl space-y-3 shadow-xs summary-transition">
-          <div id="summaryHeaderRow" class="flex items-center justify-between px-2 py-0.5">
-            
-            <!-- キャラ＆吹き出しエリア -->
-            <div id="mascotAndSpeechGroup" class="flex items-center space-x-2 p-1.5 rounded-2xl border" style="background-color: var(--primary-light); border-color: var(--primary-border);">
-              <div id="shiratamaContainer" class="shiratama-container" onclick="tapShiratama()">
-                <div id="shiratama-body" class="shiratama-body">
-                  <div id="shiratama-eye-l" class="shiratama-eye left"></div>
-                  <div id="shiratama-eye-r" class="shiratama-eye right"></div>
-                  <div id="shiratama-cheek-l" class="shiratama-cheek left"></div>
-                  <div id="shiratama-cheek-r" class="shiratama-cheek right"></div>
-                  <div id="shiratama-mouth" class="shiratama-mouth happy"></div>
-                  <div id="shiratama-sweat" class="shiratama-sweat">💧</div>
-                </div>
-              </div>
-              <div id="shiratamaBubble" class="speech-bubble">お腹すいたよ〜！何か食べてね！</div>
-            </div>
-
-            <div id="calorieTextGroup" class="flex flex-col justify-center text-right">
-              <span class="text-xs text-slate-600 font-bold leading-none mb-1">総カロリー</span>
-              <div class="font-mono flex items-baseline justify-end space-x-1">
-                <span id="totalCalories" class="text-xl font-black text-theme-main leading-none">0</span>
-                <span class="text-slate-400 text-xs">/</span>
-                <span id="targetCaloriesDisplay" class="text-xs font-semibold text-slate-500">2000</span>
-                <span class="text-[10px] text-slate-400">kcal</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="space-y-1">
-            <div class="w-full bg-slate-200/80 h-1.5 rounded-full overflow-hidden">
-              <div id="barCalories" class="h-full transition-all duration-300 bg-theme-main" style="width: 0%"></div>
-            </div>
-          </div>
-          
-          <!-- PFCカード3列 -->
-          <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-200 text-center">
-            
-            <!-- タンパク質 -->
-            <div class="bg-white p-2 rounded-2xl space-y-1 border border-slate-200/80 shadow-2xs">
-              <div class="text-xs text-blue-600 font-bold leading-tight">タンパク質</div>
-              <div class="font-bold font-mono leading-none">
-                <span id="totalProtein" class="text-blue-600 text-sm">0</span>
-                <span class="text-slate-400 text-[11px] font-normal">/</span>
-                <span id="targetProteinDisplay" class="text-slate-400 text-[11px] font-normal">100</span><span class="text-[11px] text-slate-400 font-normal">g</span>
-              </div>
-              <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                <div id="barProtein" class="bg-blue-500 h-full transition-all duration-300" style="width: 0%"></div>
-              </div>
-            </div>
-
-            <!-- 脂質 -->
-            <div class="bg-white p-2 rounded-2xl space-y-1 border border-slate-200/80 shadow-2xs">
-              <div class="text-xs text-amber-600 font-bold leading-tight">脂質</div>
-              <div class="font-bold font-mono leading-none">
-                <span id="totalFat" class="text-amber-600 text-sm">0</span>
-                <span class="text-slate-400 text-[11px] font-normal">/</span>
-                <span id="targetFatDisplay" class="text-slate-400 text-[11px] font-normal">50</span><span class="text-[11px] text-slate-400 font-normal">g</span>
-              </div>
-              <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                <div id="barFat" class="bg-amber-500 h-full transition-all duration-300" style="width: 0%"></div>
-              </div>
-            </div>
-
-            <!-- 炭水化物 -->
-            <div class="bg-white p-2 rounded-2xl space-y-1 border border-slate-200/80 shadow-2xs">
-              <div class="text-xs text-emerald-600 font-bold leading-tight">炭水化物</div>
-              <div class="font-bold font-mono leading-none">
-                <span id="totalCarbs" class="text-emerald-600 text-sm">0</span>
-                <span class="text-slate-400 text-[11px] font-normal">/</span>
-                <span id="targetCarbsDisplay" class="text-slate-400 text-[11px] font-normal">250</span><span class="text-[11px] text-slate-400 font-normal">g</span>
-              </div>
-              <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                <div id="barCarbs" class="bg-emerald-500 h-full transition-all duration-300" style="width: 0%"></div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- 統合入力フォーム -->
-        <div id="addFoodSection" class="bg-slate-50 p-3.5 rounded-3xl border border-slate-200/80 shadow-xs scroll-mt-24 space-y-2.5">
-          <div class="flex justify-between items-center">
-            <label class="block text-xs font-bold text-slate-700">食事の追加</label>
-            <div class="flex items-center space-x-2">
-              <span id="aiStatusBadge" class="hidden text-[10px] bg-theme-light text-theme-dark font-bold px-2.5 py-0.5 rounded-full">✨ AI解析完了</span>
-              <button onclick="openSelectFavoriteModal()" class="text-[10px] bg-theme-light text-theme-dark font-bold px-2.5 py-1.5 rounded-xl transition border border-theme-light shadow-2xs flex items-center gap-1 active:scale-95 hover:opacity-90">
-                リストから選ぶ
-              </button>
-            </div>
-          </div>
-
-          <!-- お気に入りピル型チップ -->
-          <div id="quickFavoriteChipsContainer" class="hidden -mx-1 px-1">
-            <div id="quickFavoriteChips" class="pill-scroll-container"></div>
-          </div>
-
-          <!-- 入力ファイル用要素 -->
-          <input type="file" id="albumInput" accept="image/*" class="hidden" onchange="analyzePhotoAndFillForm(event)">
-          <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" onchange="analyzePhotoAndFillForm(event)">
-          <input type="file" id="barcodeInput" accept="image/*" capture="environment" class="hidden" onchange="scanBarcodeAndFillForm(event)">
-
-          <div class="space-y-2.5">
-            <div>
-              <div class="flex items-center space-x-1.5">
-                <input type="text" id="manualName" placeholder="例: 牛丼並盛り、プロテイン" class="flex-1 text-xs p-2.5 border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white shadow-2xs">
-                
-                <button onclick="document.getElementById('albumInput').click()" title="アルバムから選択" class="bg-theme-light text-theme-dark border border-theme-light font-bold p-2.5 rounded-2xl flex items-center justify-center transition active:scale-95 shrink-0 shadow-2xs hover:opacity-90">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                  </svg>
-                </button>
-
-                <button onclick="triggerSilentCamera()" title="食事を撮影" class="bg-theme-light text-theme-dark border border-theme-light font-bold p-2.5 rounded-2xl flex items-center justify-center transition active:scale-95 shrink-0 shadow-2xs hover:opacity-90">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                  </svg>
-                </button>
-              </div>
-              
-              <div id="previewContainer" class="hidden mt-2 relative">
-                <img id="imagePreview" class="max-h-32 mx-auto rounded-2xl object-cover border border-slate-200">
-                <button onclick="clearPhotoPreview()" class="absolute top-1 right-1 bg-slate-800/80 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">×</button>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="block text-[10px] font-bold text-slate-500 mb-0.5">カロリー (kcal)</label>
-                <input type="number" id="manualCalories" placeholder="空欄でAI推定" class="w-full text-xs p-2.5 border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white shadow-2xs">
-              </div>
-              <div>
-                <label class="block text-[10px] font-bold text-slate-500 mb-0.5">タンパク質 (g)</label>
-                <input type="number" id="manualProtein" placeholder="空欄でAI推定" class="w-full text-xs p-2.5 border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white shadow-2xs">
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="block text-[10px] font-bold text-slate-500 mb-0.5">脂質 (g)</label>
-                <input type="number" id="manualFat" placeholder="空欄でAI推定" class="w-full text-xs p-2.5 border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white shadow-2xs">
-              </div>
-              <div>
-                <label class="block text-[10px] font-bold text-slate-500 mb-0.5">炭水化物 (g)</label>
-                <input type="number" id="manualCarbs" placeholder="空欄でAI推定" class="w-full text-xs p-2.5 border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white shadow-2xs">
-              </div>
-            </div>
-
-            <div class="flex items-center space-x-1.5 pt-0.5">
-              <input type="checkbox" id="addToListAlso" class="rounded border-slate-300 text-slate-700 focus:ring-slate-400">
-              <label for="addToListAlso" class="text-xs font-bold text-slate-600">リストにも追加する</label>
-            </div>
-
-            <button id="manualAddBtn" onclick="addManualLog()" class="w-full bg-theme-main text-theme-contrast text-xs font-bold py-2.5 rounded-2xl hover:opacity-90 transition shadow-sm active:scale-95">
-              ＋ 記録に追加する
+    <!-- ヘッダーエリア (最上部固定) -->
+    <header id="header">
+        <div class="header-top">
+            <button class="icon-btn" onclick="toggleDrawer(true)" title="メニュー">
+                <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
             </button>
-          </div>
+            
+            <div class="header-title" id="page-title">食事</div>
 
-          <div id="manualLoading" class="hidden text-center py-2">
-            <div class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-slate-500 border-t-transparent"></div>
-            <p class="text-[11px] text-slate-500 mt-1" id="loadingText">AIが栄養素を解析中...</p>
-          </div>
+            <div class="header-btn-group">
+                <!-- カレンダーボタン (月間カレンダーポップアップを開く) -->
+                <button class="icon-btn" onclick="openMonthlyCalendarModal()" title="月間カレンダー">
+                    <i data-lucide="calendar" style="width: 22px; height: 22px;"></i>
+                </button>
+                <button class="icon-btn" onclick="switchView('settings')" title="設定">
+                    <i data-lucide="settings" style="width: 22px; height: 22px;"></i>
+                </button>
+            </div>
         </div>
 
-        <!-- 食事ログエリア -->
-        <div class="border-t border-slate-200/80 pt-3 space-y-2.5">
-          <div id="logList" class="space-y-2 min-h-36 text-xs text-slate-500"></div>
+        <!-- 週間カレンダーバー (デフォルトは本日期日基準で本日が一番右) -->
+        <div class="weekly-calendar" id="weekly-calendar"></div>
+    </header>
+
+    <!-- サイドドロワーメニュー -->
+    <div class="drawer-overlay" id="drawer-overlay" onclick="toggleDrawer(false)">
+        <div class="drawer-menu" onclick="event.stopPropagation()">
+            <div class="drawer-header">
+                <span>メニュー</span>
+                <button class="icon-btn" onclick="toggleDrawer(false)" style="color: inherit;">
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                </button>
+            </div>
+            <ul class="drawer-list">
+                <li class="drawer-item active" id="menu-food" onclick="selectMenu('food')">
+                    <i data-lucide="utensils" style="width: 20px; height: 20px;"></i>
+                    <span>食事</span>
+                </li>
+                <li class="drawer-item" id="menu-weight" onclick="selectMenu('weight')">
+                    <i data-lucide="scale" style="width: 20px; height: 20px;"></i>
+                    <span>体重</span>
+                </li>
+                <li class="drawer-item" id="menu-exercise" onclick="selectMenu('exercise')">
+                    <i data-lucide="activity" style="width: 20px; height: 20px;"></i>
+                    <span>運動</span>
+                </li>
+            </ul>
         </div>
-
-        <!-- ホーム用フローティングボタン（右下：食事記録） -->
-        <button onclick="openRecordActionModal()" class="fixed bottom-20 right-5 w-14 h-14 rounded-full bg-theme-main text-theme-contrast shadow-2xl flex items-center justify-center z-30 transition hover:scale-105 active:scale-95">
-          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
-          </svg>
-        </button>
-      </div>
-
-      <!-- ==================== ② 体重ビュー ==================== -->
-      <div id="weightView" class="hidden space-y-4">
-        <div id="weightSection" class="bg-slate-50 border border-slate-200 p-4 rounded-3xl space-y-3 shadow-xs">
-          <h3 class="text-sm font-bold text-slate-800 border-b pb-2">⚖️ 体重・体脂肪の記録</h3>
-          
-          <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
-            <canvas id="weightChart" class="w-full h-48"></canvas>
-          </div>
-
-          <div class="space-y-2 pt-2">
-            <div class="text-xs font-bold text-slate-700">最近の記録</div>
-            <div id="weightLogList" class="space-y-1.5 max-h-48 overflow-y-auto text-xs text-slate-600"></div>
-          </div>
-        </div>
-
-        <button onclick="openWeightModal()" class="fixed bottom-20 right-5 w-14 h-14 rounded-full bg-theme-main text-theme-contrast shadow-2xl flex items-center justify-center z-30 transition hover:scale-105 active:scale-95">
-          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
-          </svg>
-        </button>
-      </div>
-
-      <!-- ==================== ③ 運動ビュー ==================== -->
-      <div id="workoutView" class="hidden space-y-4">
-        <div id="workoutSection" class="bg-slate-50 border border-slate-200 p-4 rounded-3xl space-y-3 shadow-xs">
-          <h3 class="text-sm font-bold text-slate-800 border-b pb-2">🏃‍♂️ 運動・トレーニング記録</h3>
-          
-          <div class="space-y-2 pt-1">
-            <div class="text-xs font-bold text-slate-700">今日の運動ログ</div>
-            <div id="workoutLogList" class="space-y-1.5 max-h-64 overflow-y-auto text-xs text-slate-600"></div>
-          </div>
-        </div>
-
-        <button onclick="openWorkoutModal()" class="fixed bottom-20 right-5 w-14 h-14 rounded-full bg-theme-main text-theme-contrast shadow-2xl flex items-center justify-center z-30 transition hover:scale-105 active:scale-95">
-          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
-          </svg>
-        </button>
-      </div>
-
     </div>
-  </div>
 
-  <!-- 下部固定ボトムナビゲーションバー -->
-  <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-4 py-2 flex justify-around items-center z-40 shadow-lg">
-    
-    <button onclick="switchTab('home')" id="nav-btn-home" class="bottom-nav-item active flex-1 flex flex-col items-center py-1 rounded-2xl transition active:scale-95 text-slate-500">
-      <div class="nav-bg p-1.5 rounded-xl bg-theme-light text-theme-main transition">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-        </svg>
-      </div>
-      <span class="text-[10px] font-bold mt-0.5 text-theme-main">ホーム</span>
-    </button>
+    <!-- メインコンテンツ -->
+    <main>
+        <!-- 1. 食事画面 -->
+        <section id="view-food" class="view-panel active">
+            <!-- 選択日カロリー＆PFCサマリー (上部固定吸着) -->
+            <div class="sticky-summary-wrap">
+                <div class="nutrition-summary-card">
+                    <!-- カロリー行＋プログレスバー -->
+                    <div class="summary-header">
+                        <div class="summary-cal-header-row">
+                            <span class="summary-cal-badge" id="summary-cal-display">カロリー: <span class="val-current" id="val-cur-cal">0</span> / <span id="val-tgt-cal">2000</span> kcal</span>
+                            <span style="font-size:0.75rem; font-weight:600; color:var(--text-sub);" id="summary-cal-percent">0%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill cal-bar-fill" id="cal-progress-bar"></div>
+                        </div>
+                    </div>
 
-    <button onclick="openCalendarModal()" class="bottom-nav-item flex-1 flex flex-col items-center py-1 rounded-2xl transition active:scale-95 text-slate-500">
-      <div class="nav-bg p-1.5 rounded-xl transition">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-        </svg>
-      </div>
-      <span class="text-[10px] font-bold mt-0.5">カレンダー</span>
-    </button>
+                    <!-- PFC 3分割グリッド ＋ プログレスバー (背景色の透明度4.5%) -->
+                    <div class="pfc-grid">
+                        <div class="pfc-col pfc-col-p" style="background-color: rgba(147, 197, 253, 0.045); border-color: rgba(147, 197, 253, 0.25);">
+                            <span class="pfc-label">たんぱく質 (P)</span>
+                            <span class="pfc-value"><span class="val-current" id="val-cur-p">0</span> / <span id="val-tgt-p">100</span>g</span>
+                            <div class="progress-bar-bg" style="margin-top:2px;">
+                                <div class="progress-bar-fill" id="p-progress-bar"></div>
+                            </div>
+                        </div>
+                        <div class="pfc-col pfc-col-f" style="background-color: rgba(253, 230, 138, 0.045); border-color: rgba(253, 230, 138, 0.28);">
+                            <span class="pfc-label">脂質 (F)</span>
+                            <span class="pfc-value"><span class="val-current" id="val-cur-f">0</span> / <span id="val-tgt-f">50</span>g</span>
+                            <div class="progress-bar-bg" style="margin-top:2px;">
+                                <div class="progress-bar-fill" id="f-progress-bar"></div>
+                            </div>
+                        </div>
+                        <div class="pfc-col pfc-col-c" style="background-color: rgba(167, 243, 208, 0.045); border-color: rgba(167, 243, 208, 0.28);">
+                            <span class="pfc-label">炭水化物 (C)</span>
+                            <span class="pfc-value"><span class="val-current" id="val-cur-c">0</span> / <span id="val-tgt-c">250</span>g</span>
+                            <div class="progress-bar-bg" style="margin-top:2px;">
+                                <div class="progress-bar-fill" id="c-progress-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <button onclick="switchTab('weight')" id="nav-btn-weight" class="bottom-nav-item flex-1 flex flex-col items-center py-1 rounded-2xl transition active:scale-95 text-slate-500">
-      <div class="nav-bg p-1.5 rounded-xl transition">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path>
-        </svg>
-      </div>
-      <span class="text-[10px] font-bold mt-0.5">体重</span>
-    </button>
+            <!-- 食事記録リスト -->
+            <div class="card-list" id="food-list"></div>
+        </section>
 
-    <button onclick="switchTab('workout')" id="nav-btn-workout" class="bottom-nav-item flex-1 flex flex-col items-center py-1 rounded-2xl transition active:scale-95 text-slate-500">
-      <div class="nav-bg p-1.5 rounded-xl transition">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-        </svg>
-      </div>
-      <span class="text-[10px] font-bold mt-0.5">運動</span>
-    </button>
+        <!-- 2. 体重画面 (上部固定グラフ ＋ 下スクロールリスト) -->
+        <section id="view-weight" class="view-panel">
+            <div class="sticky-chart-wrap">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-title">
+                            <i data-lucide="trending-up" style="width: 18px; height: 18px; color: var(--theme-color);"></i>
+                            体重・体脂肪推移
+                        </span>
+                        <span style="font-size: 0.8rem; color: var(--text-sub);" id="latest-weight-stat">最新: -- kg</span>
+                    </div>
+                    <div class="chart-legend-wrap">
+                        <span><span class="legend-indicator" style="background-color: #2B5C8F;"></span>体重 (kg)</span>
+                        <span><span class="legend-indicator" style="background-color: #F59E0B;"></span>体脂肪率 (%)</span>
+                    </div>
+                    <div style="position: relative; height: 180px; width: 100%;">
+                        <canvas id="weightChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="card-list" id="weight-list"></div>
+        </section>
 
-    <button onclick="openTargetModal()" class="bottom-nav-item flex-1 flex flex-col items-center py-1 rounded-2xl transition active:scale-95 text-slate-500">
-      <div class="nav-bg p-1.5 rounded-xl transition">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-        </svg>
-      </div>
-      <span class="text-[10px] font-bold mt-0.5">設定</span>
-    </button>
-  </nav>
+        <!-- 3. 運動画面 -->
+        <section id="view-exercise" class="view-panel">
+            <div class="card-list" id="exercise-list" style="padding-top: 10px;"></div>
+        </section>
 
-  <!-- 記録選択ポップアップ（下からぐいっと競り上がるボトムシート・アイコン3つのみ） -->
-  <div id="recordActionModal" onclick="closeRecordActionModal()" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-end justify-center">
-    <div onclick="event.stopPropagation()" class="bg-white w-full max-w-md rounded-t-3xl shadow-2xl p-6 pb-12 flex flex-col items-center space-y-4 border-t border-slate-200 sheet-animate">
-      <div class="w-12 h-1.5 bg-slate-300 rounded-full mb-1"></div>
-      
-      <div class="flex items-center justify-center space-x-6 w-full py-2">
-        <!-- 1. 食事撮影 -->
-        <button onclick="closeRecordActionModal(); triggerSilentCamera();" title="食事を撮影" class="flex flex-col items-center group active:scale-95 transition">
-          <div class="w-16 h-16 rounded-2xl bg-theme-light text-theme-main border border-theme-light flex items-center justify-center shadow-sm group-hover:opacity-90">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-            </svg>
-          </div>
-        </button>
+        <!-- 4. 設定画面 -->
+        <section id="view-settings" class="view-panel">
+            <div class="settings-container">
+                <div class="setting-section">
+                    <div class="setting-section-title">
+                        <i data-lucide="target" style="width: 18px; height: 18px; color: var(--theme-color);"></i>
+                        1日の目標設定
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">目標カロリー</span>
+                        <div class="setting-input-wrap">
+                            <input type="number" class="setting-input" id="target-calories" value="2000" onchange="renderFoodList(false); renderWeeklyCalendar();">
+                            <span class="setting-unit">kcal</span>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">たんぱく質 (P)</span>
+                        <div class="setting-input-wrap">
+                            <input type="number" class="setting-input" id="target-protein" value="100" onchange="renderFoodList(false);">
+                            <span class="setting-unit">g</span>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">脂質 (F) (上限判定)</span>
+                        <div class="setting-input-wrap">
+                            <input type="number" class="setting-input" id="target-fat" value="50" onchange="renderFoodList(false); renderWeeklyCalendar();">
+                            <span class="setting-unit">g</span>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">炭水化物/糖質 (C) (上限判定)</span>
+                        <div class="setting-input-wrap">
+                            <input type="number" class="setting-input" id="target-carb" value="250" onchange="renderFoodList(false); renderWeeklyCalendar();">
+                            <span class="setting-unit">g</span>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">目標体重</span>
+                        <div class="setting-input-wrap">
+                            <input type="number" step="0.1" class="setting-input" id="target-weight" value="65.0">
+                            <span class="setting-unit">kg</span>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- 2. バーコードスキャン -->
-        <button onclick="closeRecordActionModal(); triggerBarcodeScan();" title="バーコードをスキャン" class="flex flex-col items-center group active:scale-95 transition">
-          <div class="w-16 h-16 rounded-2xl bg-slate-100 hover:bg-theme-light text-slate-700 hover:text-theme-main border border-slate-200 flex items-center justify-center shadow-sm group-hover:opacity-90">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4m-8-8v16m-4-12v8m8-8v8"></path>
-            </svg>
-          </div>
-        </button>
+                <div class="setting-section">
+                    <div class="setting-section-title">
+                        <i data-lucide="sparkles" style="width: 18px; height: 18px; color: #4285F4;"></i>
+                        Googleアカウント ＆ Gemini AI設定
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <div class="setting-label">クラウド同期ログイン</div>
+                        <div class="setting-sublabel" id="google-auth-status">未連携（Googleログインしてデータを同期）</div>
+                        <button class="auth-btn" id="google-login-btn" onclick="loginWithGoogle()">
+                            <i data-lucide="log-in" style="width: 16px; height: 16px;"></i>
+                            Google でログイン
+                        </button>
+                        <button class="auth-btn" id="google-logout-btn" onclick="logoutFromGoogle()" style="background-color: #EF4444; display: none; margin-top: 6px;">
+                            ログアウト
+                        </button>
+                    </div>
+                    <div style="padding-top: 8px; border-top: 1px solid var(--card-border);">
+                        <div class="setting-label">Gemini API キー</div>
+                        <div class="setting-sublabel">入力した品名や写真からカロリー・PFCをAIが自動計算します</div>
+                        <input type="password" class="setting-input-full" id="gemini-api-key" placeholder="AIzaSy..." onchange="saveGeminiApiKey(this.value)">
+                    </div>
+                </div>
 
-        <!-- 3. 手動で追加 -->
-        <button onclick="closeRecordActionModal(); navGoRecord();" title="手動で追加" class="flex flex-col items-center group active:scale-95 transition">
-          <div class="w-16 h-16 rounded-2xl bg-slate-100 hover:bg-theme-light text-slate-700 hover:text-theme-main border border-slate-200 flex items-center justify-center shadow-sm group-hover:opacity-90">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-            </svg>
-          </div>
-        </button>
-      </div>
+                <button class="setting-save-btn" onclick="saveSettings()">設定を保存する</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- 下部固定入力バー -->
+    <footer>
+        <div class="record-bar-wrapper">
+            <div class="record-bar">
+                <div class="input-bubble" id="input-bubble-wrap" onclick="handleInputBubbleClick()">
+                    <input type="text" id="record-input" placeholder="何を食べましたか？" oninput="handleInputChange()">
+                </div>
+
+                <div class="footer-icons" id="footer-icons">
+                    <button class="footer-btn" id="fav-btn" title="お気に入り" onclick="openFavoriteModal()">
+                        <i data-lucide="bookmark" style="width: 20px; height: 20px;"></i>
+                    </button>
+                    <label class="footer-btn" id="gallery-btn" title="写真ライブラリから選択" style="cursor: pointer;">
+                        <i data-lucide="image" style="width: 20px; height: 20px;"></i>
+                        <input type="file" id="gallery-input" accept="image/*" onchange="handleImageSelection(event)">
+                    </label>
+                    <label class="footer-btn" id="camera-btn" title="カメラ起動" style="cursor: pointer;">
+                        <i data-lucide="camera" style="width: 20px; height: 20px;"></i>
+                        <input type="file" id="camera-input" accept="image/*" capture="environment" onchange="handleImageSelection(event)">
+                    </label>
+                </div>
+
+                <button class="send-btn" id="send-btn" title="送信" onclick="submitRecord()">
+                    <i data-lucide="send" style="width: 18px; height: 18px; transform: translateX(-1px) translateY(1px);"></i>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- モーダル 0: 月間カレンダー日付選択ポップアップ -->
+    <div class="modal-overlay" id="monthly-calendar-modal">
+        <div class="modal-box">
+            <div class="modal-header" style="margin-bottom: 8px;">
+                <span>日付を選択</span>
+                <button class="icon-btn" onclick="closeModal('monthly-calendar-modal')"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
+            </div>
+            
+            <div class="month-cal-header">
+                <button class="icon-btn" onclick="changeMonth(-1)" title="前月"><i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i></button>
+                <div class="month-cal-title" id="month-cal-title">2026年 8月</div>
+                <button class="icon-btn" onclick="changeMonth(1)" title="次月"><i data-lucide="chevron-right" style="width: 20px; height: 20px;"></i></button>
+            </div>
+
+            <div class="month-cal-grid" id="month-cal-grid"></div>
+
+            <div style="margin-top: 14px; text-align: center;">
+                <button class="modal-btn modal-btn-secondary" style="width: 100%; padding: 8px;" id="today-back-btn" onclick="goToToday()">
+                    今日に戻る
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- 体重記録モーダル -->
-  <div id="weightModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center p-4 z-50">
-    <div class="bg-white rounded-3xl shadow-2xl p-5 max-w-xs w-full space-y-3">
-      <h3 class="text-sm font-bold text-slate-800 border-b pb-2">⚖️ 体重を記録</h3>
-      <div>
-        <label class="block text-xs font-bold text-slate-600 mb-1">日付</label>
-        <input type="date" id="inputWeightDate" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl bg-white">
-      </div>
-      <div>
-        <label class="block text-xs font-bold text-slate-600 mb-1">体重 (kg)</label>
-        <input type="number" step="0.1" id="inputWeightVal" placeholder="60.5" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl">
-      </div>
-      <div>
-        <label class="block text-xs font-bold text-slate-600 mb-1">体脂肪率 (%) [任意]</label>
-        <input type="number" step="0.1" id="inputFatVal" placeholder="18.5" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl">
-      </div>
-      <div class="flex space-x-2 pt-2">
-        <button onclick="closeWeightModal()" class="flex-1 bg-white text-slate-800 border border-slate-300 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-50 transition">キャンセル</button>
-        <button onclick="saveWeightLog()" class="flex-1 bg-theme-main text-theme-contrast text-xs font-bold py-2.5 rounded-xl hover:opacity-90 transition shadow-sm">保存する</button>
-      </div>
+    <!-- モーダル 1: 食事記録の編集・削除モーダル -->
+    <div class="modal-overlay" id="food-edit-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span>食事メニューの編集</span>
+                <button class="icon-btn" onclick="closeModal('food-edit-modal')"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
+            </div>
+            <input type="hidden" id="edit-food-id">
+            <div class="modal-form-group">
+                <label class="modal-label">日付</label>
+                <input type="date" class="modal-input" id="edit-food-date">
+            </div>
+            <div class="modal-form-group">
+                <label class="modal-label">品名</label>
+                <input type="text" class="modal-input" id="edit-food-name">
+            </div>
+            <div class="modal-grid-2">
+                <div class="modal-form-group">
+                    <label class="modal-label">カロリー (kcal)</label>
+                    <input type="number" class="modal-input" id="edit-food-cal">
+                </div>
+                <div class="modal-form-group">
+                    <label class="modal-label">たんぱく質 P (g)</label>
+                    <input type="number" step="0.1" class="modal-input" id="edit-food-p">
+                </div>
+            </div>
+            <div class="modal-grid-2">
+                <div class="modal-form-group">
+                    <label class="modal-label">脂質 F (g)</label>
+                    <input type="number" step="0.1" class="modal-input" id="edit-food-f">
+                </div>
+                <div class="modal-form-group">
+                    <label class="modal-label">炭水化物/糖質 C (g)</label>
+                    <input type="number" step="0.1" class="modal-input" id="edit-food-c">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-danger" onclick="deleteCurrentFood()"><i data-lucide="trash-2" style="width:16px;height:16px;"></i> 削除</button>
+                <button class="modal-btn modal-btn-primary" onclick="saveFoodEdit()"><i data-lucide="check" style="width:16px;height:16px;"></i> 保存</button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- 運動記録モーダル -->
-  <div id="workoutModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center p-4 z-50">
-    <div class="bg-white rounded-3xl shadow-2xl p-5 max-w-xs w-full space-y-3">
-      <h3 class="text-sm font-bold text-slate-800 border-b pb-2">🏃‍♂️ 運動を記録</h3>
-      <div>
-        <label class="block text-xs font-bold text-slate-600 mb-1">日付</label>
-        <input type="date" id="inputWorkoutDate" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl bg-white">
-      </div>
-      <div>
-        <label class="block text-xs font-bold text-slate-600 mb-1">メニュー名</label>
-        <input type="text" id="inputWorkoutName" placeholder="例: ジョギング、筋トレ" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl">
-      </div>
-      <div>
-        <label class="block text-xs font-bold text-slate-600 mb-1">消費カロリー (kcal) [任意]</label>
-        <input type="number" id="inputWorkoutCal" placeholder="200" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl">
-      </div>
-      <div class="flex space-x-2 pt-2">
-        <button onclick="closeWorkoutModal()" class="flex-1 bg-white text-slate-800 border border-slate-300 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-50 transition">キャンセル</button>
-        <button onclick="saveWorkoutLog()" class="flex-1 bg-theme-main text-theme-contrast text-xs font-bold py-2.5 rounded-xl hover:opacity-90 transition shadow-sm">保存する</button>
-      </div>
+    <!-- モーダル 2: 体重の新規入力 & 編集・削除モーダル -->
+    <div class="modal-overlay" id="weight-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span id="weight-modal-title">体重・体脂肪の記録</span>
+                <button class="icon-btn" onclick="closeModal('weight-modal')"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
+            </div>
+            <input type="hidden" id="weight-item-id">
+            <div class="modal-form-group">
+                <label class="modal-label">測定日</label>
+                <input type="date" class="modal-input" id="weight-input-date">
+            </div>
+            <div class="modal-grid-2">
+                <div class="modal-form-group">
+                    <label class="modal-label">体重 (kg)</label>
+                    <input type="number" step="0.1" class="modal-input" id="modal-weight-val" placeholder="体重を入力">
+                </div>
+                <div class="modal-form-group">
+                    <label class="modal-label">体脂肪率 (%)</label>
+                    <input type="number" step="0.1" class="modal-input" id="modal-fat-val" placeholder="体脂肪率を入力">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-danger" id="weight-delete-btn" style="display:none;" onclick="deleteWeightItem()"><i data-lucide="trash-2" style="width:16px;height:16px;"></i> 削除</button>
+                <button class="modal-btn modal-btn-primary" onclick="saveWeightItem()"><i data-lucide="check" style="width:16px;height:16px;"></i> 保存</button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- 「今日へ戻る」ボタン -->
-  <button id="backToTodayBtn" onclick="goToToday()" class="hidden fixed bottom-20 right-5 bg-slate-900/90 hover:bg-slate-900 text-theme-contrast font-bold px-3.5 py-2 rounded-full shadow-xl text-xs transition-all duration-200 flex items-center space-x-1.5 border border-slate-700/50 z-40 active:scale-95">
-    <svg class="w-4 h-4 text-theme-main" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-    </svg>
-    <span>今日</span>
-  </button>
-
-  <!-- トースト通知ポップアップ -->
-  <div id="toastNotification" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white font-bold text-xs px-4 py-2.5 rounded-2xl shadow-2xl z-50 flex items-center space-x-2 border border-slate-700/60 pointer-events-none">
-    <span id="toastMessage">✅ 記録を追加しました</span>
-  </div>
-
-  <!-- 設定モーダル -->
-  <div id="targetModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center p-4 z-50">
-    <div class="bg-white rounded-3xl shadow-2xl p-5 max-w-xs w-full space-y-3.5 max-h-[90vh] overflow-y-auto">
-      <h3 class="text-sm font-bold text-slate-800 border-b pb-2">⚙️ 設定＆カスタマイズ</h3>
-      
-      <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-2.5">
-        <label class="block text-[11px] font-bold text-slate-700">テーマカラー</label>
-        <div class="flex items-center justify-between px-1">
-          <button onclick="selectTheme('emerald')" id="theme-btn-emerald" class="theme-circle w-7 h-7 rounded-full bg-emerald-500 transition-all active:scale-90" title="エメラルド"></button>
-          <button onclick="selectTheme('blue')" id="theme-btn-blue" class="theme-circle w-7 h-7 rounded-full bg-blue-500 transition-all active:scale-90" title="ブルー"></button>
-          <button onclick="selectTheme('violet')" id="theme-btn-violet" class="theme-circle w-7 h-7 rounded-full bg-violet-500 transition-all active:scale-90" title="バイオレット"></button>
-          <button onclick="selectTheme('pink')" id="theme-btn-pink" class="theme-circle w-7 h-7 rounded-full bg-pink-400 transition-all active:scale-90" title="薄いピンク"></button>
-          <button onclick="selectTheme('amber')" id="theme-btn-amber" class="theme-circle w-7 h-7 rounded-full bg-amber-500 transition-all active:scale-90" title="アンバー（オレンジ）"></button>
-          <button onclick="selectTheme('halloween')" id="theme-btn-halloween" class="theme-circle w-7 h-7 rounded-full bg-orange-600 transition-all active:scale-90" title="ハロウィン"></button>
-          <button onclick="selectTheme('white')" id="theme-btn-white" class="theme-circle w-7 h-7 rounded-full bg-white border border-slate-300 transition-all active:scale-90" title="ホワイト"></button>
-        </div>
-
-        <div class="pt-2 border-t border-slate-200 space-y-2">
-          <div class="flex items-center justify-between">
-            <label for="inputDarkMode" class="text-xs font-bold text-slate-700 cursor-pointer">ダークモード</label>
-            <input type="checkbox" id="inputDarkMode" class="w-4 h-4 rounded border-slate-300 text-slate-700 focus:ring-0 cursor-pointer">
-          </div>
-          <div class="flex items-center justify-between">
-            <label for="inputShowMascot" class="text-xs font-bold text-slate-700 cursor-pointer">キャラ表示</label>
-            <input type="checkbox" id="inputShowMascot" class="w-4 h-4 rounded border-slate-300 text-slate-700 focus:ring-0 cursor-pointer">
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-1">
-        <label class="block text-[11px] font-bold text-slate-700">Gemini APIキー</label>
-        <input type="password" id="inputGeminiApiKey" placeholder="AIzaSy..." class="w-full text-xs p-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
-        <p class="text-[9px] text-slate-400">※Googleログイン時、アカウントに暗号化同期保存されます。</p>
-      </div>
-
-      <div class="space-y-2">
-        <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-0.5">目標カロリー (kcal)</label>
-          <input type="number" id="inputTargetCalories" placeholder="2000" class="w-full text-xs p-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400">
-        </div>
-        <div class="grid grid-cols-3 gap-1.5">
-          <div>
-            <label class="block text-[10px] font-bold text-slate-600 mb-0.5">タンパク質(g)</label>
-            <input type="number" id="inputTargetProtein" placeholder="100" class="w-full text-xs p-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400">
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-slate-600 mb-0.5">脂質(g)</label>
-            <input type="number" id="inputTargetFat" placeholder="50" class="w-full text-xs p-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400">
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-slate-600 mb-0.5">炭水化物(g)</label>
-            <input type="number" id="inputTargetCarbs" placeholder="250" class="w-full text-xs p-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400">
-          </div>
-        </div>
-      </div>
-
-      <div id="modalLogoutArea" class="pt-1 border-t border-slate-100 hidden">
-        <button onclick="logoutFromGoogle()" class="w-full text-xs bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 rounded-xl transition shadow-sm">
-          ログアウト
-        </button>
-      </div>
-
-      <div class="flex space-x-2 pt-1">
-        <button onclick="closeTargetModal()" class="flex-1 bg-white text-slate-800 border border-slate-300 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-50 transition shadow-xs">キャンセル</button>
-        <button onclick="saveTargetValues()" class="flex-1 bg-white text-slate-800 border border-slate-300 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-50 transition shadow-xs">設定を保存</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- リスト選択モーダル -->
-  <div id="selectFavoriteModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center p-4 z-50">
-    <div class="bg-white rounded-3xl shadow-2xl p-5 max-w-xs w-full space-y-3 max-h-[85vh] flex flex-col">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="text-sm font-bold text-slate-800">📋 リストから選択</h3>
-        <div class="flex items-center space-x-2">
-          <button onclick="openFavoriteModal()" class="text-xs bg-theme-main text-theme-contrast font-bold px-2.5 py-1 rounded-xl transition shadow-sm active:scale-95 hover:opacity-90">
-            ＋ 追加
-          </button>
-          <button onclick="closeSelectFavoriteModal()" class="text-slate-400 font-bold hover:text-slate-600 text-lg">×</button>
-        </div>
-      </div>
-
-      <input type="text" id="favSearchInput" oninput="renderSelectFavoriteList()" placeholder="料理名・表示名で検索..." class="w-full text-xs p-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
-
-      <div id="selectFavoriteList" class="space-y-1.5 overflow-y-auto flex-1 pr-1 text-xs"></div>
-
-      <button onclick="closeSelectFavoriteModal()" class="w-full bg-slate-100 text-slate-600 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-200 transition">閉じる</button>
-    </div>
-  </div>
-
-  <!-- リスト編集モーダル -->
-  <div id="editFavoriteModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center p-4 z-50">
-    <div class="bg-white rounded-3xl shadow-2xl p-5 max-w-xs w-full space-y-3">
-      <h3 class="text-sm font-bold text-slate-800 border-b pb-2">よく食べるアイテムの編集</h3>
-      <div>
-        <label class="block text-[10px] font-bold text-slate-500 mb-0.5">料理名（正式名称）</label>
-        <input type="text" id="editFavName" class="w-full text-xs p-2 border border-slate-300 rounded-xl">
-      </div>
-      <div>
-        <label class="block text-[10px] font-bold text-slate-500 mb-0.5">TOP表示名（略称・空欄なら正式名）</label>
-        <input type="text" id="editFavShortName" placeholder="例: プロテイン" class="w-full text-xs p-2 border border-slate-300 rounded-xl">
-      </div>
-      <div class="grid grid-cols-2 gap-2">
-        <div>
-          <label class="block text-[10px] font-bold text-slate-500 mb-0.5">カロリー(kcal)</label>
-          <input type="number" id="editFavCal" class="w-full text-xs p-2 border border-slate-300 rounded-xl">
-        </div>
-        <div>
-          <label class="block text-[10px] font-bold text-slate-500 mb-0.5">タンパク質(g)</label>
-          <input type="number" id="editFavProtein" class="w-full text-xs p-2 border border-slate-300 rounded-xl">
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-2">
-        <div>
-          <label class="block text-[10px] font-bold text-slate-500 mb-0.5">脂質(g)</label>
-          <input type="number" id="editFavFat" class="w-full text-xs p-2 border border-slate-300 rounded-xl">
-        </div>
-        <div>
-          <label class="block text-[10px] font-bold text-slate-500 mb-0.5">炭水化物(g)</label>
-          <input type="number" id="editFavCarbs" class="w-full text-xs p-2 border border-slate-300 rounded-xl">
-        </div>
-      </div>
-      <div class="flex space-x-2 pt-2">
-        <button onclick="closeEditFavoriteModal()" class="flex-1 bg-white text-slate-800 border border-slate-300 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-50 transition">キャンセル</button>
-        <button onclick="saveEditedFavoriteItem()" class="flex-1 bg-white text-slate-800 border border-slate-300 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-50 transition">保存</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- カレンダーモーダル -->
-  <div id="calendarModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center p-4 z-50">
-    <div class="bg-white rounded-3xl shadow-2xl p-5 max-w-xs w-full space-y-4">
-      <div class="flex justify-between items-center border-b pb-2">
-        <div class="flex items-center space-x-2">
-          <h3 class="text-sm font-bold text-slate-800" id="calendarMonthTitle">2026年 8月</h3>
-          <button onclick="goToTodayFromModal()" class="bg-theme-light text-theme-dark font-bold px-2 py-0.5 rounded-lg text-[10px] border border-theme-light transition active:scale-95">
-            今日
-          </button>
-        </div>
-        <div class="flex space-x-1">
-          <button onclick="changeCalendarMonth(-1)" class="p-1 text-slate-500 hover:bg-slate-100 rounded-lg">◀</button>
-          <button onclick="changeCalendarMonth(1)" class="p-1 text-slate-500 hover:bg-slate-100 rounded-lg">▶</button>
-        </div>
-      </div>
-
-      <div class="flex justify-center space-x-4 text-[10px] text-slate-500 font-medium">
-        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-200 inline-block"></span> 適正・目標内</span>
-        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full border border-red-500 bg-red-100 inline-block"></span> 超過</span>
-      </div>
-
-      <div class="grid grid-cols-7 text-center text-[10px] font-bold text-slate-400">
-        <span class="text-rose-400">日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="text-blue-400">土</span>
-      </div>
-
-      <div id="calendarGrid" class="grid grid-cols-7 gap-1 text-center text-xs"></div>
-
-      <button onclick="closeCalendarModal()" class="w-full bg-slate-100 text-slate-600 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-200 transition">閉じる</button>
-    </div>
-  </div>
-
-  <!-- リスト新規追加モーダル -->
-  <div id="favoriteModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center p-4 z-50">
-    <div class="bg-white rounded-3xl shadow-2xl p-5 max-w-xs w-full space-y-4">
-      <h3 class="text-base font-bold text-slate-800 border-b pb-2">リストに追加</h3>
-      
-      <div class="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-        <input type="text" id="favInputName" placeholder="料理名（例: プロテイン20g）" class="w-full text-xs p-2 border border-slate-300 rounded-xl bg-white">
-        <input type="text" id="favInputShortName" placeholder="TOP表示名（略称・空欄なら料理名）" class="w-full text-xs p-2 border border-slate-300 rounded-xl bg-white">
-        <div class="grid grid-cols-2 gap-2">
-          <input type="number" id="favInputCalories" placeholder="カロリー(kcal)" class="text-xs p-2 border border-slate-300 rounded-xl bg-white">
-          <input type="number" id="favInputProtein" placeholder="タンパク質(g)" class="text-xs p-2 border border-slate-300 rounded-xl bg-white">
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <input type="number" id="favInputFat" placeholder="脂質(g)" class="text-xs p-2 border border-slate-300 rounded-xl bg-white">
-          <input type="number" id="favInputCarbs" placeholder="炭水化物(g)" class="text-xs p-2 border border-slate-300 rounded-xl bg-white">
-        </div>
-        <div class="flex items-center space-x-1.5 pt-1">
-          <input type="checkbox" id="favInputPinned" class="rounded border-slate-300 text-slate-700 focus:ring-slate-400">
-          <label for="favInputPinned" class="text-xs font-bold text-slate-700">リストの上部に優先固定表示する（⭐）</label>
-        </div>
-        <button onclick="addNewFavorite()" class="w-full bg-theme-main text-theme-contrast text-xs font-bold py-2 rounded-xl transition shadow-sm mt-1 hover:opacity-90">追加する</button>
-      </div>
-
-      <button onclick="closeFavoriteModal()" class="w-full bg-slate-100 text-slate-600 text-xs font-bold py-2 rounded-xl hover:bg-slate-200 transition">閉じる</button>
-    </div>
-  </div>
-
-  <!-- 食事ログ編集モーダル -->
-  <div id="editModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center p-4 z-50">
-    <div class="bg-white rounded-3xl shadow-2xl p-6 max-w-xs w-full space-y-4">
-      <h3 class="text-base font-bold text-slate-800 border-b pb-2">記録の編集</h3>
-      <div>
-        <label class="block text-xs font-bold text-slate-600 mb-1">日付</label>
-        <input type="date" id="editDate" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
-      </div>
-      <div>
-        <label class="block text-xs font-bold text-slate-600 mb-1">料理名・食品名</label>
-        <input type="text" id="editName" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400">
-      </div>
-      <div class="grid grid-cols-2 gap-2">
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">カロリー (kcal)</label>
-          <input type="number" id="editCalories" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400">
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">タンパク質 (g)</label>
-          <input type="number" id="editProtein" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400">
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-2">
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">脂質 (g)</label>
-          <input type="number" id="editFat" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400">
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">炭水化物 (g)</label>
-          <input type="number" id="editCarbs" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400">
-        </div>
-      </div>
-      <div class="flex space-x-2 pt-2">
-        <button onclick="closeEditModal()" class="flex-1 bg-white text-slate-800 border border-slate-300 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-50 transition">キャンセル</button>
-        <button onclick="saveEditedLog()" class="flex-1 bg-theme-main text-theme-contrast text-xs font-bold py-2.5 rounded-xl hover:opacity-90 transition shadow-sm">保存する</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCaEfe3jeS1QPFQnKfXCgQEFHxPHGjGHqM",
-      authDomain: "bmidown.firebaseapp.com",
-      projectId: "bmidown",
-      storageBucket: "bmidown.firebasestorage.app",
-      messagingSenderId: "190194371045",
-      appId: "1:190194371045:web:accb081fd0984f4146070c",
-      measurementId: "G-5BKQKN8CTY"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const provider = new GoogleAuthProvider();
-
-    setPersistence(auth, browserLocalPersistence).catch(console.error);
-
-    let currentUser = null;
-    let unsubscribeSnapshot = null;
-
-    window.loginWithGoogle = async function() {
-      try {
-        await signInWithPopup(auth, provider);
-      } catch (err) {
-        if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request') {
-          await signInWithRedirect(auth, provider);
-        } else {
-          alert("ログイン処理に失敗しました: " + err.message);
-        }
-      }
-    };
-
-    getRedirectResult(auth).catch((err) => {
-      if (err.code !== 'auth/popup-closed-by-user') {
-        console.error("Redirect Result Error:", err);
-      }
-    });
-
-    window.logoutFromGoogle = async function() {
-      try {
-        await signOut(auth);
-        location.reload();
-      } catch (err) {
-        alert("ログアウトに失敗しました");
-      }
-    };
-
-    onAuthStateChanged(auth, (user) => {
-      const headerAuthRow = document.getElementById('headerAuthRow');
-      if (user) {
-        currentUser = user;
-        const modalLogoutArea = document.getElementById('modalLogoutArea');
-        if (headerAuthRow) headerAuthRow.classList.add('hidden');
-        if (modalLogoutArea) modalLogoutArea.classList.remove('hidden');
-
-        subscribeCloudData(user.uid);
-      } else {
-        currentUser = null;
-        const modalLogoutArea = document.getElementById('modalLogoutArea');
-        if (headerAuthRow) headerAuthRow.classList.remove('hidden');
-        if (modalLogoutArea) modalLogoutArea.classList.add('hidden');
-      }
-    });
-
-    function subscribeCloudData(uid) {
-      if (unsubscribeSnapshot) unsubscribeSnapshot();
-
-      const userDocRef = doc(db, "users", uid);
-      unsubscribeSnapshot = onSnapshot(userDocRef, (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          if (data.foodLogs) window.foodLogs = data.foodLogs;
-          if (data.weightLogs) window.weightLogs = data.weightLogs;
-          if (data.workoutLogs) window.workoutLogs = data.workoutLogs;
-          if (data.userTargets) window.userTargets = data.userTargets;
-          if (data.favoritesList) window.favoritesList = data.favoritesList;
-          if (data.userSettings) {
-            window.userSettings = data.userSettings;
-            if (window.applyTheme) window.applyTheme(window.userSettings.themeColor || 'pink', window.userSettings.isDarkMode);
-          }
-          if (data.geminiApiKey) {
-            window.userGeminiApiKey = data.geminiApiKey;
-            localStorage.setItem('user_gemini_api_key', data.geminiApiKey);
-          }
-          
-          if (window.updateUI) window.updateUI();
-          if (window.renderWeekDays) window.renderWeekDays();
-          if (window.renderQuickFavoriteChips) window.renderQuickFavoriteChips();
-          if (window.renderWeightUI) window.renderWeightUI();
-          if (window.renderWorkoutUI) window.renderWorkoutUI();
-        } else {
-          window.syncDataToCloud();
-        }
-      });
-    }
-
-    window.syncDataToCloud = async function() {
-      if (!currentUser) return;
-      try {
-        const userDocRef = doc(db, "users", currentUser.uid);
-        await setDoc(userDocRef, {
-          foodLogs: window.foodLogs || [],
-          weightLogs: window.weightLogs || [],
-          workoutLogs: window.workoutLogs || [],
-          userTargets: window.userTargets || {},
-          favoritesList: window.favoritesList || [],
-          userSettings: window.userSettings || {},
-          geminiApiKey: window.userGeminiApiKey || "",
-          updatedAt: new Date().toISOString()
-        }, { merge: true });
-      } catch (err) {
-        console.error("クラウド自動保存エラー:", err);
-      }
-    };
-  </script>
-
-  <!-- アプリ基本ロジック -->
-  <script>
-    const CLEANUP_DAYS = 30;
-
-    const THEMES = {
-      emerald: {
-        light: { main: '#10b981', hover: '#059669', bgLight: '#ecfdf5', border: '#a7f3d0', text: '#047857', contrast: '#ffffff' },
-        dark:  { main: '#34d399', hover: '#10b981', bgLight: '#064e3b', border: '#047857', text: '#6ee7b7', contrast: '#064e3b' }
-      },
-      blue: {
-        light: { main: '#3b82f6', hover: '#2563eb', bgLight: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8', contrast: '#ffffff' },
-        dark:  { main: '#60a5fa', hover: '#3b82f6', bgLight: '#1e3a8a', border: '#1d4ed8', text: '#93c5fd', contrast: '#1e3a8a' }
-      },
-      violet: {
-        light: { main: '#8b5cf6', hover: '#7c3aed', bgLight: '#f5f3ff', border: '#ddd6fe', text: '#6d28d9', contrast: '#ffffff' },
-        dark:  { main: '#a78bfa', hover: '#8b5cf6', bgLight: '#4c1d95', border: '#6d28d9', text: '#c4b5fd', contrast: '#4c1d95' }
-      },
-      pink: {
-        light: { main: '#ec4899', hover: '#db2777', bgLight: '#fce7f3', border: '#fbcfe8', text: '#be185d', contrast: '#ffffff' },
-        dark:  { main: '#f472b6', hover: '#ec4899', bgLight: '#831843', border: '#be185d', text: '#fbcfe8', contrast: '#831843' }
-      },
-      amber: {
-        light: { main: '#f59e0b', hover: '#d97706', bgLight: '#fffbeb', border: '#fde68a', text: '#b45309', contrast: '#ffffff' },
-        dark:  { main: '#fbbf24', hover: '#f59e0b', bgLight: '#78350f', border: '#b45309', text: '#fde68a', contrast: '#78350f' }
-      },
-      halloween: {
-        light: { main: '#ea580c', hover: '#c2410c', bgLight: '#ffedd5', border: '#fed7aa', text: '#9a3412', contrast: '#ffffff' },
-        dark:  { main: '#f97316', hover: '#ea580c', bgLight: '#431407', border: '#9a3412', text: '#fdba74', contrast: '#431407' }
-      },
-      white: {
-        light: { main: '#ffffff', hover: '#f8fafc', bgLight: '#f1f5f9', border: '#cbd5e1', text: '#334155', contrast: '#0f172a' },
-        dark:  { main: '#f8fafc', hover: '#e2e8f0', bgLight: '#1e293b', border: '#475569', text: '#f8fafc', contrast: '#0f172a' }
-      }
-    };
-
-    let base64Image = null;
-    window.foodLogs = [];
-    window.weightLogs = [];
-    window.workoutLogs = [];
-    let editingLogId = null;
-    let editingFavoriteId = null;
-    let selectedDateStr = "";
-    let calendarCurrentYear = new Date().getFullYear();
-    let calendarCurrentMonth = new Date().getMonth();
-    let toastTimeout = null;
-    let weightChartInstance = null;
-
-    window.userGeminiApiKey = localStorage.getItem('user_gemini_api_key') || "";
-
-    window.userTargets = {
-      calories: 2000,
-      protein: 100,
-      fat: 50,
-      carbs: 250
-    };
-
-    window.userSettings = {
-      showMascot: true,
-      themeColor: 'pink',
-      isDarkMode: false
-    };
-
-    window.favoritesList = [
-      { id: 1, foodName: "ソイプロテイン", shortName: "プロテイン", calories: 120, protein: 20, fat: 1.5, carbs: 2, isPinned: true, order: 1 },
-      { id: 2, foodName: "おにぎり(1個)", shortName: "おにぎり", calories: 180, protein: 3, fat: 0.5, carbs: 40, isPinned: true, order: 2 }
-    ];
-
-    function normalizeJapanese(str) {
-      if (!str) return "";
-      return str
-        .toLowerCase()
-        .replace(/[\u30a1-\u30f6]/g, match => String.fromCharCode(match.charCodeAt(0) - 0x60))
-        .replace(/[！-～]/g, match => String.fromCharCode(match.charCodeAt(0) - 0xfee0))
-        .trim();
-    }
-
-    function getTodayString() {
-      const d = new Date();
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      try {
-        selectedDateStr = getTodayString();
-        loadSettings();
-        loadTargets();
-        loadFavorites();
-        loadAndCleanupLogs();
-        loadWeightAndWorkoutLogs();
-        applyTheme(window.userSettings.themeColor || 'pink', window.userSettings.isDarkMode);
-        renderWeekDays();
-        renderQuickFavoriteChips();
-        updateUI();
-        renderWeightUI();
-        renderWorkoutUI();
-        initScrollObserver();
-      } catch (err) {
-        console.error("初期化エラー:", err);
-      }
-    });
-
-    window.switchTab = function(tabName) {
-      const homeView = document.getElementById('homeView');
-      const weightView = document.getElementById('weightView');
-      const workoutView = document.getElementById('workoutView');
-
-      const btnHome = document.getElementById('nav-btn-home');
-      const btnWeight = document.getElementById('nav-btn-weight');
-      const btnWorkout = document.getElementById('nav-btn-workout');
-
-      [homeView, weightView, workoutView].forEach(v => v.classList.add('hidden'));
-      [btnHome, btnWeight, btnWorkout].forEach(b => {
-        b.classList.remove('active');
-        const bg = b.querySelector('.nav-bg');
-        if (bg) {
-          bg.classList.remove('bg-theme-light', 'text-theme-main');
-          bg.classList.add('text-slate-500');
-        }
-      });
-
-      if (tabName === 'home') {
-        homeView.classList.remove('hidden');
-        btnHome.classList.add('active');
-        const bg = btnHome.querySelector('.nav-bg');
-        bg.classList.add('bg-theme-light', 'text-theme-main');
-        bg.classList.remove('text-slate-500');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else if (tabName === 'weight') {
-        weightView.classList.remove('hidden');
-        btnWeight.classList.add('active');
-        const bg = btnWeight.querySelector('.nav-bg');
-        bg.classList.add('bg-theme-light', 'text-theme-main');
-        bg.classList.remove('text-slate-500');
-        renderWeightUI();
-      } else if (tabName === 'workout') {
-        workoutView.classList.remove('hidden');
-        btnWorkout.classList.add('active');
-        const bg = btnWorkout.querySelector('.nav-bg');
-        bg.classList.add('bg-theme-light', 'text-theme-main');
-        bg.classList.remove('text-slate-500');
-        renderWorkoutUI();
-      }
-    };
-
-    window.navGoHome = function() {
-      switchTab('home');
-    };
-
-    window.navGoRecord = function() {
-      switchTab('home');
-      const el = document.getElementById('addFoodSection');
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-        const inputEl = document.getElementById('manualName');
-        if (inputEl) setTimeout(() => inputEl.focus(), 300);
-      }
-    };
-
-    window.openRecordActionModal = function() {
-      const modal = document.getElementById('recordActionModal');
-      if (modal) modal.classList.remove('hidden');
-    };
-
-    window.closeRecordActionModal = function() {
-      const modal = document.getElementById('recordActionModal');
-      if (modal) modal.classList.add('hidden');
-    };
-
-    window.openWeightModal = function() {
-      const dateEl = document.getElementById('inputWeightDate');
-      if (dateEl) dateEl.value = selectedDateStr;
-      const modal = document.getElementById('weightModal');
-      if (modal) modal.classList.remove('hidden');
-    };
-    window.closeWeightModal = function() {
-      const modal = document.getElementById('weightModal');
-      if (modal) modal.classList.add('hidden');
-    };
-
-    window.openWorkoutModal = function() {
-      const dateEl = document.getElementById('inputWorkoutDate');
-      if (dateEl) dateEl.value = selectedDateStr;
-      const modal = document.getElementById('workoutModal');
-      if (modal) modal.classList.remove('hidden');
-    };
-    window.closeWorkoutModal = function() {
-      const modal = document.getElementById('workoutModal');
-      if (modal) modal.classList.add('hidden');
-    };
-
-    window.openCalendarModal = function() {
-      const cur = new Date(selectedDateStr || getTodayString());
-      calendarCurrentYear = cur.getFullYear();
-      calendarCurrentMonth = cur.getMonth();
-      renderCalendarGrid();
-      const modal = document.getElementById('calendarModal');
-      if (modal) modal.classList.remove('hidden');
-    };
-
-    window.closeCalendarModal = function() {
-      const modal = document.getElementById('calendarModal');
-      if (modal) modal.classList.add('hidden');
-    };
-
-    window.openTargetModal = function() {
-      const apiKeyEl = document.getElementById('inputGeminiApiKey');
-      const targetCalEl = document.getElementById('inputTargetCalories');
-      const targetPEl = document.getElementById('inputTargetProtein');
-      const targetFEl = document.getElementById('inputTargetFat');
-      const targetCEl = document.getElementById('inputTargetCarbs');
-      const showMascotEl = document.getElementById('inputShowMascot');
-      const darkModeEl = document.getElementById('inputDarkMode');
-
-      if (apiKeyEl) apiKeyEl.value = window.userGeminiApiKey || "";
-      if (targetCalEl) targetCalEl.value = window.userTargets.calories;
-      if (targetPEl) targetPEl.value = window.userTargets.protein;
-      if (targetFEl) targetFEl.value = window.userTargets.fat;
-      if (targetCEl) targetCEl.value = window.userTargets.carbs;
-      
-      if (showMascotEl) showMascotEl.checked = window.userSettings.showMascot !== false;
-      if (darkModeEl) darkModeEl.checked = !!window.userSettings.isDarkMode;
-      updateThemeButtonsUI();
-
-      const modal = document.getElementById('targetModal');
-      if (modal) modal.classList.remove('hidden');
-    };
-
-    window.closeTargetModal = function() {
-      const modal = document.getElementById('targetModal');
-      if (modal) modal.classList.add('hidden');
-    };
-
-    window.tapShiratama = function() {
-      const bodyEl = document.getElementById('shiratama-body');
-      if (!bodyEl) return;
-      bodyEl.classList.remove('jump');
-      void bodyEl.offsetWidth;
-      bodyEl.classList.add('jump');
-    };
-
-    function showToast(message) {
-      const toast = document.getElementById('toastNotification');
-      const msgEl = document.getElementById('toastMessage');
-      if (!toast || !msgEl) return;
-
-      msgEl.textContent = message;
-      toast.classList.remove('hidden');
-      toast.classList.add('toast-show');
-
-      if (toastTimeout) clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => {
-        toast.classList.add('hidden');
-        toast.classList.remove('toast-show');
-      }, 1500);
-    }
-
-    window.goToToday = function() {
-      selectedDateStr = getTodayString();
-      renderWeekDays();
-      updateUI();
-    };
-
-    window.goToTodayFromModal = function() {
-      selectedDateStr = getTodayString();
-      const todayDate = new Date();
-      calendarCurrentYear = todayDate.getFullYear();
-      calendarCurrentMonth = todayDate.getMonth();
-      renderCalendarGrid();
-      renderWeekDays();
-      updateUI();
-    };
-
-    function initScrollObserver() {
-      const targetCard = document.getElementById('fullSummaryCard');
-      const compactBar = document.getElementById('compactSummaryBar');
-      if (!targetCard || !compactBar) return;
-
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (!entry.isIntersecting) {
-            compactBar.classList.remove('hidden');
-          } else {
-            compactBar.classList.add('hidden');
-          }
+    <!-- Firebase SDK (Googleログイン・クラウド同期) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCaEfe3jeS1QPFQnKfXCgQEFHxPHGjGHqM",
+            authDomain: "bmidown.firebaseapp.com",
+            projectId: "bmidown",
+            storageBucket: "bmidown.firebasestorage.app",
+            messagingSenderId: "190194371045",
+            appId: "1:190194371045:web:accb081fd0984f4146070c",
+            measurementId: "G-5BKQKN8CTY"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        setPersistence(auth, browserLocalPersistence).catch(console.error);
+
+        let currentUser = null;
+        let unsubscribeSnapshot = null;
+
+        window.loginWithGoogle = async function() {
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (err) {
+                if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request') {
+                    await signInWithRedirect(auth, provider);
+                } else {
+                    alert("ログインに失敗しました: " + err.message);
+                }
+            }
+        };
+
+        getRedirectResult(auth).catch((err) => {
+            if (err.code !== 'auth/popup-closed-by-user') {
+                console.error("Redirect Result Error:", err);
+            }
         });
-      }, { threshold: 0.1 });
 
-      observer.observe(targetCard);
-    }
+        window.logoutFromGoogle = async function() {
+            try {
+                await signOut(auth);
+                location.reload();
+            } catch (err) {
+                alert("ログアウトに失敗しました");
+            }
+        };
 
-    function formatDateStr(d) {
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
+        onAuthStateChanged(auth, (user) => {
+            const statusEl = document.getElementById('google-auth-status');
+            const loginBtn = document.getElementById('google-login-btn');
+            const logoutBtn = document.getElementById('google-logout-btn');
 
-    function checkIsDayOver(dateStr) {
-      const logs = Array.isArray(window.foodLogs) ? window.foodLogs : [];
-      const dayLogs = logs.filter(l => l && l.date === dateStr);
-      if (dayLogs.length === 0) return false;
+            if (user) {
+                currentUser = user;
+                if (statusEl) statusEl.textContent = `連携中 (${user.email || user.displayName || 'Googleアカウント'})`;
+                if (loginBtn) loginBtn.style.display = 'none';
+                if (logoutBtn) logoutBtn.style.display = 'block';
+                subscribeCloudData(user.uid);
+            } else {
+                currentUser = null;
+                if (statusEl) statusEl.textContent = '未連携（Googleログインしてクラウド同期）';
+                if (loginBtn) loginBtn.style.display = 'block';
+                if (logoutBtn) logoutBtn.style.display = 'none';
+            }
+        });
 
-      const sumCal = dayLogs.reduce((s, l) => s + (l.calories || 0), 0);
-      const sumFat = dayLogs.reduce((s, l) => s + (l.fat || 0), 0);
-      const sumCarbs = dayLogs.reduce((s, l) => s + (l.carbs || 0), 0);
-
-      const targets = window.userTargets || { calories: 2000, fat: 50, carbs: 250 };
-
-      return (sumCal > (targets.calories || 2000)) || 
-             (sumFat > (targets.fat || 50)) || 
-             (sumCarbs > (targets.carbs || 250));
-    }
-
-    window.renderWeekDays = function() {
-      const container = document.getElementById('weekDaysContainer');
-      if (!container) return;
-
-      const weekLabels = ["日", "月", "火", "水", "木", "金", "土"];
-      
-      let html = "";
-      const anchorDate = new Date(selectedDateStr || getTodayString());
-
-      for (let i = -6; i <= 0; i++) {
-        const d = new Date(anchorDate);
-        d.setDate(anchorDate.getDate() + i);
-
-        const dateStr = formatDateStr(d);
-        const dayOfWeek = weekLabels[d.getDay()];
-        const isSelected = dateStr === selectedDateStr;
-        const isToday = dateStr === getTodayString();
-        const isOver = checkIsDayOver(dateStr);
-
-        let activeClass = window.userSettings.isDarkMode 
-          ? "bg-slate-800 text-slate-300 hover:bg-slate-700" 
-          : "bg-white text-slate-600 hover:bg-slate-50";
-
-        if (isSelected) {
-          activeClass = "bg-theme-main text-theme-contrast font-bold shadow-md scale-105";
-        } else if (isOver) {
-          activeClass = "calendar-day-over shadow-sm";
+        function subscribeCloudData(uid) {
+            if (unsubscribeSnapshot) unsubscribeSnapshot();
+            const userDocRef = doc(db, "users", uid);
+            unsubscribeSnapshot = onSnapshot(userDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.foodLogs) window.foodRecords = data.foodLogs;
+                    if (data.weightLogs) window.weightDataHistory = data.weightLogs;
+                    if (data.exerciseLogs) window.exerciseRecords = data.exerciseLogs;
+                    if (data.userSettings) {
+                        const s = data.userSettings;
+                        if (s.calories) document.getElementById('target-calories').value = s.calories;
+                        if (s.protein) document.getElementById('target-protein').value = s.protein;
+                        if (s.fat) document.getElementById('target-fat').value = s.fat;
+                        if (s.carb) document.getElementById('target-carb').value = s.carb;
+                    }
+                    if (data.geminiApiKey) {
+                        window.geminiApiKey = data.geminiApiKey;
+                        document.getElementById('gemini-api-key').value = data.geminiApiKey;
+                        localStorage.setItem('gemini_api_key', data.geminiApiKey);
+                    }
+                    renderWeeklyCalendar();
+                    if (window.currentCategory === 'food') renderFoodList(false);
+                    if (window.currentCategory === 'weight') initOrUpdateWeightChart();
+                    if (window.currentCategory === 'exercise') renderExerciseList(false);
+                } else {
+                    window.syncDataToCloud();
+                }
+            });
         }
 
-        html += `
-          <button onclick="selectDateFromTab('${dateStr}')" class="py-2 px-0.5 rounded-xl text-xs transition-all duration-200 flex flex-col items-center justify-center ${activeClass}">
-            <span class="text-[9px] opacity-80">${isToday ? '今日' : dayOfWeek}</span>
-            <span class="font-bold text-xs leading-tight">${d.getDate()}日</span>
-          </button>
-        `;
-      }
-      container.innerHTML = html;
-    };
+        window.syncDataToCloud = async function() {
+            if (!currentUser) return;
+            try {
+                const userDocRef = doc(db, "users", currentUser.uid);
+                const cal = document.getElementById('target-calories').value;
+                const p = document.getElementById('target-protein').value;
+                const f = document.getElementById('target-fat').value;
+                const c = document.getElementById('target-carb').value;
+                const apiKey = document.getElementById('gemini-api-key').value.trim();
 
-    window.selectDateFromTab = function(dateStr) {
-      selectedDateStr = dateStr;
-      renderWeekDays();
-      updateUI();
-    };
+                await setDoc(userDocRef, {
+                    foodLogs: window.foodRecords || [],
+                    weightLogs: window.weightDataHistory || [],
+                    exerciseLogs: window.exerciseRecords || [],
+                    userSettings: { calories: cal, protein: p, fat: f, carb: c },
+                    geminiApiKey: apiKey,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+            } catch (err) {
+                console.error("クラウド同期エラー:", err);
+            }
+        };
+    </script>
 
-    window.renderQuickFavoriteChips = function() {
-      const containerWrapper = document.getElementById('quickFavoriteChipsContainer');
-      const chipsEl = document.getElementById('quickFavoriteChips');
-      if (!containerWrapper || !chipsEl) return;
+    <!-- アプリ本体のロジック -->
+    <script>
+        lucide.createIcons();
 
-      const pinnedItems = (window.favoritesList || [])
-        .filter(item => item && item.isPinned)
-        .sort((a, b) => (a.order || 0) - (b.order || 0));
+        let currentCategory = 'food';
+        let weightChartInstance = null;
+        let selectedDateStr = new Date().toISOString().split('T')[0];
+        let calViewingDate = new Date();
+        window.geminiApiKey = localStorage.getItem('gemini_api_key') || "";
 
-      if (pinnedItems.length === 0) {
-        containerWrapper.classList.add('hidden');
-        chipsEl.innerHTML = '';
-        return;
-      }
+        // --- 初期データ管理 ---
+        let foodRecords = JSON.parse(localStorage.getItem('pfc_food_records') || '[]');
+        if (foodRecords.length === 0) {
+            const today = new Date().toISOString().split('T')[0];
+            foodRecords = [
+                { id: 'f1', date: today, name: '鶏胸肉 150g', cal: 162, p: 34.5, f: 2.3, c: 0.0, timestamp: Date.now() - 10000 },
+                { id: 'f2', date: today, name: '白米 200g', cal: 312, p: 5.0, f: 0.6, c: 74.2, timestamp: Date.now() - 5000 }
+            ];
+            localStorage.setItem('pfc_food_records', JSON.stringify(foodRecords));
+        }
+        window.foodRecords = foodRecords;
 
-      containerWrapper.classList.remove('hidden');
-      chipsEl.innerHTML = pinnedItems.map(item => {
-        const displayName = (item.shortName && item.shortName.trim() !== '') ? item.shortName.trim() : item.foodName;
-        return `
-          <button onclick="addFavoriteToLog(${item.id})" title="${item.foodName}" class="pill-quick-chip font-bold bg-white text-slate-700 border border-slate-200/90 shadow-2xs hover:border-slate-400 active:scale-95 transition-all duration-150 text-[11px]">
-            <span class="truncate">${displayName}</span>
-          </button>
-        `;
-      }).join('');
-    };
+        let weightDataHistory = JSON.parse(localStorage.getItem('pfc_weight_history') || '[]');
+        if (weightDataHistory.length === 0) {
+            const today = new Date();
+            weightDataHistory = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(today.getDate() - i);
+                const dStr = `${d.getMonth() + 1}/${d.getDate()}`;
+                const isoStr = d.toISOString().split('T')[0];
+                weightDataHistory.push({
+                    id: 'w_' + (Date.now() - (6 - i) * 86400000),
+                    date: dStr,
+                    isoDate: isoStr,
+                    time: '08:30',
+                    weight: parseFloat((65.4 - (6 - i) * 0.15).toFixed(1)),
+                    bodyFat: parseFloat((15.6 - (6 - i) * 0.08).toFixed(1)),
+                    timestamp: Date.now() - (6 - i) * 86400000
+                });
+            }
+            localStorage.setItem('pfc_weight_history', JSON.stringify(weightDataHistory));
+        }
+        window.weightDataHistory = weightDataHistory;
 
-    window.changeCalendarMonth = function(delta) {
-      calendarCurrentMonth += delta;
-      if (calendarCurrentMonth < 0) {
-        calendarCurrentMonth = 11;
-        calendarCurrentYear--;
-      } else if (calendarCurrentMonth > 11) {
-        calendarCurrentMonth = 0;
-        calendarCurrentYear++;
-      }
-      renderCalendarGrid();
-    };
+        let exerciseRecords = JSON.parse(localStorage.getItem('pfc_exercise_records') || '[]');
+        if (exerciseRecords.length === 0) {
+            exerciseRecords = [
+                { id: 'e1', date: new Date().toISOString().split('T')[0], name: 'ウォーキング 30分', detail: '有酸素運動', timestamp: Date.now() - 5000 }
+            ];
+            localStorage.setItem('pfc_exercise_records', JSON.stringify(exerciseRecords));
+        }
+        window.exerciseRecords = exerciseRecords;
 
-    function renderCalendarGrid() {
-      const titleEl = document.getElementById('calendarMonthTitle');
-      const grid = document.getElementById('calendarGrid');
-      if (titleEl) titleEl.textContent = `${calendarCurrentYear}年 ${calendarCurrentMonth + 1}月`;
-      if (!grid) return;
-      grid.innerHTML = "";
-
-      const firstDay = new Date(calendarCurrentYear, calendarCurrentMonth, 1).getDay();
-      const daysInMonth = new Date(calendarCurrentYear, calendarCurrentMonth + 1, 0).getDate();
-
-      for (let i = 0; i < firstDay; i++) {
-        grid.innerHTML += `<div></div>`;
-      }
-
-      for (let day = 1; day <= daysInMonth; day++) {
-        const monthStr = String(calendarCurrentMonth + 1).padStart(2, '0');
-        const dayStr = String(day).padStart(2, '0');
-        const dateStr = `${calendarCurrentYear}-${monthStr}-${dayStr}`;
-
-        const dayLogs = (window.foodLogs || []).filter(l => l && l.date === dateStr);
-        let colorClass = window.userSettings.isDarkMode ? "hover:bg-slate-800 text-slate-200" : "hover:bg-slate-100 text-slate-700";
-
-        if (dayLogs.length > 0) {
-          const isOver = checkIsDayOver(dateStr);
-          colorClass = isOver ? "calendar-day-over shadow-sm" : "calendar-day-green shadow-sm";
+        function showToast(message) {
+            const toast = document.getElementById('toast-msg');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 1400);
         }
 
-        const isSelected = dateStr === selectedDateStr ? "ring-2 ring-slate-400 font-bold" : "";
+        window.saveGeminiApiKey = function(val) {
+            window.geminiApiKey = val.trim();
+            localStorage.setItem('gemini_api_key', window.geminiApiKey);
+            if (window.syncDataToCloud) window.syncDataToCloud();
+        };
 
-        grid.innerHTML += `
-          <button onclick="selectDateFromCalendar('${dateStr}')" class="py-2 text-center rounded-xl transition ${colorClass} ${isSelected}">
-            ${day}
-          </button>
-        `;
-      }
-    }
-
-    window.selectDateFromCalendar = function(dateStr) {
-      selectedDateStr = dateStr;
-      renderWeekDays();
-      updateUI();
-      renderExerciseList(true);
-      renderWeightList(true);
-      closeCalendarModal();
-    };
-
-    function getActiveGeminiApiKey() {
-      const apiKey = window.userGeminiApiKey || localStorage.getItem('user_gemini_api_key');
-      if (!apiKey) {
-        alert("Gemini APIキーが設定されていません。右上の「設定」からキーを入力してください。");
-        return null;
-      }
-      return apiKey.trim();
-    }
-
-    window.triggerSilentCamera = function() {
-      const camInput = document.getElementById('cameraInput');
-      if (camInput) camInput.click();
-    };
-
-    window.triggerBarcodeScan = function() {
-      const barInput = document.getElementById('barcodeInput');
-      if (barInput) barInput.click();
-    };
-
-    window.scanBarcodeAndFillForm = async function(event) {
-      const activeKey = getActiveGeminiApiKey();
-      if (!activeKey) return;
-
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const manualAddBtn = document.getElementById('manualAddBtn');
-      const manualLoading = document.getElementById('manualLoading');
-      const loadingText = document.getElementById('loadingText');
-      const aiStatusBadge = document.getElementById('aiStatusBadge');
-
-      const reader = new FileReader();
-      reader.onload = async function(e) {
-        base64Image = e.target.result.split(',')[1];
-        if (manualAddBtn) manualAddBtn.disabled = true;
-        if (loadingText) loadingText.textContent = "バーコード/商品をスキャン解析中...";
-        if (manualLoading) manualLoading.classList.remove('hidden');
-
-        const promptText = `添付された画像（バーコードまたは商品パッケージ）から食品を特定し、以下のJSON形式のみで出力してください。数値は数字のみ（単位なし）。
-{
-  "foodName": "食品名",
-  "calories": 数値(kcal),
-  "protein": 数値(g),
-  "fat": 数値(g),
-  "carbs": 数値(g)
-}`;
-
-        try {
-          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
-          const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [
-                  { text: promptText },
-                  { inlineData: { mimeType: "image/jpeg", data: base64Image } }
-                ]
-              }]
-            })
-          });
-          const data = await response.json();
-          const rawText = data.candidates[0].content.parts[0].text;
-          const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-          const parsed = JSON.parse(cleanJson);
-
-          document.getElementById('manualName').value = parsed.foodName || "";
-          document.getElementById('manualCalories').value = parsed.calories || "";
-          document.getElementById('manualProtein').value = parsed.protein || "";
-          document.getElementById('manualFat').value = parsed.fat || "";
-          document.getElementById('manualCarbs').value = parsed.carbs || "";
-
-          if (aiStatusBadge) aiStatusBadge.classList.remove('hidden');
-          showToast('✨ バーコードから商品を特定しました');
-        } catch (err) {
-          alert('商品の特定に失敗しました。手動で入力してください。');
-        } finally {
-          if (manualLoading) manualLoading.classList.add('hidden');
-          if (manualAddBtn) manualAddBtn.disabled = false;
+        // --- カレンダー管理 ---
+        function openMonthlyCalendarModal() {
+            calViewingDate = new Date(selectedDateStr);
+            renderMonthlyCalendarGrid();
+            updateTodayButtonText();
+            openModal('monthly-calendar-modal');
         }
-      };
-      reader.readAsDataURL(file);
-    };
 
-    window.analyzePhotoAndFillForm = async function(event) {
-      const activeKey = getActiveGeminiApiKey();
-      if (!activeKey) return;
+        function updateTodayButtonText() {
+            const now = new Date();
+            const btn = document.getElementById('today-back-btn');
+            if (btn) btn.textContent = `今日 (${now.getMonth() + 1}/${now.getDate()}) に戻る`;
+        }
 
-      const file = event.target.files[0];
-      if (!file) return;
+        function goToToday() {
+            selectedDateStr = new Date().toISOString().split('T')[0];
+            closeModal('monthly-calendar-modal');
+            renderWeeklyCalendar();
+            renderFoodList(true);
+            if (currentCategory === 'exercise') renderExerciseList(true);
+            if (currentCategory === 'weight') renderWeightList(true);
+        }
 
-      const manualAddBtn = document.getElementById('manualAddBtn');
-      const manualLoading = document.getElementById('manualLoading');
-      const loadingText = document.getElementById('loadingText');
-      const aiStatusBadge = document.getElementById('aiStatusBadge');
+        function changeMonth(diff) {
+            calViewingDate.setMonth(calViewingDate.getMonth() + diff);
+            renderMonthlyCalendarGrid();
+        }
 
-      const reader = new FileReader();
-      reader.onload = async function(e) {
-        const imgPrev = document.getElementById('imagePreview');
-        const prevContainer = document.getElementById('previewContainer');
-        if (imgPrev) imgPrev.src = e.target.result;
-        if (prevContainer) prevContainer.classList.remove('hidden');
-        base64Image = e.target.result.split(',')[1];
+        function renderMonthlyCalendarGrid() {
+            const year = calViewingDate.getFullYear();
+            const month = calViewingDate.getMonth();
+            document.getElementById('month-cal-title').textContent = `${year}年 ${month + 1}月`;
 
-        if (manualAddBtn) manualAddBtn.disabled = true;
-        if (loadingText) loadingText.textContent = "AIが写真から栄養成分を解析中...";
-        if (manualLoading) manualLoading.classList.remove('hidden');
-        if (aiStatusBadge) aiStatusBadge.classList.add('hidden');
+            const grid = document.getElementById('month-cal-grid');
+            grid.innerHTML = '';
 
-        const promptText = `添付された料理の写真から以下を推測し、指定のJSON形式のみで出力してください。数値部分（calories, protein, fat, carbs）は数値のみ（単位なし）で入れてください。
-
-{
-  "foodName": "料理名",
-  "calories": 数値(kcal),
-  "protein": 数値(g),
-  "fat": 数値(g),
-  "carbs": 数値(g)
-}`;
-
-        const candidateModels = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-1.5-flash"];
-        let successData = null;
-
-        for (const model of candidateModels) {
-          try {
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeKey}`;
-            const response = await fetch(endpoint, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{
-                  parts: [
-                    { text: promptText },
-                    { inlineData: { mimeType: "image/jpeg", data: base64Image } }
-                  ]
-                }]
-              })
+            const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+            weekdays.forEach(w => {
+                const wEl = document.createElement('div');
+                wEl.className = 'month-cal-weekday';
+                wEl.textContent = w;
+                grid.appendChild(wEl);
             });
 
-            const data = await response.json();
-            if (!data.error) {
-              successData = data;
-              break;
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+
+            for (let i = 0; i < firstDayIndex; i++) {
+                grid.appendChild(Object.assign(document.createElement('div'), { className: 'month-cal-day empty' }));
             }
-          } catch (err) {}
+
+            const maxCal = parseFloat(document.getElementById('target-calories').value) || 2000;
+            const maxFat = parseFloat(document.getElementById('target-fat').value) || 50;
+            const maxCarb = parseFloat(document.getElementById('target-carb').value) || 250;
+            const todayISO = new Date().toISOString().split('T')[0];
+
+            for (let d = 1; d <= lastDate; d++) {
+                const dateISO = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const dayFoods = window.foodRecords.filter(f => f.date === dateISO);
+                let totalCal = 0, totalFat = 0, totalCarb = 0;
+                dayFoods.forEach(f => {
+                    totalCal += Number(f.cal) || 0;
+                    totalFat += Number(f.f) || 0;
+                    totalCarb += Number(f.c) || 0;
+                });
+
+                const isExceeded = (totalCal > maxCal || totalFat > maxFat || totalCarb > maxCarb);
+                const isSelected = (dateISO === selectedDateStr);
+                const isToday = (dateISO === todayISO);
+
+                const dEl = document.createElement('div');
+                dEl.className = `month-cal-day ${isSelected ? 'selected' : ''} ${isToday ? 'is-today' : ''} ${isExceeded ? 'exceeded' : ''}`;
+                dEl.textContent = d;
+                dEl.onclick = () => selectDateAndAlignWeekly(dateISO);
+                grid.appendChild(dEl);
+            }
+            lucide.createIcons();
         }
 
-        try {
-          if (successData) {
-            const rawText = successData.candidates[0].content.parts[0].text;
-            const cleanJson = rawText.replace(/```json/g, '').replace(/
+        function selectDateAndAlignWeekly(dateISO) {
+            selectedDateStr = dateISO;
+            closeModal('monthly-calendar-modal');
+            renderWeeklyCalendar();
+            renderFoodList(true);
+            if (currentCategory === 'exercise') renderExerciseList(true);
+            if (currentCategory === 'weight') renderWeightList(true);
+        }
+
+        // --- 週間カレンダー (指定仕様：本日が一番右、カレンダー選択時のみその日が一番右) ---
+        function renderWeeklyCalendar() {
+            const calendarEl = document.getElementById('weekly-calendar');
+            calendarEl.innerHTML = '';
+
+            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+            // 常に「選択されている日付」を一番右(インデックス0からのオフセット)にする
+            const anchorDate = new Date(selectedDateStr);
+            const todayISO = new Date().toISOString().split('T')[0];
+
+            const maxCal = parseFloat(document.getElementById('target-calories').value) || 2000;
+            const maxFat = parseFloat(document.getElementById('target-fat').value) || 50;
+            const maxCarb = parseFloat(document.getElementById('target-carb').value) || 250;
+
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(anchorDate);
+                d.setDate(anchorDate.getDate() - i);
+                
+                const dateKey = d.toISOString().split('T')[0];
+                const dayName = dayNames[d.getDay()];
+                const dateNum = d.getDate();
+                const isToday = (dateKey === todayISO);
+
+                const dayFoods = window.foodRecords.filter(f => f.date === dateKey);
+                let totalCal = 0, totalFat = 0, totalCarb = 0;
+                dayFoods.forEach(f => {
+                    totalCal += Number(f.cal) || 0;
+                    totalFat += Number(f.f) || 0;
+                    totalCarb += Number(f.c) || 0;
+                });
+
+                const isExceeded = (totalCal > maxCal || totalFat > maxFat || totalCarb > maxCarb);
+                const isSelected = (dateKey === selectedDateStr);
+
+                const cell = document.createElement('div');
+                cell.className = `week-day-cell ${isToday ? 'is-today' : ''} ${isSelected ? 'selected' : ''} ${isExceeded ? 'exceeded' : ''}`;
+                cell.onclick = () => {
+                    selectedDateStr = dateKey;
+                    renderWeeklyCalendar();
+                    renderFoodList(true);
+                    if (currentCategory === 'exercise') renderExerciseList(true);
+                    if (currentCategory === 'weight') renderWeightList(true);
+                };
+
+                cell.innerHTML = `
+                    <span class="week-day-name">${isToday ? '今日' : dayName}</span>
+                    <span class="week-day-date">${dateNum}</span>
+                `;
+                calendarEl.appendChild(cell);
+            }
+        }
+
+        // --- 食事リスト描画 ---
+        function renderFoodList(autoScrollToBottom = true) {
+            const list = document.getElementById('food-list');
+            list.innerHTML = '';
+
+            const dayFoods = window.foodRecords
+                .filter(f => f.date === selectedDateStr)
+                .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+            const maxCal = parseFloat(document.getElementById('target-calories').value) || 2000;
+            const maxP = parseFloat(document.getElementById('target-protein').value) || 100;
+            const maxF = parseFloat(document.getElementById('target-fat').value) || 50;
+            const maxC = parseFloat(document.getElementById('target-carb').value) || 250;
+
+            let totalCal = 0, totalP = 0, totalF = 0, totalC = 0;
+            dayFoods.forEach(f => {
+                totalCal += Number(f.cal) || 0;
+                totalP += Number(f.p) || 0;
+                totalF += Number(f.f) || 0;
+                totalC += Number(f.c) || 0;
+            });
+
+            const curCalEl = document.getElementById('val-cur-cal');
+            const tgtCalEl = document.getElementById('val-tgt-cal');
+            const calPercentEl = document.getElementById('summary-cal-percent');
+            const calBar = document.getElementById('cal-progress-bar');
+            const calPct = maxCal > 0 ? Math.round((totalCal / maxCal) * 100) : 0;
+
+            curCalEl.textContent = Math.round(totalCal);
+            tgtCalEl.textContent = maxCal;
+            calPercentEl.textContent = `${calPct}%`;
+            calBar.style.width = `${Math.min(calPct, 100)}%`;
+
+            if (totalCal > maxCal) {
+                curCalEl.classList.add('over-limit');
+                calBar.style.backgroundColor = 'var(--over-limit-color)';
+            } else {
+                curCalEl.classList.remove('over-limit');
+                calBar.style.backgroundColor = 'var(--cal-bar-color)';
+            }
+
+            // たんぱく質
+            const curPEl = document.getElementById('val-cur-p');
+            const tgtPEl = document.getElementById('val-tgt-p');
+            const pBar = document.getElementById('p-progress-bar');
+            const pPct = maxP > 0 ? (totalP / maxP) * 100 : 0;
+            curPEl.textContent = totalP.toFixed(1);
+            tgtPEl.textContent = maxP;
+            pBar.style.width = `${Math.min(pPct, 100)}%`;
+            pBar.style.backgroundColor = 'var(--pfc-p-bar)';
+
+            // 脂質
+            const curFEl = document.getElementById('val-cur-f');
+            const tgtFEl = document.getElementById('val-tgt-f');
+            const fBar = document.getElementById('f-progress-bar');
+            const fPct = maxF > 0 ? (totalF / maxF) * 100 : 0;
+            curFEl.textContent = totalF.toFixed(1);
+            tgtFEl.textContent = maxF;
+            fBar.style.width = `${Math.min(fPct, 100)}%`;
+            if (totalF > maxF) {
+                curFEl.classList.add('over-limit');
+                fBar.style.backgroundColor = 'var(--over-limit-color)';
+            } else {
+                curFEl.classList.remove('over-limit');
+                fBar.style.backgroundColor = 'var(--pfc-f-bar)';
+            }
+
+            // 炭水化物
+            const curCEl = document.getElementById('val-cur-c');
+            const tgtCEl = document.getElementById('val-tgt-c');
+            const cBar = document.getElementById('c-progress-bar');
+            const cPct = maxC > 0 ? (totalC / maxC) * 100 : 0;
+            curCEl.textContent = totalC.toFixed(1);
+            tgtCEl.textContent = maxC;
+            cBar.style.width = `${Math.min(cPct, 100)}%`;
+            if (totalC > maxC) {
+                curCEl.classList.add('over-limit');
+                cBar.style.backgroundColor = 'var(--over-limit-color)';
+            } else {
+                curCEl.classList.remove('over-limit');
+                cBar.style.backgroundColor = 'var(--pfc-c-bar)';
+            }
+
+            if (dayFoods.length === 0) {
+                list.innerHTML = `
+                    <div class="blank-state">
+                        <i data-lucide="utensils" style="width: 28px; height: 28px; margin: 0 auto 6px auto; opacity: 0.5;"></i>
+                        <div style="font-size: 0.85rem;">この日の食事記録はありません</div>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            dayFoods.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.onclick = () => openFoodEditModal(item);
+                card.innerHTML = `
+                    <div class="item-card-header">
+                        <span class="item-title">${item.name}</span>
+                    </div>
+                    <div class="item-detail">
+                        P: ${item.p}g / F: ${item.f}g / C: ${item.c}g (${item.cal} kcal)
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+
+            if (autoScrollToBottom) {
+                setTimeout(() => {
+                    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+                }, 50);
+            }
+        }
+
+        function openFoodEditModal(item) {
+            document.getElementById('edit-food-id').value = item.id;
+            document.getElementById('edit-food-date').value = item.date;
+            document.getElementById('edit-food-name').value = item.name;
+            document.getElementById('edit-food-cal').value = item.cal;
+            document.getElementById('edit-food-p').value = item.p;
+            document.getElementById('edit-food-f').value = item.f;
+            document.getElementById('edit-food-c').value = item.c;
+            openModal('food-edit-modal');
+        }
+
+        function saveFoodEdit() {
+            const id = document.getElementById('edit-food-id').value;
+            const target = window.foodRecords.find(f => f.id === id);
+            if (target) {
+                target.date = document.getElementById('edit-food-date').value;
+                target.name = document.getElementById('edit-food-name').value.trim();
+                target.cal = parseFloat(document.getElementById('edit-food-cal').value) || 0;
+                target.p = parseFloat(document.getElementById('edit-food-p').value) || 0;
+                target.f = parseFloat(document.getElementById('edit-food-f').value) || 0;
+                target.c = parseFloat(document.getElementById('edit-food-c').value) || 0;
+
+                localStorage.setItem('pfc_food_records', JSON.stringify(window.foodRecords));
+                if (window.syncDataToCloud) window.syncDataToCloud();
+                closeModal('food-edit-modal');
+                renderWeeklyCalendar();
+                renderFoodList(false);
+            }
+        }
+
+        function deleteCurrentFood() {
+            const id = document.getElementById('edit-food-id').value;
+            if (confirm('この食事記録を削除しますか？')) {
+                window.foodRecords = window.foodRecords.filter(f => f.id !== id);
+                localStorage.setItem('pfc_food_records', JSON.stringify(window.foodRecords));
+                if (window.syncDataToCloud) window.syncDataToCloud();
+                closeModal('food-edit-modal');
+                renderWeeklyCalendar();
+                renderFoodList(false);
+            }
+        }
+
+        // --- 体重・体脂肪 2軸グラフ ---
+        function initOrUpdateWeightChart() {
+            const ctx = document.getElementById('weightChart');
+            if (!ctx) return;
+
+            const sortedHistory = [...window.weightDataHistory].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+            const labels = sortedHistory.map(d => d.date);
+            const weightValues = sortedHistory.map(d => d.weight);
+            const fatValues = sortedHistory.map(d => d.bodyFat !== null && d.bodyFat !== undefined ? d.bodyFat : null);
+
+            const isDark = document.body.classList.contains('dark-mode');
+            const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)';
+            const textColor = isDark ? '#94A3B8' : '#64748B';
+
+            if (weightChartInstance) weightChartInstance.destroy();
+
+            weightChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '体重 (kg)',
+                            data: weightValues,
+                            borderColor: '#2B5C8F',
+                            backgroundColor: 'rgba(43, 92, 143, 0.12)',
+                            borderWidth: 2.5,
+                            pointBackgroundColor: '#2B5C8F',
+                            pointBorderColor: '#FFFFFF',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            tension: 0.3,
+                            yAxisID: 'yWeight',
+                            fill: false
+                        },
+                        {
+                            label: '体脂肪率 (%)',
+                            data: fatValues,
+                            borderColor: '#F59E0B',
+                            backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#F59E0B',
+                            pointBorderColor: '#FFFFFF',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            tension: 0.3,
+                            yAxisID: 'yFat',
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: textColor, font: { size: 10 } } },
+                        yWeight: {
+                            type: 'linear', position: 'left', grid: { color: gridColor },
+                            ticks: { color: '#2B5C8F', font: { size: 10, weight: '600' }, callback: (v) => `${v}kg` }
+                        },
+                        yFat: {
+                            type: 'linear', position: 'right', grid: { display: false },
+                            ticks: { color: '#D97706', font: { size: 10, weight: '600' }, callback: (v) => `${v}%` }
+                        }
+                    }
+                }
+            });
+
+            renderWeightList(true);
+        }
+
+        function renderWeightList(autoScrollToBottom = true) {
+            const list = document.getElementById('weight-list');
+            if (!list) return;
+            list.innerHTML = '';
+            
+            const sortedList = [...window.weightDataHistory].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+            sortedList.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.onclick = () => openWeightEditModal(item);
+                const timeStr = item.time ? ` ${item.time}` : '';
+                card.innerHTML = `
+                    <div class="item-card-header">
+                        <span class="item-title">体重: ${item.weight} kg ${item.bodyFat ? `(体脂肪: ${item.bodyFat}%)` : ''}</span>
+                    </div>
+                    <div class="item-detail">記録日時: ${item.date}${timeStr}</div>
+                `;
+                list.appendChild(card);
+            });
+
+            const latest = sortedList[sortedList.length - 1];
+            if (latest) {
+                document.getElementById('latest-weight-stat').textContent = `最新: ${latest.weight} kg ${latest.bodyFat ? `/ ${latest.bodyFat}%` : ''}`;
+            } else {
+                document.getElementById('latest-weight-stat').textContent = '記録なし';
+            }
+
+            if (autoScrollToBottom) {
+                setTimeout(() => {
+                    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+                }, 60);
+            }
+        }
+
+        function openWeightEditModal(item) {
+            document.getElementById('weight-item-id').value = String(item.id);
+            document.getElementById('weight-input-date').value = item.isoDate || selectedDateStr;
+            document.getElementById('modal-weight-val').value = item.weight;
+            document.getElementById('modal-fat-val').value = item.bodyFat || '';
+            document.getElementById('weight-delete-btn').style.display = 'flex';
+            openModal('weight-modal');
+        }
+
+        window.saveWeightItem = function() {
+            const id = document.getElementById('weight-item-id').value;
+            const wVal = parseFloat(document.getElementById('modal-weight-val').value);
+            const fVal = parseFloat(document.getElementById('modal-fat-val').value);
+            const dateVal = document.getElementById('weight-input-date').value || new Date().toISOString().split('T')[0];
+
+            if (!wVal) { alert('体重を入力してください'); return; }
+
+            const d = new Date(dateVal);
+            const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
+
+            if (id) {
+                const target = window.weightDataHistory.find(w => String(w.id) === String(id));
+                if (target) {
+                    target.weight = wVal;
+                    target.bodyFat = fVal || null;
+                    target.isoDate = dateVal;
+                    target.date = dateStr;
+                }
+            } else {
+                window.weightDataHistory.push({
+                    id: 'w_' + Date.now(),
+                    date: dateStr,
+                    isoDate: dateVal,
+                    weight: wVal,
+                    bodyFat: fVal || null,
+                    timestamp: Date.now()
+                });
+            }
+
+            localStorage.setItem('pfc_weight_history', JSON.stringify(window.weightDataHistory));
+            if (window.syncDataToCloud) window.syncDataToCloud();
+            closeModal('weight-modal');
+            initOrUpdateWeightChart();
+            showToast('⚖️ 体重を保存しました');
+        };
+
+        window.deleteWeightItem = function() {
+            const id = document.getElementById('weight-item-id').value;
+            if (!id) return;
+            if (confirm('この体重記録を削除しますか？')) {
+                window.weightDataHistory = window.weightDataHistory.filter(w => String(w.id) !== String(id));
+                localStorage.setItem('pfc_weight_history', JSON.stringify(window.weightDataHistory));
+                if (window.syncDataToCloud) window.syncDataToCloud();
+                closeModal('weight-modal');
+                initOrUpdateWeightChart();
+            }
+        };
+
+        // --- 運動機能 ---
+        function renderExerciseList(autoScrollToBottom = true) {
+            const list = document.getElementById('exercise-list');
+            list.innerHTML = '';
+
+            const dayExercises = window.exerciseRecords
+                .filter(e => e.date === selectedDateStr)
+                .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+            if (dayExercises.length === 0) {
+                list.innerHTML = `
+                    <div class="blank-state">
+                        <i data-lucide="activity" style="width: 28px; height: 28px; margin: 0 auto 6px auto; opacity: 0.5;"></i>
+                        <div style="font-size: 0.85rem;">この日の運動記録がありません</div>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            dayExercises.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.innerHTML = `
+                    <div class="item-card-header">
+                        <span class="item-title">${item.name}</span>
+                    </div>
+                    <div class="item-detail">${item.detail || item.date}</div>
+                `;
+                list.appendChild(card);
+            });
+
+            if (autoScrollToBottom) {
+                setTimeout(() => {
+                    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+                }, 50);
+            }
+        }
+
+        // --- Gemini AI 自動解析 ＆ 送信 ---
+        async function submitRecord() {
+            const input = document.getElementById('record-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const apiKey = window.geminiApiKey || localStorage.getItem('gemini_api_key');
+
+            if (currentCategory === 'exercise') {
+                window.exerciseRecords.push({
+                    id: 'e_' + Date.now(),
+                    date: selectedDateStr,
+                    name: text,
+                    detail: `記録日時: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`,
+                    timestamp: Date.now()
+                });
+                localStorage.setItem('pfc_exercise_records', JSON.stringify(window.exerciseRecords));
+                if (window.syncDataToCloud) window.syncDataToCloud();
+                renderExerciseList(true);
+                showToast(`🏃‍♂️ 「${text}」を記録しました`);
+            } else if (currentCategory === 'food') {
+                const newFoodId = 'f_' + Date.now();
+                if (apiKey) {
+                    window.foodRecords.push({
+                        id: newFoodId,
+                        date: selectedDateStr,
+                        name: text,
+                        cal: 0, p: 0, f: 0, c: 0,
+                        timestamp: Date.now()
+                    });
+                    renderFoodList(true);
+
+                    try {
+                        const result = await fetchGeminiNutrients(text, apiKey);
+                        const target = window.foodRecords.find(f => f.id === newFoodId);
+                        if (target && result) {
+                            target.cal = result.cal || 0;
+                            target.p = result.p || 0;
+                            target.f = result.f || 0;
+                            target.c = result.c || 0;
+                            localStorage.setItem('pfc_food_records', JSON.stringify(window.foodRecords));
+                            if (window.syncDataToCloud) window.syncDataToCloud();
+                            renderWeeklyCalendar();
+                            renderFoodList(true);
+                            showToast(`✨ AI解析完了: 「${text}」`);
+                        }
+                    } catch (err) {
+                        console.error("Gemini API Error:", err);
+                    }
+                } else {
+                    window.foodRecords.push({
+                        id: newFoodId,
+                        date: selectedDateStr,
+                        name: text,
+                        cal: 150, p: 10, f: 3, c: 20,
+                        timestamp: Date.now()
+                    });
+                    localStorage.setItem('pfc_food_records', JSON.stringify(window.foodRecords));
+                    if (window.syncDataToCloud) window.syncDataToCloud();
+                    renderWeeklyCalendar();
+                    renderFoodList(true);
+                    showToast(`✅ 「${text}」を追加しました`);
+                }
+            }
+
+            input.value = '';
+            handleInputChange();
+        }
+
+        async function fetchGeminiNutrients(foodText, apiKey) {
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            const prompt = `「${foodText}」の推定栄養素を計算し、次のJSON形式のみで返してください。余計な文章は含めないでください。{"cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+            const data = await response.json();
+            const rawText = data.candidates[0].content.parts[0].text;
+            const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+            if (jsonMatch) return JSON.parse(jsonMatch[0]);
+            return null;
+        }
+
+        function handleInputChange() {
+            const inputVal = document.getElementById('record-input').value.trim();
+            const footerIcons = document.getElementById('footer-icons');
+            const sendBtn = document.getElementById('send-btn');
+
+            if (inputVal.length > 0 && currentCategory !== 'weight') {
+                footerIcons.style.display = 'none';
+                sendBtn.style.display = 'flex';
+            } else {
+                footerIcons.style.display = 'flex';
+                sendBtn.style.display = 'none';
+            }
+        }
+
+        function handleImageSelection(event) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById('record-input').value = file.name.split('.')[0] || "食事写真";
+                handleInputChange();
+            }
+        }
+
+        document.getElementById('record-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') submitRecord();
+        });
+
+        // --- 画面切り替え ---
+        function switchView(viewName) {
+            document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
+            const titleEl = document.getElementById('page-title');
+            const inputEl = document.getElementById('record-input');
+            
+            const favBtn = document.getElementById('fav-btn');
+            const galleryBtn = document.getElementById('gallery-btn');
+            const cameraBtn = document.getElementById('camera-btn');
+
+            if (viewName === 'settings') {
+                document.getElementById('view-settings').classList.add('active');
+                titleEl.textContent = '設定';
+            } else if (viewName === 'weight') {
+                currentCategory = 'weight';
+                document.getElementById('view-weight').classList.add('active');
+                titleEl.textContent = '体重';
+                inputEl.placeholder = 'タップして体重・体脂肪を入力';
+                inputEl.readOnly = true;
+                favBtn.style.display = 'none';
+                galleryBtn.style.display = 'none';
+                cameraBtn.style.display = 'none';
+                setTimeout(() => initOrUpdateWeightChart(), 50);
+            } else if (viewName === 'exercise') {
+                currentCategory = 'exercise';
+                document.getElementById('view-exercise').classList.add('active');
+                titleEl.textContent = '運動';
+                inputEl.placeholder = '運動内容を入力';
+                inputEl.readOnly = false;
+                favBtn.style.display = 'flex';
+                galleryBtn.style.display = 'none';
+                cameraBtn.style.display = 'none';
+                renderExerciseList(true);
+            } else {
+                currentCategory = 'food';
+                document.getElementById('view-food').classList.add('active');
+                titleEl.textContent = '食事';
+                inputEl.placeholder = '何を食べましたか？';
+                inputEl.readOnly = false;
+                favBtn.style.display = 'flex';
+                galleryBtn.style.display = 'flex';
+                cameraBtn.style.display = 'flex';
+                renderFoodList(true);
+            }
+        }
+
+        function toggleDrawer(open) {
+            const overlay = document.getElementById('drawer-overlay');
+            if (open) overlay.classList.add('active');
+            else overlay.classList.remove('active');
+        }
+
+        function selectMenu(category) {
+            toggleDrawer(false);
+            document.querySelectorAll('.drawer-item').forEach(item => item.classList.remove('active'));
+            const activeMenuItem = document.getElementById(`menu-${category}`);
+            if (activeMenuItem) activeMenuItem.classList.add('active');
+            switchView(category);
+        }
+
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        function handleInputBubbleClick() {
+            if (currentCategory === 'weight') openWeightCreateModal();
+        }
+
+        function openWeightCreateModal() {
+            document.getElementById('weight-item-id').value = '';
+            document.getElementById('weight-modal-title').textContent = '体重・体脂肪の記録';
+            document.getElementById('weight-input-date').value = selectedDateStr;
+            document.getElementById('modal-weight-val').value = '';
+            document.getElementById('modal-fat-val').value = '';
+            document.getElementById('weight-delete-btn').style.display = 'none';
+            openModal('weight-modal');
+        }
+
+        window.saveSettings = function() {
+            const cal = document.getElementById('target-calories').value;
+            const p = document.getElementById('target-protein').value;
+            const f = document.getElementById('target-fat').value;
+            const c = document.getElementById('target-carb').value;
+            
+            const settings = { calories: cal, protein: p, fat: f, carb: c };
+            localStorage.setItem('pfc_user_settings', JSON.stringify(settings));
+            if (window.syncDataToCloud) window.syncDataToCloud();
+
+            alert('設定を保存しました！');
+            renderWeeklyCalendar();
+            renderFoodList(false);
+            switchView(currentCategory);
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('pfc_user_settings');
+            if (saved) {
+                const s = JSON.parse(saved);
+                if (s.calories) document.getElementById('target-calories').value = s.calories;
+                if (s.protein) document.getElementById('target-protein').value = s.protein;
+                if (s.fat) document.getElementById('target-fat').value = s.fat;
+                if (s.carb) document.getElementById('target-carb').value = s.carb;
+            }
+
+            const savedKey = localStorage.getItem('gemini_api_key');
+            if (savedKey) {
+                window.geminiApiKey = savedKey;
+                document.getElementById('gemini-api-key').value = savedKey;
+            }
+
+            renderWeeklyCalendar();
+            renderFoodList(true);
+        });
+    </script>
+</body>
+</html>
