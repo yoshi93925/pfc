@@ -549,7 +549,7 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     if (data.foodLogs) {
-                        window.foodLogs = data.foodLogs.map(item => ({
+                        window.foodRecords = data.foodLogs.map(item => ({
                             id: item.id || ('f_' + Math.random()),
                             date: item.date || new Date().toISOString().split('T')[0],
                             name: item.name || item.foodName || "名称未設定",
@@ -1328,7 +1328,6 @@
                 renderFoodList(true);
 
                 try {
-                    // 画像があれば base64Image を渡して解析
                     const result = await fetchGeminiNutrients(text, apiKey, base64Image);
                     const target = window.foodRecords.find(f => f.id === newFoodId);
                     if (target && result) {
@@ -1376,13 +1375,16 @@
         function handleImageSelection(event) {
             const file = event.target.files[0];
             if (file) {
-                document.getElementById('record-input').value = file.name.split('.')[0] || "食事写真";
+                // ファイル名ではなく「食事写真」という固定テキストを入力欄にセット
+                const input = document.getElementById('record-input');
+                input.value = "食事写真";
                 handleInputChange();
 
-                // 画像をBase64にエンコード
+                // 画像をBase64にエンコードして、そのまま自動で送信・解析を実行
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = async function(e) {
                     base64Image = e.target.result.split(',')[1];
+                    await submitRecord();
                 };
                 reader.readAsDataURL(file);
             }
