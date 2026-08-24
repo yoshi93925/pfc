@@ -499,7 +499,7 @@
         </div>
     </div>
 
-    <!-- 運動記録編集モーダル（メモ欄追加） -->
+    <!-- 運動記録編集モーダル -->
     <div class="modal-overlay" id="exercise-edit-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -522,7 +522,7 @@
         <div class="modal-box">
             <div class="modal-header">
                 <span>お気に入りアイテムの編集</span>
-                <button class="icon-btn" onclick="closeModal('favorite-edit-modal')"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
+                <button class="icon-btn" onclick="closeFavoriteEditModal()"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
             </div>
             <input type="hidden" id="edit-fav-id">
             <div class="modal-form-group"><label class="modal-label">メニュー名</label><input type="text" class="modal-input" id="edit-fav-name"></div>
@@ -860,7 +860,6 @@
             list.forEach(item => {
                 const card = document.createElement('div');
                 card.style.cssText = "background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;";
-                // お気に入りリストをタップしたらリストを閉じてから編集画面を開く
                 card.onclick = () => {
                     closeModal('favorite-modal');
                     openFavoriteEditModal(item);
@@ -929,6 +928,12 @@
             closeModal('favorite-edit-modal');
             openFavoriteModal();
             showToast("⭐ お気に入りを更新しました");
+        };
+
+        // お気に入り個別編集を閉じてリストに戻る関数
+        window.closeFavoriteEditModal = function() {
+            closeModal('favorite-edit-modal');
+            openFavoriteModal();
         };
 
         window.deleteCurrentFavorite = function() {
