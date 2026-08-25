@@ -109,9 +109,12 @@
         .week-day-cell.selected { background-color: rgba(255, 255, 255, 0.75) !important; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
         .week-day-name { font-size: 0.65rem; font-weight: 600; color: var(--header-text) !important; opacity: 0.85; margin-bottom: 2px; }
         .week-day-date {
-            font-size: 0.85rem; font-weight: 700; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--header-text) !important; background: transparent;
+            font-size: 0.85rem; font-weight: 700; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--header-text) !important; background: transparent; position: relative;
         }
         .week-day-cell.exceeded .week-day-date { background-color: #EF4444 !important; color: #FFFFFF !important; box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4); }
+        .week-day-cell.has-record:not(.exceeded) .week-day-date::after {
+            content: ''; position: absolute; bottom: -2px; width: 4px; height: 4px; background-color: var(--header-text); border-radius: 50%;
+        }
         .week-day-cell.is-today .week-day-name { color: #1E40AF !important; font-weight: 700; }
 
         .sticky-summary-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 8px 0 4px 0; margin-bottom: 4px; }
@@ -248,15 +251,18 @@
         @keyframes spin { to { transform: rotate(360deg); } }
 
         .toast {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px); background: #10B981; color: #FFFFFF;
-            padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; z-index: 400; opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease;
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px);
+            background: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border);
+            padding: 8px 18px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; z-index: 400;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
 
-    <div class="toast" id="toast-msg">登録しました</div>
+    <div class="toast" id="toast-msg">記録しました</div>
 
     <!-- AI解析中ローディングポップアップ -->
     <div class="loading-overlay" id="loading-overlay">
@@ -436,7 +442,7 @@
     <!-- 下部固定入力バー -->
     <footer>
         <div class="record-bar-wrapper">
-            <div class="record-bar">
+            <div class="record-bar" id="footer-record-bar">
                 <div class="input-bubble" id="input-bubble-wrap" onclick="handleInputBubbleClick()">
                     <input type="text" id="record-input" placeholder="食事内容を記録" oninput="handleInputChange()">
                 </div>
@@ -732,69 +738,32 @@
 
         let currentCategory = 'food';
         let weightChartInstance = null;
-        let selectedDateStr = new Date().toISOString().split('T')[0];
+        
+        function getTodayISO() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        let selectedDateStr = getTodayISO();
         let calViewingDate = new Date();
         window.geminiApiKey = localStorage.getItem('gemini_api_key') || "";
         let forceAnchorDate = null;
         let base64Image = null;
 
+        // ダミーデータを完全削除し、初期値は空配列にする
         let favoritesList = JSON.parse(localStorage.getItem('pfc_favorites_list') || '[]');
-        if (favoritesList.length === 0) {
-            favoritesList = [
-                { id: 'fav1', name: 'ソイプロテイン', cal: 120, p: 20.0, f: 1.5, c: 2.0 },
-                { id: 'fav2', name: 'おにぎり(1個)', cal: 180, p: 3.0, f: 0.8, c: 38.0 },
-                { id: 'fav3', name: 'ゆで卵(1個)', cal: 76, p: 6.2, f: 5.2, c: 0.4 }
-            ];
-            localStorage.setItem('pfc_favorites_list', JSON.stringify(favoritesList));
-        }
         window.favoritesList = favoritesList;
 
         let foodRecords = JSON.parse(localStorage.getItem('pfc_food_records') || '[]');
-        if (foodRecords.length === 0) {
-            const today = new Date().toISOString().split('T')[0];
-            foodRecords = [
-                { id: 'f1', date: today, name: '鶏胸肉 150g', cal: 162, p: 34.5, f: 2.3, c: 0.0, timestamp: Date.now() - 10000 },
-                { id: 'f2', date: today, name: '白米 200g', cal: 312, p: 5.0, f: 0.6, c: 74.2, timestamp: Date.now() - 5000 }
-            ];
-            localStorage.setItem('pfc_food_records', JSON.stringify(foodRecords));
-        }
         window.foodRecords = foodRecords;
 
         let weightDataHistory = JSON.parse(localStorage.getItem('pfc_weight_history') || '[]');
-        if (weightDataHistory.length === 0) {
-            const today = new Date();
-            weightDataHistory = [];
-            for (let i = 6; i >= 0; i--) {
-                const d = new Date();
-                d.setDate(today.getDate() - i);
-                const dStr = `${d.getMonth() + 1}/${d.getDate()}`;
-                const isoStr = d.toISOString().split('T')[0];
-                weightDataHistory.push({
-                    id: 'w_' + (Date.now() - (6 - i) * 86400000),
-                    date: dStr,
-                    isoDate: isoStr,
-                    time: '08:30',
-                    weight: parseFloat((65.4 - (6 - i) * 0.15).toFixed(1)),
-                    bodyFat: parseFloat((15.6 - (6 - i) * 0.08).toFixed(1)),
-                    timestamp: Date.now() - (6 - i) * 86400000
-                });
-            }
-            localStorage.setItem('pfc_weight_history', JSON.stringify(weightDataHistory));
-        } else {
-            weightDataHistory.forEach(w => {
-                if (!w.time) w.time = '08:00';
-                if (!w.isoDate) w.isoDate = selectedDateStr;
-            });
-        }
         window.weightDataHistory = weightDataHistory;
 
         let exerciseRecords = JSON.parse(localStorage.getItem('pfc_exercise_records') || '[]');
-        if (exerciseRecords.length === 0) {
-            exerciseRecords = [
-                { id: 'e1', date: new Date().toISOString().split('T')[0], name: 'ウォーキング 30分', detail: '有酸素運動', timestamp: Date.now() - 5000 }
-            ];
-            localStorage.setItem('pfc_exercise_records', JSON.stringify(exerciseRecords));
-        }
         window.exerciseRecords = exerciseRecords;
 
         function showToast(message) {
@@ -893,7 +862,7 @@
             if (window.syncDataToCloud) window.syncDataToCloud();
             renderWeeklyCalendar();
             renderFoodList(true);
-            showToast(`✨ 「${item.name}」を追加しました`);
+            showToast('記録しました');
         };
 
         function openFavoriteEditModal(item) {
@@ -927,10 +896,9 @@
             if (window.syncDataToCloud) window.syncDataToCloud();
             closeModal('favorite-edit-modal');
             openFavoriteModal();
-            showToast("⭐ お気に入りを更新しました");
+            showToast('記録しました');
         };
 
-        // お気に入り個別編集を閉じてリストに戻る関数
         window.closeFavoriteEditModal = function() {
             closeModal('favorite-edit-modal');
             openFavoriteModal();
@@ -944,7 +912,7 @@
                 if (window.syncDataToCloud) window.syncDataToCloud();
                 closeModal('favorite-edit-modal');
                 openFavoriteModal();
-                showToast("🗑️ お気に入りを削除しました");
+                showToast('記録しました');
             }
         };
 
@@ -975,7 +943,7 @@
             if (window.syncDataToCloud) window.syncDataToCloud();
             closeModal('exercise-edit-modal');
             renderExerciseList(false);
-            showToast("🏃‍♂️ 運動記録を更新しました");
+            showToast('記録しました');
         };
 
         window.deleteCurrentExercise = function() {
@@ -986,11 +954,10 @@
                 if (window.syncDataToCloud) window.syncDataToCloud();
                 closeModal('exercise-edit-modal');
                 renderExerciseList(false);
-                showToast("🗑️ 運動記録を削除しました");
+                showToast('記録しました');
             }
         };
 
-        // お気に入り登録ボタン（未登録時はアウトラインのstar、登録済みは塗りつぶしのstar）
         function updateEditFavoriteIconState() {
             const nameVal = (document.getElementById('edit-food-name').value || "").trim();
             const btn = document.getElementById('edit-fav-toggle-btn');
@@ -1018,7 +985,7 @@
             const index = window.favoritesList.findIndex(f => f.name === nameVal);
             if (index >= 0) {
                 window.favoritesList.splice(index, 1);
-                showToast(`⭐ 「${nameVal}」をリストから外しました`);
+                showToast('記録しました');
             } else {
                 window.favoritesList.push({
                     id: 'fav_' + Date.now(),
@@ -1028,7 +995,7 @@
                     f: fVal,
                     c: cVal
                 });
-                showToast(`⭐ 「${nameVal}」をリストに登録しました`);
+                showToast('記録しました');
             }
 
             localStorage.setItem('pfc_favorites_list', JSON.stringify(window.favoritesList));
@@ -1050,7 +1017,7 @@
         }
 
         function goToToday() {
-            selectedDateStr = new Date().toISOString().split('T')[0];
+            selectedDateStr = getTodayISO();
             forceAnchorDate = null;
             closeModal('monthly-calendar-modal');
             renderWeeklyCalendar();
@@ -1083,14 +1050,14 @@
             const firstDayIndex = new Date(year, month, 1).getDay();
             const lastDate = new Date(year, month + 1, 0).getDate();
 
-            for (let i = 0; i < firstDayIndex; i++) {
-                grid.appendChild(Object.assign(document.createElement('div'), { className: 'month-cal-day empty' }));
-            }
-
             const maxCal = parseFloat(document.getElementById('target-calories').value) || 2000;
             const maxFat = parseFloat(document.getElementById('target-fat').value) || 50;
             const maxCarb = parseFloat(document.getElementById('target-carb').value) || 250;
-            const todayISO = new Date().toISOString().split('T')[0];
+            const todayISO = getTodayISO();
+
+            for (let i = 0; i < firstDayIndex; i++) {
+                grid.appendChild(Object.assign(document.createElement('div'), { className: 'month-cal-day empty' }));
+            }
 
             for (let d = 1; d <= lastDate; d++) {
                 const dateISO = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -1130,9 +1097,9 @@
             calendarEl.innerHTML = '';
 
             const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
-            const todayISO = new Date().toISOString().split('T')[0];
+            const todayISO = getTodayISO();
             const anchor = forceAnchorDate ? forceAnchorDate : todayISO;
-            const anchorDate = new Date(anchor);
+            const anchorDate = new Date(anchor + 'T00:00:00');
 
             const maxCal = parseFloat(document.getElementById('target-calories').value) || 2000;
             const maxFat = parseFloat(document.getElementById('target-fat').value) || 50;
@@ -1142,7 +1109,11 @@
                 const d = new Date(anchorDate);
                 d.setDate(anchorDate.getDate() - i);
                 
-                const dateKey = d.toISOString().split('T')[0];
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                const dateKey = `${year}-${month}-${day}`;
+
                 const dayName = dayNames[d.getDay()];
                 const dateNum = d.getDate();
                 const isToday = (dateKey === todayISO);
@@ -1156,10 +1127,24 @@
                 });
 
                 const isExceeded = (totalCal > maxCal || totalFat > maxFat || totalCarb > maxCarb);
+                const hasWeight = (window.weightDataHistory || []).some(w => (w.isoDate || "") === dateKey);
+                const hasExercise = (window.exerciseRecords || []).some(e => e.date === dateKey);
+
+                let hasRecordClass = '';
+                if (currentCategory === 'food' && isExceeded) {
+                    hasRecordClass = 'exceeded';
+                } else if (currentCategory === 'weight' && hasWeight) {
+                    hasRecordClass = 'has-record';
+                } else if (currentCategory === 'exercise' && hasExercise) {
+                    hasRecordClass = 'has-record';
+                } else if (currentCategory === 'food' && dayFoods.length > 0) {
+                    hasRecordClass = 'has-record';
+                }
+
                 const isSelected = (dateKey === selectedDateStr);
 
                 const cell = document.createElement('div');
-                cell.className = `week-day-cell ${isToday ? 'is-today' : ''} ${isSelected ? 'selected' : ''} ${isExceeded ? 'exceeded' : ''}`;
+                cell.className = `week-day-cell ${isToday ? 'is-today' : ''} ${isSelected ? 'selected' : ''} ${hasRecordClass}`;
                 cell.onclick = () => {
                     selectedDateStr = dateKey;
                     forceAnchorDate = null;
@@ -1544,7 +1529,7 @@
             if (window.syncDataToCloud) window.syncDataToCloud();
             closeModal('weight-modal');
             initOrUpdateWeightChart();
-            showToast('⚖️ 体重を保存しました');
+            showToast('記録しました');
         };
 
         window.deleteWeightItem = function() {
@@ -1603,9 +1588,9 @@
             
             let prompt = "";
             if (imageBase64) {
-                prompt = `この写真に写っている料理の一般的な品名（例: 牛丼、唐揚げ定食、サラダなど）を特定し、その推定栄養素を計算してください。次のJSON形式のみで返し、余計な文章やマークダウンは含めないでください。{"name": "品名", "cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
+                prompt = `この写真に写っている料理の一般的な品名（例: 牛丼、唐揚げ定食、サラダなど）を特定し、その推定栄養素を計算してください。もし写真から料理が全く判別できない、または不鮮明な場合は、nameに「不明」と入れてください。次のJSON形式のみで返し、余計な文章やマークダウンは含めないでください。{"name": "品名", "cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
             } else {
-                prompt = `「${foodText}」の推定栄養素を計算し、次のJSON形式のみで返してください。余計な文章やマークダウンのバッククォートは含めないでください。{"name": "${foodText}", "cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
+                prompt = `「${foodText}」の推定栄養素を計算し、次のJSON形式のみで返してください。もし存在しない飲食物や無効な入力である場合は、nameに「不明」と入れてください。余計な文章やマークダウンのバッククォートは含めないでください。{"name": "${foodText}", "cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
             }
 
             let lastError = null;
@@ -1673,54 +1658,51 @@
                 localStorage.setItem('pfc_exercise_records', JSON.stringify(window.exerciseRecords));
                 if (window.syncDataToCloud) window.syncDataToCloud();
                 renderExerciseList(true);
-                showToast(`🏃‍♂️ 「${text}」を記録しました`);
+                showToast('記録しました');
             } else if (currentCategory === 'food') {
-                const newFoodId = 'f_' + Date.now();
                 if (!apiKey) {
                     alert("Gemini APIキーが設定されていません。設定画面からキーを入力してください。");
                     hideLoading();
                     return;
                 }
 
-                window.foodRecords.push({
-                    id: newFoodId,
-                    date: selectedDateStr,
-                    name: isPhoto ? "解析中..." : text,
-                    cal: 0, p: 0, f: 0, c: 0,
-                    timestamp: Date.now()
-                });
-                renderFoodList(true);
-
                 try {
                     const result = await fetchGeminiNutrients(text, apiKey, base64Image);
-                    const target = window.foodRecords.find(f => f.id === newFoodId);
-                    if (target && result) {
-                        const determinedName = result.name || (isPhoto ? "食事" : text);
-                        target.name = determinedName;
-                        target.foodName = determinedName;
-                        target.cal = result.cal || result.calories || 0;
-                        target.p = result.p || result.protein || 0;
-                        target.f = result.f || result.fat || 0;
-                        target.c = result.c || result.carbs || 0;
-                        
-                        localStorage.setItem('pfc_food_records', JSON.stringify(window.foodRecords));
-                        if (window.syncDataToCloud) window.syncDataToCloud();
-                        
-                        base64Image = null;
+                    
+                    if (!result || !result.name || result.name === "不明" || result.name.includes("該当なし") || result.name.includes("解析できません")) {
                         hideLoading();
-                        
-                        renderWeeklyCalendar();
-                        renderFoodList(true);
-                        showToast(`✨ 「${determinedName}」を記録しました！`);
-                    } else {
-                        throw new Error("正しい栄養素データを取得できませんでした");
+                        base64Image = null;
+                        alert("解析できませんでした");
+                        return;
                     }
+
+                    const newFoodId = 'f_' + Date.now();
+                    const determinedName = result.name;
+                    
+                    window.foodRecords.push({
+                        id: newFoodId,
+                        date: selectedDateStr,
+                        name: determinedName,
+                        cal: result.cal || result.calories || 0,
+                        p: result.p || result.protein || 0,
+                        f: result.f || result.fat || 0,
+                        c: result.c || result.carbs || 0,
+                        timestamp: Date.now()
+                    });
+                    
+                    localStorage.setItem('pfc_food_records', JSON.stringify(window.foodRecords));
+                    if (window.syncDataToCloud) window.syncDataToCloud();
+                    
+                    base64Image = null;
+                    hideLoading();
+                    
+                    renderWeeklyCalendar();
+                    renderFoodList(true);
+                    showToast('記録しました');
                 } catch (err) {
                     console.error("Gemini API Error:", err);
-                    window.foodRecords = window.foodRecords.filter(f => f.id !== newFoodId);
                     hideLoading();
-                    renderFoodList(true);
-                    alert("Gemini APIでの解析に失敗しました。「設定」からAPIキーが正しいか、または通信状態をご確認ください。エラー内容: " + err.message);
+                    alert("解析できませんでした");
                 }
             }
 
@@ -1767,6 +1749,9 @@
             document.querySelectorAll('.header-tab-btn').forEach(btn => btn.classList.remove('active'));
             
             const settingsBtn = document.getElementById('settings-toggle-btn');
+            const weeklyCalEl = document.getElementById('weekly-calendar');
+            const footerRecordBar = document.getElementById('footer-record-bar');
+
             if (settingsBtn) settingsBtn.classList.remove('active-settings');
 
             const targetTab = document.getElementById(`tab-btn-${viewName}`);
@@ -1782,33 +1767,42 @@
                 document.getElementById('view-settings').classList.add('active');
                 if (settingsBtn) settingsBtn.classList.add('active-settings');
                 document.querySelectorAll('.header-tab-btn').forEach(btn => btn.classList.remove('active'));
-            } else if (viewName === 'weight') {
-                currentCategory = 'weight';
-                document.getElementById('view-weight').classList.add('active');
-                inputEl.placeholder = 'タップして体重・体脂肪を入力';
-                inputEl.readOnly = true;
-                favBtn.style.display = 'none';
-                galleryBtn.style.display = 'none';
-                cameraBtn.style.display = 'none';
-                setTimeout(() => initOrUpdateWeightChart(), 50);
-            } else if (viewName === 'exercise') {
-                currentCategory = 'exercise';
-                document.getElementById('view-exercise').classList.add('active');
-                inputEl.placeholder = '運動内容を入力';
-                inputEl.readOnly = false;
-                favBtn.style.display = 'flex';
-                galleryBtn.style.display = 'none';
-                cameraBtn.style.display = 'none';
-                renderExerciseList(true);
+                
+                if (weeklyCalEl) weeklyCalEl.style.display = 'none';
+                if (footerRecordBar) footerRecordBar.style.display = 'none';
             } else {
-                currentCategory = 'food';
-                document.getElementById('view-food').classList.add('active');
-                inputEl.placeholder = '食事内容を記録';
-                inputEl.readOnly = false;
-                favBtn.style.display = 'flex';
-                galleryBtn.style.display = 'flex';
-                cameraBtn.style.display = 'flex';
-                renderFoodList(true);
+                if (weeklyCalEl) weeklyCalEl.style.display = 'flex';
+                if (footerRecordBar) footerRecordBar.style.display = 'flex';
+
+                if (viewName === 'weight') {
+                    currentCategory = 'weight';
+                    document.getElementById('view-weight').classList.add('active');
+                    inputEl.placeholder = 'タップして体重・体脂肪を入力';
+                    inputEl.readOnly = true;
+                    favBtn.style.display = 'none';
+                    galleryBtn.style.display = 'none';
+                    cameraBtn.style.display = 'none';
+                    setTimeout(() => initOrUpdateWeightChart(), 50);
+                } else if (viewName === 'exercise') {
+                    currentCategory = 'exercise';
+                    document.getElementById('view-exercise').classList.add('active');
+                    inputEl.placeholder = '運動内容を入力';
+                    inputEl.readOnly = false;
+                    favBtn.style.display = 'flex';
+                    galleryBtn.style.display = 'none';
+                    cameraBtn.style.display = 'none';
+                    renderExerciseList(true);
+                } else {
+                    currentCategory = 'food';
+                    document.getElementById('view-food').classList.add('active');
+                    inputEl.placeholder = '食事内容を記録';
+                    inputEl.readOnly = false;
+                    favBtn.style.display = 'flex';
+                    galleryBtn.style.display = 'flex';
+                    cameraBtn.style.display = 'flex';
+                    renderFoodList(true);
+                }
+                renderWeeklyCalendar();
             }
         }
 
