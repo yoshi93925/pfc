@@ -27,7 +27,6 @@
             --footer-border: #E2E8F0;
             --send-btn-bg: #2B5C8F;
             --header-top-height: 104px;
-            --sticky-top-offset: 110px;
             --footer-height: 75px;
 
             --pfc-p-bg: rgba(147, 197, 253, 0.045);
@@ -67,8 +66,8 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color); color: var(--text-main);
-            /* ヘッダー全体の高さ(104px)＋Stickyカード分(約120px)の余裕を最初から持たせて初期非表示を防ぐ */
-            padding-top: 226px; 
+            /* 初期の無駄な空間を無くし、固定ヘッダー分の最低限の余白に調整 */
+            padding-top: var(--header-top-height);
             padding-bottom: var(--footer-height); min-height: 100vh;
             transition: background-color 0.25s ease, color 0.25s ease, padding 0.2s ease;
         }
@@ -127,8 +126,8 @@
         }
         .week-day-cell.is-today .week-day-name { color: #1E40AF !important; font-weight: 700; }
 
-        /* スティッキー要素の配置位置調整 */
-        .sticky-summary-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 4px 0 4px 0; margin-bottom: 6px; }
+        /* スティッキー要素：ヘッダーの下にくっつく位置をスッキリ調整 */
+        .sticky-summary-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 6px 0 4px 0; margin-bottom: 6px; }
         .nutrition-summary-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
         .summary-header { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--card-border); }
         .summary-cal-header-row { display: flex; justify-content: space-between; align-items: center; }
@@ -152,7 +151,7 @@
         .pfc-bar-f { background-color: var(--pfc-f-bar); }
         .pfc-bar-c { background-color: var(--pfc-c-bar); }
 
-        .sticky-chart-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 4px 0 4px 0; margin-bottom: 6px; }
+        .sticky-chart-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 6px 0 4px 0; margin-bottom: 6px; }
         .chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
         .chart-title { font-size: 0.92rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
