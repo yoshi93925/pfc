@@ -69,11 +69,11 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color); color: var(--text-main);
-            padding-top: 165px; 
-            padding-bottom: var(--footer-height); min-height: 100vh;
+            padding-top: var(--header-top-height); padding-bottom: var(--footer-height); min-height: 100vh;
             transition: background-color 0.25s ease, color 0.25s ease, padding 0.2s ease;
         }
 
+        /* 設定画面表示時は上下の余白を完全になくす */
         body.is-settings-mode {
             padding-top: 56px !important;
             padding-bottom: 20px !important;
@@ -128,7 +128,7 @@
         }
         .week-day-cell.is-today .week-day-name { color: #1E40AF !important; font-weight: 700; }
 
-        .sticky-summary-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 4px 0 4px 0; margin-bottom: 6px; }
+        .sticky-summary-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 8px 0 4px 0; margin-bottom: 4px; }
         .nutrition-summary-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
         .summary-header { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--card-border); }
         .summary-cal-header-row { display: flex; justify-content: space-between; align-items: center; }
@@ -152,7 +152,7 @@
         .pfc-bar-f { background-color: var(--pfc-f-bar); }
         .pfc-bar-c { background-color: var(--pfc-c-bar); }
 
-        .sticky-chart-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 4px 0 4px 0; margin-bottom: 6px; }
+        .sticky-chart-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 6px 0 4px 0; margin-bottom: 6px; }
         .chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
         .chart-title { font-size: 0.92rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
@@ -663,7 +663,7 @@
                 subscribeCloudData(user.uid);
             } else {
                 currentUser = null;
-                if (statusEl) statusEl.textContent = '未連携（Googleログインしてクラウド同期）';
+                if (statusEl) statusEl.textContent = '未連携（Googleログインしてデータを同期）';
                 if (loginBtn) loginBtn.style.display = 'block';
                 if (logoutBtn) logoutBtn.style.display = 'none';
             }
@@ -1108,7 +1108,7 @@
 
             const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
             const todayISO = getTodayISO();
-            const anchor = forceAnchorDate ? forceAnchorDate : selectedDateStr;
+            const anchor = forceAnchorDate ? forceAnchorDate : todayISO;
             const anchorDate = new Date(anchor + 'T00:00:00');
 
             const maxCal = parseFloat(document.getElementById('target-calories').value) || 2000;
@@ -1157,7 +1157,7 @@
                 cell.className = `week-day-cell ${isToday ? 'is-today' : ''} ${isSelected ? 'selected' : ''} ${hasRecordClass}`;
                 cell.onclick = () => {
                     selectedDateStr = dateKey;
-                    forceAnchorDate = dateKey;
+                    forceAnchorDate = null;
                     renderWeeklyCalendar();
                     renderFoodList(true);
                     if (currentCategory === 'exercise') renderExerciseList(true);
@@ -1539,7 +1539,6 @@
             if (window.syncDataToCloud) window.syncDataToCloud();
             closeModal('weight-modal');
             initOrUpdateWeightChart();
-            renderWeeklyCalendar();
             showToast('記録しました');
         };
 
@@ -1552,7 +1551,6 @@
                 if (window.syncDataToCloud) window.syncDataToCloud();
                 closeModal('weight-modal');
                 initOrUpdateWeightChart();
-                renderWeeklyCalendar();
             }
         };
 
@@ -1624,11 +1622,7 @@
                     const response = await fetch(endpoint, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        // 👇 Google検索グラウンディング機能（tools: googleSearch）を有効化
-                        body: JSON.stringify({
-                            contents: [{ parts: parts }],
-                            tools: [{ googleSearch: {} }]
-                        })
+                        body: JSON.stringify({ contents: [{ parts: parts }] })
                     });
                     const data = await response.json();
                     
@@ -1674,7 +1668,6 @@
                 localStorage.setItem('pfc_exercise_records', JSON.stringify(window.exerciseRecords));
                 if (window.syncDataToCloud) window.syncDataToCloud();
                 renderExerciseList(true);
-                renderWeeklyCalendar();
                 showToast('記録しました');
             } else if (currentCategory === 'food') {
                 if (!apiKey) {
@@ -1785,6 +1778,7 @@
                 if (settingsBtn) settingsBtn.classList.add('active-settings');
                 document.querySelectorAll('.header-tab-btn').forEach(btn => btn.classList.remove('active'));
                 
+                // 設定画面時はフッターとカレンダーを完全に非表示にし、余白をなくす
                 document.body.classList.add('is-settings-mode');
                 if (weeklyCalEl) weeklyCalEl.style.display = 'none';
                 if (footerBarEl) footerBarEl.style.display = 'none';
