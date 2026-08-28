@@ -1186,9 +1186,9 @@
             let totalCal = 0, totalP = 0, totalF = 0, totalC = 0;
             dayFoods.forEach(f => {
                 totalCal += Number(f.cal !== undefined ? f.cal : (f.calories || 0));
-                totalP += Number(f.p !== undefined ? f.p : (f.protein || f.p || 0));
-                totalF += Number(f.f !== undefined ? f.f : (f.fat || f.f || 0));
-                totalC += Number(f.c !== undefined ? f.c : (f.carbs || f.c || 0));
+                totalP += Number(f.p !== undefined ? f.p : (f.protein || 0));
+                totalF += Number(f.f !== undefined ? f.f : (f.fat || 0));
+                totalC += Number(f.c !== undefined ? f.c : (f.carbs || 0));
             });
 
             const curCalEl = document.getElementById('val-cur-cal');
@@ -1266,9 +1266,9 @@
                 card.onclick = () => openFoodEditModal(item);
                 const itemName = item.name || item.foodName || "名称未設定";
                 const itemCal = item.cal !== undefined ? item.cal : (item.calories || 0);
-                const itemP = item.p !== undefined ? item.p : (item.protein || item.p || 0);
-                const itemF = item.f !== undefined ? item.f : (item.fat || item.f || 0);
-                const itemC = item.c !== undefined ? item.c : (item.carbs || item.c || 0);
+                const itemP = item.p !== undefined ? item.p : (item.protein || 0);
+                const itemF = item.f !== undefined ? item.f : (item.fat || 0);
+                const itemC = item.c !== undefined ? item.c : (item.carbs || 0);
 
                 card.innerHTML = `
                     <div class="item-card-header">
@@ -1293,9 +1293,9 @@
             document.getElementById('edit-food-date').value = item.date;
             document.getElementById('edit-food-name').value = item.name || item.foodName || "";
             document.getElementById('edit-food-cal').value = item.cal !== undefined ? item.cal : (item.calories || 0);
-            document.getElementById('edit-food-p').value = item.p !== undefined ? item.p : (item.protein || item.p || 0);
-            document.getElementById('edit-food-f').value = item.f !== undefined ? item.f : (item.fat || item.f || 0);
-            document.getElementById('edit-food-c').value = item.c !== undefined ? item.c : (item.carbs || item.c || 0);
+            document.getElementById('edit-food-p').value = item.p !== undefined ? item.p : (item.protein || 0);
+            document.getElementById('edit-food-f').value = item.f !== undefined ? item.f : (item.fat || 0);
+            document.getElementById('edit-food-c').value = item.c !== undefined ? item.c : (item.carbs || 0);
             
             updateEditFavoriteIconState();
             openModal('food-edit-modal');
@@ -1623,9 +1623,7 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            contents: [{ parts: parts }],
-                            // 検索ツール（必要に応じて安全に有効化）
-                            tools: [{ googleSearch: {} }]
+                            contents: [{ parts: parts }]
                         })
                     });
                     const data = await response.json();
@@ -1637,13 +1635,20 @@
                         throw new Error(`[${model}] AIからの応答が空です`);
                     }
                     
-                    const rawText = data.candidates[0].content.parts[0].text;
+                    // 安全にテキストパーツを取得（グラウンディング等の影響でパーツが複数ある場合に対応）
+                    const contentParts = data.candidates[0].content.parts;
+                    let rawText = "";
+                    for (const p of contentParts) {
+                        if (p.text) {
+                            rawText += p.text;
+                        }
+                    }
+
                     const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
                     const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
                     
                     if (jsonMatch) {
                         const parsed = JSON.parse(jsonMatch[0]);
-                        // カロリー以外（P・F・C）が欠損または0の場合のフォールバック・安全処理
                         return {
                             name: parsed.name || foodText,
                             cal: Number(parsed.cal !== undefined ? parsed.cal : (parsed.calories || 0)),
