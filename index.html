@@ -4,15 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>PFCバランス記録</title>
-    <!-- PWA & 全画面化設定 -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" id="metaThemeColor" content="#B2D8D8">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="PFC記録">
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Chart.js (体重・体脂肪グラフ用) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -30,6 +27,7 @@
             --footer-border: #E2E8F0;
             --send-btn-bg: #2B5C8F;
             --header-top-height: 104px;
+            --sticky-top-offset: 110px;
             --footer-height: 75px;
 
             --pfc-p-bg: rgba(147, 197, 253, 0.045);
@@ -69,11 +67,12 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color); color: var(--text-main);
-            padding-top: var(--header-top-height); padding-bottom: var(--footer-height); min-height: 100vh;
+            /* ヘッダー全体の高さ(104px)＋Stickyカード分(約120px)の余裕を最初から持たせて初期非表示を防ぐ */
+            padding-top: 226px; 
+            padding-bottom: var(--footer-height); min-height: 100vh;
             transition: background-color 0.25s ease, color 0.25s ease, padding 0.2s ease;
         }
 
-        /* 設定画面表示時は上下の余白を完全になくす */
         body.is-settings-mode {
             padding-top: 56px !important;
             padding-bottom: 20px !important;
@@ -128,7 +127,8 @@
         }
         .week-day-cell.is-today .week-day-name { color: #1E40AF !important; font-weight: 700; }
 
-        .sticky-summary-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 8px 0 4px 0; margin-bottom: 4px; }
+        /* スティッキー要素の配置位置調整 */
+        .sticky-summary-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 4px 0 4px 0; margin-bottom: 6px; }
         .nutrition-summary-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
         .summary-header { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--card-border); }
         .summary-cal-header-row { display: flex; justify-content: space-between; align-items: center; }
@@ -152,7 +152,7 @@
         .pfc-bar-f { background-color: var(--pfc-f-bar); }
         .pfc-bar-c { background-color: var(--pfc-c-bar); }
 
-        .sticky-chart-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 6px 0 4px 0; margin-bottom: 6px; }
+        .sticky-chart-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 4px 0 4px 0; margin-bottom: 6px; }
         .chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
         .chart-title { font-size: 0.92rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
@@ -275,13 +275,11 @@
 
     <div class="toast" id="toast-msg">記録しました</div>
 
-    <!-- AI解析中ローディングポップアップ -->
     <div class="loading-overlay" id="loading-overlay">
         <div class="spinner"></div>
         <div style="font-size: 0.95rem; font-weight: 600;" id="loading-text">AIが写真を解析中...</div>
     </div>
 
-    <!-- ヘッダーエリア -->
     <header id="header">
         <div class="header-top">
             <div class="header-nav-tabs">
@@ -305,13 +303,10 @@
                 </button>
             </div>
         </div>
-        <!-- 週間カレンダーバー -->
         <div class="weekly-calendar" id="weekly-calendar"></div>
     </header>
 
-    <!-- メインコンテンツ -->
     <main>
-        <!-- 1. 食事画面 -->
         <section id="view-food" class="view-panel active">
             <div class="sticky-summary-wrap">
                 <div class="nutrition-summary-card">
@@ -346,7 +341,6 @@
             <div class="card-list" id="food-list"></div>
         </section>
 
-        <!-- 2. 体重画面 -->
         <section id="view-weight" class="view-panel">
             <div class="sticky-chart-wrap">
                 <div class="chart-card">
@@ -379,12 +373,10 @@
             <div class="card-list" id="weight-list"></div>
         </section>
 
-        <!-- 3. 運動画面 -->
         <section id="view-exercise" class="view-panel">
             <div class="card-list" id="exercise-list" style="padding-top: 10px;"></div>
         </section>
 
-        <!-- 4. 設定画面 -->
         <section id="view-settings" class="view-panel">
             <div class="settings-container">
                 <div class="setting-section">
@@ -411,7 +403,6 @@
                     </div>
                 </div>
 
-                <!-- テーマカラー選択セクション -->
                 <div class="setting-section">
                     <div class="setting-section-title"><i data-lucide="palette" style="width: 18px; height: 18px; color: var(--text-sub);"></i>テーマカラー設定</div>
                     <div class="theme-picker">
@@ -450,7 +441,6 @@
         </section>
     </main>
 
-    <!-- 下部固定入力バー -->
     <footer id="footer-bar">
         <div class="record-bar-wrapper">
             <div class="record-bar" id="footer-record-bar">
@@ -467,7 +457,6 @@
         </div>
     </footer>
 
-    <!-- 月間カレンダーモーダル -->
     <div class="modal-overlay" id="monthly-calendar-modal">
         <div class="modal-box">
             <div class="modal-header" style="margin-bottom: 8px;">
@@ -486,7 +475,6 @@
         </div>
     </div>
 
-    <!-- 食事記録編集モーダル -->
     <div class="modal-overlay" id="food-edit-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -516,7 +504,6 @@
         </div>
     </div>
 
-    <!-- 運動記録編集モーダル -->
     <div class="modal-overlay" id="exercise-edit-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -534,7 +521,6 @@
         </div>
     </div>
 
-    <!-- お気に入り詳細・編集モーダル -->
     <div class="modal-overlay" id="favorite-edit-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -558,7 +544,6 @@
         </div>
     </div>
 
-    <!-- 体重・体脂肪 記録/編集モーダル -->
     <div class="modal-overlay" id="weight-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -579,7 +564,6 @@
         </div>
     </div>
 
-    <!-- お気に入り（リスト）選択モーダル -->
     <div class="modal-overlay" id="favorite-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -597,7 +581,6 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -663,7 +646,7 @@
                 subscribeCloudData(user.uid);
             } else {
                 currentUser = null;
-                if (statusEl) statusEl.textContent = '未連携（Googleログインしてデータを同期）';
+                if (statusEl) statusEl.textContent = '未連携（Googleログインしてクラウド同期）';
                 if (loginBtn) loginBtn.style.display = 'block';
                 if (logoutBtn) logoutBtn.style.display = 'none';
             }
@@ -743,7 +726,6 @@
         };
     </script>
 
-    <!-- アプリ本体のロジック -->
     <script>
         lucide.createIcons();
 
@@ -1108,7 +1090,7 @@
 
             const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
             const todayISO = getTodayISO();
-            const anchor = forceAnchorDate ? forceAnchorDate : todayISO;
+            const anchor = forceAnchorDate ? forceAnchorDate : selectedDateStr;
             const anchorDate = new Date(anchor + 'T00:00:00');
 
             const maxCal = parseFloat(document.getElementById('target-calories').value) || 2000;
@@ -1157,7 +1139,7 @@
                 cell.className = `week-day-cell ${isToday ? 'is-today' : ''} ${isSelected ? 'selected' : ''} ${hasRecordClass}`;
                 cell.onclick = () => {
                     selectedDateStr = dateKey;
-                    forceAnchorDate = null;
+                    forceAnchorDate = dateKey;
                     renderWeeklyCalendar();
                     renderFoodList(true);
                     if (currentCategory === 'exercise') renderExerciseList(true);
@@ -1539,6 +1521,7 @@
             if (window.syncDataToCloud) window.syncDataToCloud();
             closeModal('weight-modal');
             initOrUpdateWeightChart();
+            renderWeeklyCalendar();
             showToast('記録しました');
         };
 
@@ -1551,6 +1534,7 @@
                 if (window.syncDataToCloud) window.syncDataToCloud();
                 closeModal('weight-modal');
                 initOrUpdateWeightChart();
+                renderWeeklyCalendar();
             }
         };
 
@@ -1668,6 +1652,7 @@
                 localStorage.setItem('pfc_exercise_records', JSON.stringify(window.exerciseRecords));
                 if (window.syncDataToCloud) window.syncDataToCloud();
                 renderExerciseList(true);
+                renderWeeklyCalendar();
                 showToast('記録しました');
             } else if (currentCategory === 'food') {
                 if (!apiKey) {
@@ -1778,7 +1763,6 @@
                 if (settingsBtn) settingsBtn.classList.add('active-settings');
                 document.querySelectorAll('.header-tab-btn').forEach(btn => btn.classList.remove('active'));
                 
-                // 設定画面時はフッターとカレンダーを完全に非表示にし、余白をなくす
                 document.body.classList.add('is-settings-mode');
                 if (weeklyCalEl) weeklyCalEl.style.display = 'none';
                 if (footerBarEl) footerBarEl.style.display = 'none';
