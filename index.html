@@ -70,10 +70,10 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color); color: var(--text-main);
             padding-top: var(--header-top-height); padding-bottom: var(--footer-height); min-height: 100vh;
+            overflow-x: hidden;
             transition: background-color 0.25s ease, color 0.25s ease, padding 0.2s ease;
         }
 
-        /* 設定画面表示時は上下の余白を完全になくす */
         body.is-settings-mode {
             padding-top: 56px !important;
             padding-bottom: 20px !important;
@@ -128,7 +128,7 @@
         }
         .week-day-cell.is-today .week-day-name { color: #1E40AF !important; font-weight: 700; }
 
-        .sticky-summary-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 8px 0 4px 0; margin-bottom: 4px; }
+        .sticky-summary-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 4px 0 4px 0; margin-bottom: 6px; }
         .nutrition-summary-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
         .summary-header { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--card-border); }
         .summary-cal-header-row { display: flex; justify-content: space-between; align-items: center; }
@@ -152,7 +152,7 @@
         .pfc-bar-f { background-color: var(--pfc-f-bar); }
         .pfc-bar-c { background-color: var(--pfc-c-bar); }
 
-        .sticky-chart-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 6px 0 4px 0; margin-bottom: 6px; }
+        .sticky-chart-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 4px 0 4px 0; margin-bottom: 6px; }
         .chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
         .chart-title { font-size: 0.92rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
@@ -185,9 +185,20 @@
         .month-cal-day.selected { background-color: var(--theme-color); color: var(--theme-text); font-weight: 700; box-shadow: 0 0 0 2px var(--theme-text); }
         .month-cal-day.is-today { border: 1.5px solid var(--send-btn-bg); }
 
-        main { padding: 0 14px 14px 14px; max-width: 600px; margin: 0 auto; }
-        .view-panel { display: none; }
-        .view-panel.active { display: block; }
+        /* スライド用コンテナ構造 */
+        main { padding: 0 14px 14px 14px; max-width: 600px; margin: 0 auto; overflow: hidden; position: relative; }
+        .views-slider {
+            display: flex;
+            width: 300%; /* 全3画面分 (food, weight, exercise) */
+            transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+            will-change: transform;
+        }
+        .view-panel {
+            width: 33.333%;
+            flex-shrink: 0;
+            display: block !important; /* スライド移動させるため常時表示・横並び */
+            opacity: 1;
+        }
 
         .card-list { display: flex; flex-direction: column; gap: 6px; padding-bottom: 6px; }
         .item-card {
@@ -309,83 +320,85 @@
         <div class="weekly-calendar" id="weekly-calendar"></div>
     </header>
 
-    <!-- メインコンテンツ -->
+    <!-- メインコンテンツ（スライド式コンテナ） -->
     <main>
-        <!-- 1. 食事画面 -->
-        <section id="view-food" class="view-panel active">
-            <div class="sticky-summary-wrap">
-                <div class="nutrition-summary-card">
-                    <div class="summary-header">
-                        <div class="summary-cal-header-row">
-                            <span class="summary-cal-badge" id="summary-cal-display">カロリー: <span class="val-current" id="val-cur-cal">0</span> / <span id="val-tgt-cal">2000</span> kcal</span>
-                            <span style="font-size:0.75rem; font-weight:600; color:var(--text-sub);" id="summary-cal-percent">0%</span>
+        <div class="views-slider" id="views-slider">
+            <!-- 1. 食事画面 -->
+            <section id="view-food" class="view-panel">
+                <div class="sticky-summary-wrap">
+                    <div class="nutrition-summary-card">
+                        <div class="summary-header">
+                            <div class="summary-cal-header-row">
+                                <span class="summary-cal-badge" id="summary-cal-display">カロリー: <span class="val-current" id="val-cur-cal">0</span> / <span id="val-tgt-cal">2000</span> kcal</span>
+                                <span style="font-size:0.75rem; font-weight:600; color:var(--text-sub);" id="summary-cal-percent">0%</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill cal-bar-fill" id="cal-progress-bar"></div>
+                            </div>
                         </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill cal-bar-fill" id="cal-progress-bar"></div>
-                        </div>
-                    </div>
-                    <div class="pfc-grid">
-                        <div class="pfc-col pfc-col-p" style="background-color: rgba(147, 197, 253, 0.045); border-color: rgba(147, 197, 253, 0.25);">
-                            <span class="pfc-label">たんぱく質 (P)</span>
-                            <span class="pfc-value"><span class="val-current" id="val-cur-p">0</span> / <span id="val-tgt-p">100</span>g</span>
-                            <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill" id="p-progress-bar"></div></div>
-                        </div>
-                        <div class="pfc-col pfc-col-f" style="background-color: rgba(253, 230, 138, 0.045); border-color: rgba(253, 230, 138, 0.28);">
-                            <span class="pfc-label">脂質 (F)</span>
-                            <span class="pfc-value"><span class="val-current" id="val-cur-f">0</span> / <span id="val-tgt-f">50</span>g</span>
-                            <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill" id="f-progress-bar"></div></div>
-                        </div>
-                        <div class="pfc-col pfc-col-c" style="background-color: rgba(167, 243, 208, 0.045); border-color: rgba(167, 243, 208, 0.28);">
-                            <span class="pfc-label">炭水化物 (C)</span>
-                            <span class="pfc-value"><span class="val-current" id="val-cur-c">0</span> / <span id="val-tgt-c">250</span>g</span>
-                            <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill" id="c-progress-bar"></div></div>
+                        <div class="pfc-grid">
+                            <div class="pfc-col pfc-col-p" style="background-color: rgba(147, 197, 253, 0.045); border-color: rgba(147, 197, 253, 0.25);">
+                                <span class="pfc-label">たんぱく質 (P)</span>
+                                <span class="pfc-value"><span class="val-current" id="val-cur-p">0</span> / <span id="val-tgt-p">100</span>g</span>
+                                <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill" id="p-progress-bar"></div></div>
+                            </div>
+                            <div class="pfc-col pfc-col-f" style="background-color: rgba(253, 230, 138, 0.045); border-color: rgba(253, 230, 138, 0.28);">
+                                <span class="pfc-label">脂質 (F)</span>
+                                <span class="pfc-value"><span class="val-current" id="val-cur-f">0</span> / <span id="val-tgt-f">50</span>g</span>
+                                <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill" id="f-progress-bar"></div></div>
+                            </div>
+                            <div class="pfc-col pfc-col-c" style="background-color: rgba(167, 243, 208, 0.045); border-color: rgba(167, 243, 208, 0.28);">
+                                <span class="pfc-label">炭水化物 (C)</span>
+                                <span class="pfc-value"><span class="val-current" id="val-cur-c">0</span> / <span id="val-tgt-c">250</span>g</span>
+                                <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill" id="c-progress-bar"></div></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="card-list" id="food-list"></div>
-        </section>
+                <div class="card-list" id="food-list"></div>
+            </section>
 
-        <!-- 2. 体重画面 -->
-        <section id="view-weight" class="view-panel">
-            <div class="sticky-chart-wrap">
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <span class="chart-title">
-                            <i data-lucide="trending-up" style="width: 18px; height: 18px; color: var(--theme-color);"></i>
-                            体重・体脂肪推移
-                        </span>
-                        <span style="font-size: 0.8rem; color: var(--text-sub);" id="latest-weight-stat">最新: -- kg</span>
-                    </div>
-                    <div style="margin-bottom: 8px; display: flex; justify-content: flex-start;">
-                        <div class="custom-select-wrap">
-                            <select id="weight-range-select" class="custom-select" onchange="initOrUpdateWeightChart()">
-                                <option value="1m">1か月</option>
-                                <option value="3m">3か月</option>
-                                <option value="1y">1年</option>
-                                <option value="all" selected>全期間</option>
-                            </select>
+            <!-- 2. 体重画面 -->
+            <section id="view-weight" class="view-panel">
+                <div class="sticky-chart-wrap">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <span class="chart-title">
+                                <i data-lucide="trending-up" style="width: 18px; height: 18px; color: var(--theme-color);"></i>
+                                体重・体脂肪推移
+                            </span>
+                            <span style="font-size: 0.8rem; color: var(--text-sub);" id="latest-weight-stat">最新: -- kg</span>
+                        </div>
+                        <div style="margin-bottom: 8px; display: flex; justify-content: flex-start;">
+                            <div class="custom-select-wrap">
+                                <select id="weight-range-select" class="custom-select" onchange="initOrUpdateWeightChart()">
+                                    <option value="1m">1か月</option>
+                                    <option value="3m">3か月</option>
+                                    <option value="1y">1年</option>
+                                    <option value="all" selected>全期間</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="chart-legend-wrap">
+                            <span><span class="legend-indicator" style="background-color: #2B5C8F;"></span>体重 (kg)</span>
+                            <span><span class="legend-indicator" style="background-color: #F59E0B;"></span>体脂肪率 (%)</span>
+                        </div>
+                        <div style="position: relative; height: 180px; width: 100%;">
+                            <canvas id="weightChart"></canvas>
                         </div>
                     </div>
-                    <div class="chart-legend-wrap">
-                        <span><span class="legend-indicator" style="background-color: #2B5C8F;"></span>体重 (kg)</span>
-                        <span><span class="legend-indicator" style="background-color: #F59E0B;"></span>体脂肪率 (%)</span>
-                    </div>
-                    <div style="position: relative; height: 180px; width: 100%;">
-                        <canvas id="weightChart"></canvas>
-                    </div>
                 </div>
-            </div>
-            <div class="card-list" id="weight-list"></div>
-        </section>
+                <div class="card-list" id="weight-list"></div>
+            </section>
 
-        <!-- 3. 運動画面 -->
-        <section id="view-exercise" class="view-panel">
-            <div class="card-list" id="exercise-list" style="padding-top: 10px;"></div>
-        </section>
+            <!-- 3. 運動画面 -->
+            <section id="view-exercise" class="view-panel">
+                <div class="card-list" id="exercise-list" style="padding-top: 10px;"></div>
+            </section>
+        </div>
 
-        <!-- 4. 設定画面 -->
-        <section id="view-settings" class="view-panel">
+        <!-- 4. 設定画面（スライドとは独立して切り替え） -->
+        <section id="view-settings" class="view-panel" style="display:none; width:100%;">
             <div class="settings-container">
                 <div class="setting-section">
                     <div class="setting-section-title"><i data-lucide="target" style="width: 18px; height: 18px; color: var(--text-sub);"></i>1日の目標設定</div>
@@ -663,7 +676,7 @@
                 subscribeCloudData(user.uid);
             } else {
                 currentUser = null;
-                if (statusEl) statusEl.textContent = '未連携（Googleログインしてデータを同期）';
+                if (statusEl) statusEl.textContent = '未連携（Googleログインしてクラウド同期）';
                 if (loginBtn) loginBtn.style.display = 'block';
                 if (logoutBtn) logoutBtn.style.display = 'none';
             }
@@ -1108,7 +1121,7 @@
 
             const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
             const todayISO = getTodayISO();
-            const anchor = forceAnchorDate ? forceAnchorDate : todayISO;
+            const anchor = todayISO;
             const anchorDate = new Date(anchor + 'T00:00:00');
 
             const maxCal = parseFloat(document.getElementById('target-calories').value) || 2000;
@@ -1157,7 +1170,6 @@
                 cell.className = `week-day-cell ${isToday ? 'is-today' : ''} ${isSelected ? 'selected' : ''} ${hasRecordClass}`;
                 cell.onclick = () => {
                     selectedDateStr = dateKey;
-                    forceAnchorDate = null;
                     renderWeeklyCalendar();
                     renderFoodList(true);
                     if (currentCategory === 'exercise') renderExerciseList(true);
@@ -1539,6 +1551,7 @@
             if (window.syncDataToCloud) window.syncDataToCloud();
             closeModal('weight-modal');
             initOrUpdateWeightChart();
+            renderWeeklyCalendar();
             showToast('記録しました');
         };
 
@@ -1551,6 +1564,7 @@
                 if (window.syncDataToCloud) window.syncDataToCloud();
                 closeModal('weight-modal');
                 initOrUpdateWeightChart();
+                renderWeeklyCalendar();
             }
         };
 
@@ -1598,9 +1612,9 @@
             
             let prompt = "";
             if (imageBase64) {
-                prompt = `この写真に写っている料理の一般的な品名（例: 牛丼、唐揚げ定食、サラダなど）を特定し、その推定栄養素を計算してください。もし写真から料理が全く判別できない、または不鮮明な場合は、nameに「不明」と入れてください。次のJSON形式のみで返し、余計な文章やマークダウンは含めないでください。{"name": "品名", "cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
+                prompt = `あなたは厳密な栄養管理士です。この写真の料理を分析し、「文部科学省 日本食品標準成分表」または信頼できる公式メーカーの標準的な1食あたりの数値（カロリー、たんぱく質P、脂質F、炭水化物C）を正確に算出してJSONで返してください。不確かな場合は推測せず標準的な平均値を求めてください。出力は次のJSON形式のみとし、余計な文章やマークダウンは一切含めないでください。{"name": "品名", "cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
             } else {
-                prompt = `「${foodText}」の推定栄養素を計算し、次のJSON形式のみで返してください。もし存在しない飲食物や無効な入力である場合は、nameに「不明」と入れてください。余計な文章やマークダウンのバッククォートは含めないでください。{"name": "${foodText}", "cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
+                prompt = `あなたは厳密な栄養管理士です。「${foodText}」について、「文部科学省 日本食品標準成分表」または信頼できるメーカーの公式栄養成分データに基づいた1食あたりの正確な数値（カロリー、たんぱく質P、脂質F、炭水化物C）を算出してJSONで返してください。適当な推測値やブログ等の不確かな情報は除外してください。出力は次のJSON形式のみとし、余計な文章やマークダウンは一切含めないでください。{"name": "${foodText}", "cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
             }
 
             let lastError = null;
@@ -1622,7 +1636,10 @@
                     const response = await fetch(endpoint, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: parts }] })
+                        body: JSON.stringify({
+                            contents: [{ parts: parts }],
+                            tools: [{ googleSearch: {} }]
+                        })
                     });
                     const data = await response.json();
                     
@@ -1633,12 +1650,26 @@
                         throw new Error(`[${model}] AIからの応答が空です`);
                     }
                     
-                    const rawText = data.candidates[0].content.parts[0].text;
+                    const contentParts = data.candidates[0].content.parts;
+                    let rawText = "";
+                    for (const p of contentParts) {
+                        if (p.text) {
+                            rawText += p.text;
+                        }
+                    }
+
                     const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
                     const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
                     
                     if (jsonMatch) {
-                        return JSON.parse(jsonMatch[0]);
+                        const parsed = JSON.parse(jsonMatch[0]);
+                        return {
+                            name: parsed.name || foodText,
+                            cal: Number(parsed.cal !== undefined ? parsed.cal : (parsed.calories || 0)),
+                            p: Number(parsed.p !== undefined ? parsed.p : (parsed.protein || 0)),
+                            f: Number(parsed.f !== undefined ? parsed.f : (parsed.fat || 0)),
+                            c: Number(parsed.c !== undefined ? parsed.c : (parsed.carbs || 0))
+                        };
                     }
                     throw new Error("JSON形式にパースできませんでした");
                 } catch (err) {
@@ -1668,6 +1699,7 @@
                 localStorage.setItem('pfc_exercise_records', JSON.stringify(window.exerciseRecords));
                 if (window.syncDataToCloud) window.syncDataToCloud();
                 renderExerciseList(true);
+                renderWeeklyCalendar();
                 showToast('記録しました');
             } else if (currentCategory === 'food') {
                 if (!apiKey) {
@@ -1693,10 +1725,10 @@
                         id: newFoodId,
                         date: selectedDateStr,
                         name: determinedName,
-                        cal: result.cal || result.calories || 0,
-                        p: result.p || result.protein || 0,
-                        f: result.f || result.fat || 0,
-                        c: result.c || result.carbs || 0,
+                        cal: result.cal || 0,
+                        p: result.p || 0,
+                        f: result.f || 0,
+                        c: result.c || 0,
                         timestamp: Date.now()
                     });
                     
@@ -1754,13 +1786,15 @@
             if (e.key === 'Enter') submitRecord(false);
         });
 
+        // 画面をスムーズにスライドさせる関数
         function switchView(viewName) {
-            document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.header-tab-btn').forEach(btn => btn.classList.remove('active'));
             
             const settingsBtn = document.getElementById('settings-toggle-btn');
             const weeklyCalEl = document.getElementById('weekly-calendar');
             const footerBarEl = document.getElementById('footer-bar');
+            const slider = document.getElementById('views-slider');
+            const settingsView = document.getElementById('view-settings');
 
             if (settingsBtn) settingsBtn.classList.remove('active-settings');
 
@@ -1774,22 +1808,33 @@
 
             if (viewName === 'settings') {
                 currentCategory = 'settings';
-                document.getElementById('view-settings').classList.add('active');
+                settingsView.style.display = 'block';
+                slider.style.display = 'none';
                 if (settingsBtn) settingsBtn.classList.add('active-settings');
-                document.querySelectorAll('.header-tab-btn').forEach(btn => btn.classList.remove('active'));
                 
-                // 設定画面時はフッターとカレンダーを完全に非表示にし、余白をなくす
                 document.body.classList.add('is-settings-mode');
                 if (weeklyCalEl) weeklyCalEl.style.display = 'none';
                 if (footerBarEl) footerBarEl.style.display = 'none';
             } else {
+                settingsView.style.display = 'none';
+                slider.style.display = 'flex';
                 document.body.classList.remove('is-settings-mode');
                 if (weeklyCalEl) weeklyCalEl.style.display = 'flex';
                 if (footerBarEl) footerBarEl.style.display = 'flex';
 
-                if (viewName === 'weight') {
+                let targetIndex = 0;
+                if (viewName === 'food') {
+                    currentCategory = 'food';
+                    targetIndex = 0;
+                    inputEl.placeholder = '食事内容を記録';
+                    inputEl.readOnly = false;
+                    favBtn.style.display = 'flex';
+                    galleryBtn.style.display = 'flex';
+                    cameraBtn.style.display = 'flex';
+                    renderFoodList(true);
+                } else if (viewName === 'weight') {
                     currentCategory = 'weight';
-                    document.getElementById('view-weight').classList.add('active');
+                    targetIndex = 1;
                     inputEl.placeholder = 'タップして体重・体脂肪を入力';
                     inputEl.readOnly = true;
                     favBtn.style.display = 'none';
@@ -1798,23 +1843,17 @@
                     setTimeout(() => initOrUpdateWeightChart(), 50);
                 } else if (viewName === 'exercise') {
                     currentCategory = 'exercise';
-                    document.getElementById('view-exercise').classList.add('active');
+                    targetIndex = 2;
                     inputEl.placeholder = '運動内容を入力';
                     inputEl.readOnly = false;
                     favBtn.style.display = 'flex';
                     galleryBtn.style.display = 'none';
                     cameraBtn.style.display = 'none';
                     renderExerciseList(true);
-                } else {
-                    currentCategory = 'food';
-                    document.getElementById('view-food').classList.add('active');
-                    inputEl.placeholder = '食事内容を記録';
-                    inputEl.readOnly = false;
-                    favBtn.style.display = 'flex';
-                    galleryBtn.style.display = 'flex';
-                    cameraBtn.style.display = 'flex';
-                    renderFoodList(true);
                 }
+
+                // スライドコンテナの位置を横方向に移動
+                slider.style.transform = `translateX(-${targetIndex * 33.333}%)`;
                 renderWeeklyCalendar();
             }
         }
@@ -1887,4 +1926,4 @@
         }
     </script>
 </body>
-</html>
+                            </html>
