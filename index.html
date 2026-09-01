@@ -189,15 +189,18 @@
         main { padding: 0 14px 14px 14px; max-width: 600px; margin: 0 auto; overflow: hidden; position: relative; }
         .views-slider {
             display: flex;
-            width: 300%; /* 全3画面分 (food, weight, exercise) */
+            width: 300%;
             transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
             will-change: transform;
         }
         .view-panel {
             width: 33.333%;
             flex-shrink: 0;
-            display: block !important; /* スライド移動させるため常時表示・横並び */
-            opacity: 1;
+            display: block;
+        }
+        #view-settings {
+            display: none;
+            width: 100%;
         }
 
         .card-list { display: flex; flex-direction: column; gap: 6px; padding-bottom: 6px; }
@@ -398,7 +401,7 @@
         </div>
 
         <!-- 4. 設定画面（スライドとは独立して切り替え） -->
-        <section id="view-settings" class="view-panel" style="display:none; width:100%;">
+        <section id="view-settings">
             <div class="settings-container">
                 <div class="setting-section">
                     <div class="setting-section-title"><i data-lucide="target" style="width: 18px; height: 18px; color: var(--text-sub);"></i>1日の目標設定</div>
@@ -1786,7 +1789,7 @@
             if (e.key === 'Enter') submitRecord(false);
         });
 
-        // 画面をスムーズにスライドさせる関数
+        // スライド切り替え制御の修正
         function switchView(viewName) {
             document.querySelectorAll('.header-tab-btn').forEach(btn => btn.classList.remove('active'));
             
@@ -1808,8 +1811,8 @@
 
             if (viewName === 'settings') {
                 currentCategory = 'settings';
-                settingsView.style.display = 'block';
                 slider.style.display = 'none';
+                settingsView.style.display = 'block';
                 if (settingsBtn) settingsBtn.classList.add('active-settings');
                 
                 document.body.classList.add('is-settings-mode');
@@ -1852,7 +1855,6 @@
                     renderExerciseList(true);
                 }
 
-                // スライドコンテナの位置を横方向に移動
                 slider.style.transform = `translateX(-${targetIndex * 33.333}%)`;
                 renderWeeklyCalendar();
             }
@@ -1926,4 +1928,4 @@
         }
     </script>
 </body>
-                            </html>
+    </html>
