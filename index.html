@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>PFCバランス記録</title>
+    <!-- PWA & 全画面化設定 -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" id="metaThemeColor" content="#B2D8D8">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="PFC記録">
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js (体重・体脂肪グラフ用) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -26,7 +29,7 @@
             --footer-bg: #FFFFFF;
             --footer-border: #E2E8F0;
             --send-btn-bg: #2B5C8F;
-            --header-top-height: 80px;
+            --header-top-height: 104px; /* 3枚目の画像と同じ元の大きさに戻しました */
             --footer-height: 75px;
 
             --pfc-p-bg: rgba(147, 197, 253, 0.045);
@@ -72,7 +75,7 @@
         }
 
         body.is-settings-mode {
-            padding-top: 50px !important;
+            padding-top: 56px !important;
             padding-bottom: 20px !important;
         }
 
@@ -83,27 +86,27 @@
             transition: height 0.2s ease;
         }
         body.is-settings-mode header {
-            height: 50px !important;
+            height: 56px !important;
         }
 
-        .header-top { display: flex; align-items: center; justify-content: space-between; padding: 3px 8px 1px 8px; height: 36px; }
+        .header-top { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px 2px 16px; height: 48px; }
         
-        /* タブの背景にスライドするインジケーター（丸）を実装 */
+        /* 3枚目の画像と同じ元の大きさ（32px）に戻し、白丸が完全にセンターに合うように調整 */
         .header-nav-tabs { 
             position: relative;
             display: flex; 
-            gap: 2px; 
+            gap: 6px; 
             align-items: center; 
             background: rgba(255, 255, 255, 0.35); 
-            padding: 2px; 
+            padding: 3px; 
             border-radius: 20px; 
         }
         .tab-indicator {
             position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 28px;
-            height: 28px;
+            top: 3px;
+            left: 3px;
+            width: 32px;
+            height: 32px;
             background-color: rgba(255, 255, 255, 0.85);
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
             border-radius: 50%;
@@ -112,83 +115,83 @@
         }
         .header-tab-btn {
             background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            color: var(--header-text); width: 28px; height: 28px; border-radius: 50%; z-index: 1; transition: transform 0.1s;
+            color: var(--header-text); width: 32px; height: 32px; border-radius: 50%; z-index: 1; transition: transform 0.1s;
         }
         .header-tab-btn:active { transform: scale(0.92); }
         .header-tab-btn.active { font-weight: bold; }
 
-        .header-btn-group { display: flex; gap: 4px; align-items: center; }
+        .header-btn-group { display: flex; gap: 10px; align-items: center; }
 
         .icon-btn {
             background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            color: var(--header-text); padding: 3px; border-radius: 50%; transition: opacity 0.2s;
+            color: var(--header-text); padding: 6px; border-radius: 50%; transition: opacity 0.2s;
         }
         .icon-btn:active { opacity: 0.6; }
         .icon-btn.active-settings { background-color: rgba(255, 255, 255, 0.5); }
 
+        /* 3枚目の画像と同じ元の大きさに戻した週間カレンダー */
         .weekly-calendar {
-            display: flex; justify-content: space-between; padding: 1px 6px 2px 6px;
+            display: flex; justify-content: space-between; padding: 6px 12px 8px 12px;
             background-color: rgba(255, 255, 255, 0.45) !important; backdrop-filter: blur(4px);
-            border-top: 1px solid rgba(0, 0, 0, 0.04); gap: 2px;
+            border-top: 1px solid rgba(0, 0, 0, 0.04); gap: 4px;
         }
         .week-day-cell {
-            flex: 1; display: flex; flex-direction: column; align-items: center; padding: 1px 0; border-radius: 6px; cursor: pointer; background: transparent; transition: background-color 0.2s, transform 0.1s;
+            flex: 1; display: flex; flex-direction: column; align-items: center; padding: 4px 2px; border-radius: 8px; cursor: pointer; background: transparent; transition: background-color 0.2s, transform 0.1s;
         }
         .week-day-cell:active { transform: scale(0.95); }
         .week-day-cell.selected { background-color: rgba(255, 255, 255, 0.75) !important; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        .week-day-name { font-size: 0.55rem; font-weight: 600; color: var(--header-text) !important; opacity: 0.85; margin-bottom: 0px; }
+        .week-day-name { font-size: 0.65rem; font-weight: 600; color: var(--header-text) !important; opacity: 0.85; margin-bottom: 2px; }
         .week-day-date {
-            font-size: 0.75rem; font-weight: 700; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--header-text) !important; background: transparent; position: relative;
+            font-size: 0.85rem; font-weight: 700; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--header-text) !important; background: transparent; position: relative;
         }
         .week-day-cell.exceeded .week-day-date { background-color: #EF4444 !important; color: #FFFFFF !important; box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4); }
         .week-day-cell.has-record:not(.exceeded) .week-day-date::after {
-            content: ''; position: absolute; bottom: -2px; width: 3px; height: 3px; background-color: var(--header-text); border-radius: 50%;
+            content: ''; position: absolute; bottom: -2px; width: 4px; height: 4px; background-color: var(--header-text); border-radius: 50%;
         }
         .week-day-cell.is-today .week-day-name { color: #1E40AF !important; font-weight: 700; }
 
-        /* 余白を完全になくし、サマリーと記録が被らないように修正 */
-        .sticky-summary-wrap { background-color: var(--bg-color); padding: 0; margin-bottom: 2px; }
-        .nutrition-summary-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 6px 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.02); }
-        .summary-header { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; padding-bottom: 3px; border-bottom: 1px solid var(--card-border); }
+        .sticky-summary-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 4px 0 4px 0; margin-bottom: 6px; }
+        .nutrition-summary-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+        .summary-header { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--card-border); }
         .summary-cal-header-row { display: flex; justify-content: space-between; align-items: center; }
-        .summary-cal-badge { font-size: 0.88rem; font-weight: 600; color: var(--text-main); letter-spacing: 0.02em; }
+        .summary-cal-badge { font-size: 0.94rem; font-weight: 600; color: var(--text-main); letter-spacing: 0.02em; }
         .val-current.over-limit { color: var(--over-limit-color) !important; font-weight: 700; }
 
-        .progress-bar-bg { width: 100%; height: 4px; background-color: rgba(0, 0, 0, 0.05); border-radius: 4px; overflow: hidden; }
+        .progress-bar-bg { width: 100%; height: 5px; background-color: rgba(0, 0, 0, 0.05); border-radius: 6px; overflow: hidden; }
         body.dark-mode .progress-bar-bg { background-color: rgba(255, 255, 255, 0.08); }
-        .progress-bar-fill { height: 100%; border-radius: 4px; width: 0%; transition: width 0.3s ease, background-color 0.3s ease; }
+        .progress-bar-fill { height: 100%; border-radius: 6px; width: 0%; transition: width 0.3s ease, background-color 0.3s ease; }
         .cal-bar-fill { background-color: var(--cal-bar-color); }
         .cal-bar-fill.over-limit { background-color: var(--over-limit-color) !important; }
         .cal-bar-fill.success-limit { background-color: var(--theme-color) !important; }
 
-        .pfc-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; text-align: center; }
-        .pfc-col { padding: 4px 2px; border-radius: 6px; display: flex; flex-direction: column; gap: 2px; border: 1px solid transparent; }
+        .pfc-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; }
+        .pfc-col { padding: 6px 4px; border-radius: 8px; display: flex; flex-direction: column; gap: 3px; border: 1px solid transparent; }
         .pfc-col-p { background-color: var(--pfc-p-bg); border-color: var(--pfc-p-border); }
         .pfc-col-f { background-color: var(--pfc-f-bg); border-color: var(--pfc-f-border); }
         .pfc-col-c { background-color: var(--pfc-c-bg); border-color: var(--pfc-c-border); }
-        .pfc-label { font-size: 0.65rem; font-weight: 500; color: var(--text-sub); }
-        .pfc-value { font-size: 0.8rem; font-weight: 600; color: var(--text-main); }
+        .pfc-label { font-size: 0.72rem; font-weight: 500; color: var(--text-sub); }
+        .pfc-value { font-size: 0.84rem; font-weight: 600; color: var(--text-main); }
         .pfc-bar-p { background-color: var(--pfc-p-bar); }
         .pfc-bar-f { background-color: var(--pfc-f-bar); }
         .pfc-bar-c { background-color: var(--pfc-c-bar); }
 
-        .sticky-chart-wrap { background-color: var(--bg-color); padding: 0; margin-bottom: 2px; }
-        .chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.02); }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
-        .chart-title { font-size: 0.88rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
-        .chart-legend-wrap { display: flex; gap: 10px; font-size: 0.72rem; font-weight: 600; margin-bottom: 4px; justify-content: flex-end; }
-        .legend-indicator { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 3px; vertical-align: middle; }
+        .sticky-chart-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 4px 0 4px 0; margin-bottom: 6px; }
+        .chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .chart-title { font-size: 0.92rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
+        .chart-legend-wrap { display: flex; gap: 12px; font-size: 0.74rem; font-weight: 600; margin-bottom: 6px; justify-content: flex-end; }
+        .legend-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
 
         .custom-select-wrap { position: relative; display: inline-block; }
         .custom-select {
             appearance: none; -webkit-appearance: none;
             background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px;
-            padding: 3px 24px 3px 10px; font-size: 0.75rem; font-weight: 600; color: var(--text-main);
+            padding: 4px 28px 4px 12px; font-size: 0.78rem; font-weight: 600; color: var(--text-main);
             cursor: pointer; outline: none; box-shadow: 0 1px 2px rgba(0,0,0,0.02); transition: border-color 0.2s;
         }
         .custom-select:hover { border-color: var(--theme-color); }
         .custom-select-wrap::after {
-            content: '▼'; font-size: 0.55rem; color: var(--text-sub); position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none;
+            content: '▼'; font-size: 0.6rem; color: var(--text-sub); position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none;
         }
 
         .month-cal-header { display: flex; justify-content: space-between; align-items: center; padding: 4px 6px 12px 6px; }
@@ -205,8 +208,8 @@
         .month-cal-day.selected { background-color: var(--theme-color); color: var(--theme-text); font-weight: 700; box-shadow: 0 0 0 2px var(--theme-text); }
         .month-cal-day.is-today { border: 1.5px solid var(--send-btn-bg); }
 
-        /* スライド＆全域スワイプ対応レイアウト */
-        main { padding: 4px 14px 14px 14px; max-width: 600px; margin: 0 auto; overflow: hidden; position: relative; }
+        /* メイン・スライド部分の修正（赤線部分も含めて画面全域でスワイプ可能に） */
+        main { padding: 0 14px 14px 14px; max-width: 600px; margin: 0 auto; overflow: hidden; position: relative; }
         .views-slider {
             display: flex;
             width: 300%;
@@ -219,10 +222,11 @@
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
+            min-height: calc(100vh - var(--header-top-height) - var(--footer-height) - 40px);
         }
         .view-panel-scroll {
+            flex: 1;
             overflow-y: auto;
-            max-height: calc(100vh - var(--header-top-height) - var(--footer-height) - 20px);
             padding-bottom: 20px;
         }
         #view-settings {
@@ -238,7 +242,7 @@
         .item-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
         .item-title { font-size: 0.92rem; font-weight: 600; color: var(--text-main); }
         .item-detail { font-size: 0.8rem; font-weight: 400; color: var(--text-sub); }
-        .blank-state { text-align: center; padding: 20px 20px; color: var(--text-sub); background: var(--card-bg); border-radius: 10px; border: 1px dashed var(--card-border); }
+        .blank-state { text-align: center; padding: 40px 20px; color: var(--text-sub); background: var(--card-bg); border-radius: 10px; border: 1px dashed var(--card-border); margin-top: 10px; }
 
         .settings-container { display: flex; flex-direction: column; gap: 14px; padding-top: 10px; }
         .setting-section { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
@@ -326,25 +330,25 @@
     <header id="header">
         <div class="header-top">
             <div class="header-nav-tabs" id="nav-tabs-container">
-                <!-- スライドする選択中の丸インジケーター -->
+                <!-- スライドする選択中の丸インジケーター（センター完全一致） -->
                 <div class="tab-indicator" id="tab-indicator"></div>
                 <button class="header-tab-btn active" id="tab-btn-food" onclick="switchView('food')" title="食事">
-                    <i data-lucide="utensils" style="width: 15px; height: 15px;"></i>
+                    <i data-lucide="utensils" style="width: 18px; height: 18px;"></i>
                 </button>
                 <button class="header-tab-btn" id="tab-btn-weight" onclick="switchView('weight')" title="体重">
-                    <i data-lucide="user" style="width: 15px; height: 15px;"></i>
+                    <i data-lucide="user" style="width: 18px; height: 18px;"></i>
                 </button>
                 <button class="header-tab-btn" id="tab-btn-exercise" onclick="switchView('exercise')" title="運動">
-                    <i data-lucide="dumbbell" style="width: 15px; height: 15px;"></i>
+                    <i data-lucide="dumbbell" style="width: 18px; height: 18px;"></i>
                 </button>
             </div>
 
             <div class="header-btn-group">
                 <button class="icon-btn" onclick="openMonthlyCalendarModal()" title="月間カレンダー">
-                    <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
+                    <i data-lucide="calendar" style="width: 22px; height: 22px;"></i>
                 </button>
                 <button class="icon-btn" id="settings-toggle-btn" onclick="toggleSettingsView()" title="設定">
-                    <i data-lucide="settings" style="width: 18px; height: 18px;"></i>
+                    <i data-lucide="settings" style="width: 22px; height: 22px;"></i>
                 </button>
             </div>
         </div>
@@ -352,7 +356,7 @@
         <div class="weekly-calendar" id="weekly-calendar"></div>
     </header>
 
-    <!-- メインコンテンツ（スライド式コンテナ） -->
+    <!-- メインコンテンツ（スライド式コンテナ：赤線エリアも含めて全域スワイプ対応） -->
     <main id="main-swipe-container">
         <div class="views-slider" id="views-slider">
             <!-- 1. 食事画面 -->
@@ -388,7 +392,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card-list" id="food-list" style="margin-top: 4px;"></div>
+                    <div class="card-list" id="food-list" style="margin-top: 6px;"></div>
                 </div>
             </section>
 
@@ -399,12 +403,12 @@
                         <div class="chart-card">
                             <div class="chart-header">
                                 <span class="chart-title">
-                                    <i data-lucide="trending-up" style="width: 16px; height: 16px; color: var(--theme-color);"></i>
+                                    <i data-lucide="trending-up" style="width: 18px; height: 18px; color: var(--theme-color);"></i>
                                     体重・体脂肪推移
                                 </span>
-                                <span style="font-size: 0.78rem; color: var(--text-sub);" id="latest-weight-stat">最新: -- kg</span>
+                                <span style="font-size: 0.8rem; color: var(--text-sub);" id="latest-weight-stat">最新: -- kg</span>
                             </div>
-                            <div style="margin-bottom: 2px; display: flex; justify-content: flex-start;">
+                            <div style="margin-bottom: 4px; display: flex; justify-content: flex-start;">
                                 <div class="custom-select-wrap">
                                     <select id="weight-range-select" class="custom-select" onchange="initOrUpdateWeightChart()">
                                         <option value="1m">1か月</option>
@@ -418,12 +422,12 @@
                                 <span><span class="legend-indicator" style="background-color: #2B5C8F;"></span>体重 (kg)</span>
                                 <span><span class="legend-indicator" style="background-color: #F59E0B;"></span>体脂肪率 (%)</span>
                             </div>
-                            <div style="position: relative; height: 140px; width: 100%;">
+                            <div style="position: relative; height: 160px; width: 100%;">
                                 <canvas id="weightChart"></canvas>
                             </div>
                         </div>
                     </div>
-                    <div class="card-list" id="weight-list" style="margin-top: 4px;"></div>
+                    <div class="card-list" id="weight-list" style="margin-top: 6px;"></div>
                 </div>
             </section>
 
@@ -1816,6 +1820,8 @@
 
         // タブおよびスライド切り替えの完全な連動処理
         function switchView(viewName) {
+            document.querySelectorAll('.header-tab-btn').forEach(btn => btn.classList.remove('active'));
+            
             const settingsBtn = document.getElementById('settings-toggle-btn');
             const weeklyCalEl = document.getElementById('weekly-calendar');
             const footerBarEl = document.getElementById('footer-bar');
@@ -1878,8 +1884,8 @@
 
                 slider.style.transform = `translateX(-${targetIndex * (100 / 3)}%)`;
                 
-                // 選択中の丸インジケーターの位置を移動 (各ボタンの幅＋ギャップに応じたオフセット)
-                indicator.style.transform = `translateX(${targetIndex * 32}px)`;
+                // 白丸インジケーターの移動位置を正確なボタン幅・ギャップ（32px + 6px = 38px間隔）に修正
+                indicator.style.transform = `translateX(${targetIndex * 38}px)`;
                 
                 renderWeeklyCalendar();
             }
@@ -1947,7 +1953,7 @@
             renderWeeklyCalendar();
             renderFoodList(true);
 
-            // 画面全体のどこでもスワイプできるように document / main 全域でスワイプを検知
+            // 赤線エリアを含むメインコンテンツ全域（main要素）でスムーズな左右スワイプ＆タブ移動を実装
             let startX = 0;
             let startY = 0;
             let currentX = 0;
@@ -1956,7 +1962,6 @@
             const mainContainer = document.getElementById('main-swipe-container');
 
             mainContainer.addEventListener('touchstart', (e) => {
-                // モーダルが開いている時はスワイプ無効
                 if (document.querySelector('.modal-overlay.active')) return;
                 startX = e.touches[0].clientX;
                 startY = e.touches[0].clientY;
@@ -1975,14 +1980,14 @@
                 const diffX = startX - currentX;
                 const diffY = startY - e.changedTouches[0].clientY;
                 
-                // 縦スクロールより横スワイプが明らかに大きい場合のみタブ遷移を発動
-                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
+                // 横方向のスワイプ幅が縦スクロールよりも大きい場合、確実に画面遷移させる
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 35) {
                     if (diffX > 0) {
-                        // 左スワイプ（次へ： 食事 → 体重 → 運動）
+                        // 左スワイプ（食事 → 体重 → 運動）
                         if (currentCategory === 'food') switchView('weight');
                         else if (currentCategory === 'weight') switchView('exercise');
                     } else {
-                        // 右スワイプ（前へ： 運動 → 体重 → 食事）
+                        // 右スワイプ（運動 → 体重 → 食事）
                         if (currentCategory === 'exercise') switchView('weight');
                         else if (currentCategory === 'weight') switchView('food');
                     }
@@ -1995,4 +2000,4 @@
         }
     </script>
 </body>
-                            </html>
+</html>
