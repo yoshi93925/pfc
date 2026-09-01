@@ -148,13 +148,12 @@
         }
         .week-day-cell.is-today .week-day-name { color: #1E40AF !important; font-weight: 700; }
 
-        /* カロリー・PFCサマリーカード（上部固定エリア） */
         .sticky-summary-wrap { 
             position: sticky; 
             top: 0; 
             z-index: 50; 
             background-color: var(--bg-color); 
-            padding: 6px 0 6px 0; 
+            padding: 4px 0 4px 0; 
             margin-bottom: 6px; 
         }
         .nutrition-summary-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
@@ -181,7 +180,7 @@
         .pfc-bar-f { background-color: var(--pfc-f-bar); }
         .pfc-bar-c { background-color: var(--pfc-c-bar); }
 
-        .sticky-chart-wrap { position: sticky; top: 0; z-index: 50; background-color: var(--bg-color); padding: 6px 0 6px 0; margin-bottom: 6px; }
+        .sticky-chart-wrap { position: sticky; top: 0; z-index: 50; background-color: var(--bg-color); padding: 4px 0 4px 0; margin-bottom: 6px; }
         .chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
         .chart-title { font-size: 0.92rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
@@ -234,6 +233,8 @@
             overflow-y: auto;
             max-height: calc(100vh - var(--header-top-height) - var(--footer-height) - 30px);
             padding-bottom: 20px;
+            /* グラフエリアや空白部分でもスワイプが阻害されないよう指定 */
+            touch-action: pan-y;
         }
         #view-settings {
             display: none;
@@ -250,27 +251,27 @@
         .item-detail { font-size: 0.8rem; font-weight: 400; color: var(--text-sub); }
         .blank-state { text-align: center; padding: 40px 20px; color: var(--text-sub); background: var(--card-bg); border-radius: 10px; border: 1px dashed var(--card-border); margin-top: 10px; }
 
-        .settings-container { display: flex; flex-direction: column; gap: 14px; padding-top: 10px; }
-        .setting-section { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
-        .setting-section-title { font-size: 0.92rem; font-weight: 600; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-        .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--card-border); }
-        .setting-row:last-child { border-bottom: none; }
-        .setting-label { font-size: 0.88rem; color: var(--text-main); }
-        .setting-sublabel { font-size: 0.75rem; color: var(--text-sub); margin-top: 2px; }
-        .setting-input-wrap { display: flex; align-items: center; gap: 6px; }
-        .setting-input { width: 80px; padding: 6px 8px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 0.9rem; text-align: right; outline: none; background: var(--input-bg); color: var(--text-main); }
-        .setting-input-full { width: 100%; padding: 8px 10px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 0.85rem; outline: none; background: var(--input-bg); color: var(--text-main); margin-top: 6px; }
-        .setting-unit { font-size: 0.8rem; color: var(--text-sub); width: 28px; }
-        .auth-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background-color: #4285F4; color: #FFFFFF; border: none; border-radius: 8px; padding: 10px; font-size: 0.88rem; font-weight: 600; cursor: pointer; margin-top: 8px; }
+        /* 2つ目の修正：カード形式を廃止してフラットですっきり収まる設定画面に刷新 */
+        .settings-container { display: flex; flex-direction: column; gap: 10px; padding-top: 2px; padding-bottom: 15px; }
+        .setting-section { background: transparent; border-bottom: 1px solid var(--card-border); padding: 6px 0 10px 0; }
+        .setting-section-title { font-size: 0.85rem; font-weight: 700; color: var(--text-sub); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.03em; }
+        .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; }
+        .setting-label { font-size: 0.85rem; color: var(--text-main); }
+        .setting-sublabel { font-size: 0.7rem; color: var(--text-sub); margin-top: 1px; }
+        .setting-input-wrap { display: flex; align-items: center; gap: 4px; }
+        .setting-input { width: 75px; padding: 4px 6px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 0.85rem; text-align: right; outline: none; background: var(--input-bg); color: var(--text-main); }
+        .setting-input-full { width: 100%; padding: 6px 8px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 0.82rem; outline: none; background: var(--input-bg); color: var(--text-main); margin-top: 4px; }
+        .setting-unit { font-size: 0.75rem; color: var(--text-sub); width: 24px; }
+        .auth-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; background-color: #4285F4; color: #FFFFFF; border: none; border-radius: 6px; padding: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; margin-top: 6px; }
 
-        .theme-picker { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; align-items: center; margin-top: 8px; width: 100%; }
-        .theme-color-circle { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s; justify-self: center; }
+        .theme-picker { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; align-items: center; margin-top: 4px; width: 100%; }
+        .theme-color-circle { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s; justify-self: center; }
         .theme-color-circle:active { transform: scale(0.9); }
-        .theme-color-circle.selected { border-color: #334155; transform: scale(1.15); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+        .theme-color-circle.selected { border-color: #334155; transform: scale(1.15); box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
 
         .setting-save-btn {
-            width: 100%; background-color: var(--theme-color); color: var(--theme-text); border: none; border-radius: 10px;
-            padding: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.06); transition: opacity 0.2s;
+            width: 100%; background-color: var(--theme-color); color: var(--theme-text); border: none; border-radius: 8px;
+            padding: 10px; font-size: 0.9rem; font-weight: 700; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: opacity 0.2s; margin-top: 4px;
         }
         .setting-save-btn:active { opacity: 0.8; }
 
@@ -362,7 +363,7 @@
         <div class="weekly-calendar" id="weekly-calendar"></div>
     </header>
 
-    <!-- メインコンテンツ（スライド式コンテナ：全域スワイプ対応） -->
+    <!-- メインコンテンツ（スライド式コンテナ：緑色の枠で囲まれた空白・グラフエリアも含めて全域スワイプ対応） -->
     <main id="main-swipe-container">
         <div class="views-slider" id="views-slider">
             <!-- 1. 食事画面 -->
@@ -445,11 +446,11 @@
             </section>
         </div>
 
-        <!-- 4. 設定画面（スライドとは独立して切り替え） -->
+        <!-- 4. 設定画面（カード形式を廃止してスクロールなしで1ページに収める） -->
         <section id="view-settings">
             <div class="settings-container">
                 <div class="setting-section">
-                    <div class="setting-section-title"><i data-lucide="target" style="width: 18px; height: 18px; color: var(--text-sub);"></i>1日の目標設定</div>
+                    <div class="setting-section-title"><i data-lucide="target" style="width: 16px; height: 16px; color: var(--text-sub);"></i>1日の目標設定</div>
                     <div class="setting-row">
                         <span class="setting-label">目標カロリー</span>
                         <div class="setting-input-wrap"><input type="number" class="setting-input" id="target-calories" value="2000"><span class="setting-unit">kcal</span></div>
@@ -474,7 +475,7 @@
 
                 <!-- テーマカラー選択セクション -->
                 <div class="setting-section">
-                    <div class="setting-section-title"><i data-lucide="palette" style="width: 18px; height: 18px; color: var(--text-sub);"></i>テーマカラー設定</div>
+                    <div class="setting-section-title"><i data-lucide="palette" style="width: 16px; height: 16px; color: var(--text-sub);"></i>テーマカラー設定</div>
                     <div class="theme-picker">
                         <div class="theme-color-circle selected" style="background-color: #B2D8D8;" onclick="changeThemeColor('#B2D8D8', '#2C4A4A', this)" title="ミント"></div>
                         <div class="theme-color-circle" style="background-color: #BAE6FD;" onclick="changeThemeColor('#BAE6FD', '#0369A1', this)" title="スカイ"></div>
@@ -492,16 +493,15 @@
                 </div>
 
                 <div class="setting-section">
-                    <div class="setting-section-title"><i data-lucide="cloud" style="width: 18px; height: 18px; color: var(--text-sub);"></i>クラウド同期 ＆ AI設定</div>
-                    <div style="margin-bottom: 12px;">
+                    <div class="setting-section-title"><i data-lucide="cloud" style="width: 16px; height: 16px; color: var(--text-sub);"></i>クラウド同期 ＆ AI設定</div>
+                    <div style="margin-bottom: 6px;">
                         <div class="setting-label">クラウド同期ログイン</div>
                         <div class="setting-sublabel" id="google-auth-status">未連携（Googleログインしてデータを同期）</div>
-                        <button class="auth-btn" id="google-login-btn" onclick="loginWithGoogle()"><i data-lucide="log-in" style="width: 16px; height: 16px;"></i>Google でログイン</button>
-                        <button class="auth-btn" id="google-logout-btn" onclick="logoutFromGoogle()" style="background-color: #EF4444; display: none; margin-top: 6px;">ログアウト</button>
+                        <button class="auth-btn" id="google-login-btn" onclick="loginWithGoogle()"><i data-lucide="log-in" style="width: 14px; height: 14px;"></i>Google でログイン</button>
+                        <button class="auth-btn" id="google-logout-btn" onclick="logoutFromGoogle()" style="background-color: #EF4444; display: none; margin-top: 4px;">ログアウト</button>
                     </div>
-                    <div style="padding-top: 8px; border-top: 1px solid var(--card-border);">
+                    <div style="padding-top: 4px;">
                         <div class="setting-label">Gemini API キー</div>
-                        <div class="setting-sublabel">入力した品名や写真からカロリー・PFCをAIが自動計算します</div>
                         <input type="password" class="setting-input-full" id="gemini-api-key" placeholder="AIzaSy..." onchange="saveGeminiApiKey(this.value)">
                     </div>
                 </div>
@@ -1890,7 +1890,7 @@
 
                 slider.style.transform = `translateX(-${targetIndex * (100 / 3)}%)`;
                 
-                // 元の正確なボタン幅(32px) + ギャップ(6px) = 38px間隔で白丸インジケーターをセンター配置
+                // 白丸インジケーターの位置を正確なボタン幅・ギャップ（32px + 6px = 38px間隔）でセンター一致
                 indicator.style.transform = `translateX(${targetIndex * 38}px)`;
                 
                 renderWeeklyCalendar();
@@ -1959,7 +1959,7 @@
             renderWeeklyCalendar();
             renderFoodList(true);
 
-            // ①赤線部分（空白部分）を含むメインコンテンツ全域で、どこをスワイプしても確実・スムーズにページが遷移するように修正
+            // ①1枚目の画像の緑色の枠（空白部分・グラフ領域を含むメイン画面全域）でのスワイプ検出を完全に最適化
             let startX = 0;
             let startY = 0;
             let currentX = 0;
@@ -1986,8 +1986,8 @@
                 const diffX = startX - currentX;
                 const diffY = startY - e.changedTouches[0].clientY;
                 
-                // 横方向のスワイプが縦スクロールより大きく、一定以上動かした場合にタブ遷移
-                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 35) {
+                // 横方向の移動が縦スクロールより大きく、一定距離以上スワイプされた場合に画面遷移
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 30) {
                     if (diffX > 0) {
                         // 左スワイプ（食事 → 体重 → 運動）
                         if (currentCategory === 'food') switchView('weight');
