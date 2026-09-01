@@ -213,7 +213,7 @@
         .month-cal-day.selected { background-color: var(--theme-color); color: var(--theme-text); font-weight: 700; box-shadow: 0 0 0 2px var(--theme-text); }
         .month-cal-day.is-today { border: 1.5px solid var(--send-btn-bg); }
 
-        /* スライド＆全域スワイプ対応レイアウト */
+        /* スライド＆全域スワイプ対応レイアウト（並び順：運動[0] → 食事[1] → 体重[2]） */
         main { padding: 10px 14px 14px 14px; max-width: 600px; margin: 0 auto; overflow: hidden; position: relative; }
         .views-slider {
             display: flex;
@@ -221,6 +221,7 @@
             transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
             will-change: transform;
             touch-action: pan-y;
+            transform: translateX(-33.333%); /* 初期画面を食事管理(index 1)に設定 */
         }
         .view-panel {
             width: 33.333%;
@@ -233,7 +234,6 @@
             overflow-y: auto;
             max-height: calc(100vh - var(--header-top-height) - var(--footer-height) - 30px);
             padding-bottom: 20px;
-            /* グラフエリアや空白部分でもスワイプが阻害されないよう指定 */
             touch-action: pan-y;
         }
         #view-settings {
@@ -251,7 +251,7 @@
         .item-detail { font-size: 0.8rem; font-weight: 400; color: var(--text-sub); }
         .blank-state { text-align: center; padding: 40px 20px; color: var(--text-sub); background: var(--card-bg); border-radius: 10px; border: 1px dashed var(--card-border); margin-top: 10px; }
 
-        /* 2つ目の修正：カード形式を廃止してフラットですっきり収まる設定画面に刷新 */
+        /* 設定画面（フラットですっきり1ページ収容） */
         .settings-container { display: flex; flex-direction: column; gap: 10px; padding-top: 2px; padding-bottom: 15px; }
         .setting-section { background: transparent; border-bottom: 1px solid var(--card-border); padding: 6px 0 10px 0; }
         .setting-section-title { font-size: 0.85rem; font-weight: 700; color: var(--text-sub); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.03em; }
@@ -336,17 +336,18 @@
     <!-- ヘッダーエリア -->
     <header id="header">
         <div class="header-top">
+            <!-- アイコン並び順：運動管理[0] → 食事管理[1]（初期選択） → 体重管理[2] -->
             <div class="header-nav-tabs" id="nav-tabs-container">
-                <!-- スライドする選択中の丸インジケーター（センター完全一致） -->
-                <div class="tab-indicator" id="tab-indicator"></div>
-                <button class="header-tab-btn active" id="tab-btn-food" onclick="switchView('food')" title="食事">
+                <!-- スライドする選択中の丸インジケーター（食事管理＝インデックス1の位置に初期配置） -->
+                <div class="tab-indicator" id="tab-indicator" style="transform: translateX(38px);"></div>
+                <button class="header-tab-btn" id="tab-btn-exercise" onclick="switchView('exercise')" title="運動管理">
+                    <i data-lucide="dumbbell" style="width: 18px; height: 18px;"></i>
+                </button>
+                <button class="header-tab-btn active" id="tab-btn-food" onclick="switchView('food')" title="食事管理">
                     <i data-lucide="utensils" style="width: 18px; height: 18px;"></i>
                 </button>
-                <button class="header-tab-btn" id="tab-btn-weight" onclick="switchView('weight')" title="体重">
+                <button class="header-tab-btn" id="tab-btn-weight" onclick="switchView('weight')" title="体重管理">
                     <i data-lucide="user" style="width: 18px; height: 18px;"></i>
-                </button>
-                <button class="header-tab-btn" id="tab-btn-exercise" onclick="switchView('exercise')" title="運動">
-                    <i data-lucide="dumbbell" style="width: 18px; height: 18px;"></i>
                 </button>
             </div>
 
@@ -363,10 +364,18 @@
         <div class="weekly-calendar" id="weekly-calendar"></div>
     </header>
 
-    <!-- メインコンテンツ（スライド式コンテナ：緑色の枠で囲まれた空白・グラフエリアも含めて全域スワイプ対応） -->
+    <!-- メインコンテンツ（スライド式コンテナ：グラフや空白部分を含め全域スワイプ対応） -->
     <main id="main-swipe-container">
-        <div class="views-slider" id="views-slider">
-            <!-- 1. 食事画面 -->
+        <!-- 初期表示を食事管理（index: 1）にするため translateX(-33.333%) を適用 -->
+        <div class="views-slider" id="views-slider" style="transform: translateX(-33.333%);">
+            <!-- 0. 運動画面 -->
+            <section id="view-exercise" class="view-panel">
+                <div class="view-panel-scroll">
+                    <div class="card-list" id="exercise-list" style="padding-top: 4px;"></div>
+                </div>
+            </section>
+
+            <!-- 1. 食事画面（初期画面） -->
             <section id="view-food" class="view-panel">
                 <div class="view-panel-scroll">
                     <div class="sticky-summary-wrap">
@@ -437,16 +446,9 @@
                     <div class="card-list" id="weight-list" style="margin-top: 8px;"></div>
                 </div>
             </section>
-
-            <!-- 3. 運動画面 -->
-            <section id="view-exercise" class="view-panel">
-                <div class="view-panel-scroll">
-                    <div class="card-list" id="exercise-list" style="padding-top: 4px;"></div>
-                </div>
-            </section>
         </div>
 
-        <!-- 4. 設定画面（カード形式を廃止してスクロールなしで1ページに収める） -->
+        <!-- 4. 設定画面（カード形式を廃止してスクロールなしのフラットデザインに刷新） -->
         <section id="view-settings">
             <div class="settings-container">
                 <div class="setting-section">
@@ -473,7 +475,7 @@
                     </div>
                 </div>
 
-                <!-- テーマカラー選択セクション -->
+                <!-- テーマカラー設定（7個目以降を1個目と同等の濃くて鮮やかな色に刷新） -->
                 <div class="setting-section">
                     <div class="setting-section-title"><i data-lucide="palette" style="width: 16px; height: 16px; color: var(--text-sub);"></i>テーマカラー設定</div>
                     <div class="theme-picker">
@@ -483,12 +485,13 @@
                         <div class="theme-color-circle" style="background-color: #FBCFE8;" onclick="changeThemeColor('#FBCFE8', '#BE185D', this)" title="ピンク"></div>
                         <div class="theme-color-circle" style="background-color: #FEF08A;" onclick="changeThemeColor('#FEF08A', '#854D0E', this)" title="イエロー"></div>
                         <div class="theme-color-circle" style="background-color: #FED7AA;" onclick="changeThemeColor('#FED7AA', '#C2410C', this)" title="ピーチ"></div>
-                        <div class="theme-color-circle" style="background-color: #E2E8F0;" onclick="changeThemeColor('#E2E8F0', '#334155', this)" title="ライトグレー"></div>
-                        <div class="theme-color-circle" style="background-color: #E6FFFA;" onclick="changeThemeColor('#E6FFFA', '#234E52', this)" title="アクアミント"></div>
-                        <div class="theme-color-circle" style="background-color: #F0F4F8;" onclick="changeThemeColor('#F0F4F8', '#334E68', this)" title="アイスグレー"></div>
-                        <div class="theme-color-circle" style="background-color: #FAF5FF;" onclick="changeThemeColor('#FAF5FF', '#553C9A', this)" title="ペールライラック"></div>
-                        <div class="theme-color-circle" style="background-color: #FFF5F5;" onclick="changeThemeColor('#FFF5F5', '#742A2A', this)" title="ペールブラッシュ"></div>
-                        <div class="theme-color-circle" style="background-color: #FFFFF0;" onclick="changeThemeColor('#FFFFF0', '#744210', this)" title="アイボリークリーム"></div>
+                        <!-- 7個目以降：1個目と同等レベルの鮮やかな濃い色に一新 -->
+                        <div class="theme-color-circle" style="background-color: #94A3B8;" onclick="changeThemeColor('#94A3B8', '#0F172A', this)" title="スレートグレー"></div>
+                        <div class="theme-color-circle" style="background-color: #2DD4BF;" onclick="changeThemeColor('#2DD4BF', '#042F2E', this)" title="ターコイズ"></div>
+                        <div class="theme-color-circle" style="background-color: #38BDF8;" onclick="changeThemeColor('#38BDF8', '#0C4A6E', this)" title="オーシャンブルー"></div>
+                        <div class="theme-color-circle" style="background-color: #A78BFA;" onclick="changeThemeColor('#A78BFA', '#2E1065', this)" title="パープル"></div>
+                        <div class="theme-color-circle" style="background-color: #F472B6;" onclick="changeThemeColor('#F472B6', '#500724', this)" title="ローズ"></div>
+                        <div class="theme-color-circle" style="background-color: #FACC15;" onclick="changeThemeColor('#FACC15', '#422006', this)" title="サンゴールド"></div>
                     </div>
                 </div>
 
@@ -808,6 +811,7 @@
     <script>
         lucide.createIcons();
 
+        // 初期画面を「食事管理 (food)」に指定し、インジケーターを食事の位置(index 1 = 38px)に初期化
         let currentCategory = 'food';
         let weightChartInstance = null;
         
@@ -1199,6 +1203,7 @@
                 const hasExercise = (window.exerciseRecords || []).some(e => e.date === dateKey);
 
                 let hasRecordClass = '';
+                // 順序：運動[0] → 食事[1] → 体重[2] なので、運動画面では運動記録、食事画面では食事超過、体重画面では体重記録をドット表示
                 if (currentCategory === 'food' && isExceeded) {
                     hasRecordClass = 'exceeded';
                 } else if (currentCategory === 'weight' && hasWeight) {
@@ -1824,7 +1829,7 @@
             if (e.key === 'Enter') submitRecord(false);
         });
 
-        // タブおよびスライド切り替えの完全な連動処理
+        // タブおよびスライド切り替え（順序：運動[0] ⇄ 食事[1] ⇄ 体重[2]）
         function switchView(viewName) {
             document.querySelectorAll('.header-tab-btn').forEach(btn => btn.classList.remove('active'));
             
@@ -1859,9 +1864,18 @@
                 if (footerBarEl) footerBarEl.style.display = 'flex';
 
                 let targetIndex = 0;
-                if (viewName === 'food') {
-                    currentCategory = 'food';
+                if (viewName === 'exercise') {
+                    currentCategory = 'exercise';
                     targetIndex = 0;
+                    inputEl.placeholder = '運動内容を入力';
+                    inputEl.readOnly = false;
+                    favBtn.style.display = 'flex';
+                    galleryBtn.style.display = 'none';
+                    cameraBtn.style.display = 'none';
+                    renderExerciseList(true);
+                } else if (viewName === 'food') {
+                    currentCategory = 'food';
+                    targetIndex = 1;
                     inputEl.placeholder = '食事内容を記録';
                     inputEl.readOnly = false;
                     favBtn.style.display = 'flex';
@@ -1870,27 +1884,18 @@
                     renderFoodList(true);
                 } else if (viewName === 'weight') {
                     currentCategory = 'weight';
-                    targetIndex = 1;
+                    targetIndex = 2;
                     inputEl.placeholder = 'タップして体重・体脂肪を入力';
                     inputEl.readOnly = true;
                     favBtn.style.display = 'none';
                     galleryBtn.style.display = 'none';
                     cameraBtn.style.display = 'none';
                     setTimeout(() => initOrUpdateWeightChart(), 50);
-                } else if (viewName === 'exercise') {
-                    currentCategory = 'exercise';
-                    targetIndex = 2;
-                    inputEl.placeholder = '運動内容を入力';
-                    inputEl.readOnly = false;
-                    favBtn.style.display = 'flex';
-                    galleryBtn.style.display = 'none';
-                    cameraBtn.style.display = 'none';
-                    renderExerciseList(true);
                 }
 
                 slider.style.transform = `translateX(-${targetIndex * (100 / 3)}%)`;
                 
-                // 白丸インジケーターの位置を正確なボタン幅・ギャップ（32px + 6px = 38px間隔）でセンター一致
+                // 白丸インジケーターの移動位置を更新
                 indicator.style.transform = `translateX(${targetIndex * 38}px)`;
                 
                 renderWeeklyCalendar();
@@ -1959,7 +1964,7 @@
             renderWeeklyCalendar();
             renderFoodList(true);
 
-            // ①1枚目の画像の緑色の枠（空白部分・グラフ領域を含むメイン画面全域）でのスワイプ検出を完全に最適化
+            // グラフ上や空白部分（1枚目の緑枠エリア）を含めてどこでもスワイプで画面遷移できるよう設定
             let startX = 0;
             let startY = 0;
             let currentX = 0;
@@ -1986,16 +1991,16 @@
                 const diffX = startX - currentX;
                 const diffY = startY - e.changedTouches[0].clientY;
                 
-                // 横方向の移動が縦スクロールより大きく、一定距離以上スワイプされた場合に画面遷移
+                // 横スワイプ判定（順序：運動[0] ⇄ 食事[1] ⇄ 体重[2]）
                 if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 30) {
                     if (diffX > 0) {
-                        // 左スワイプ（食事 → 体重 → 運動）
-                        if (currentCategory === 'food') switchView('weight');
-                        else if (currentCategory === 'weight') switchView('exercise');
+                        // 左スワイプ（運動 → 食事 → 体重）
+                        if (currentCategory === 'exercise') switchView('food');
+                        else if (currentCategory === 'food') switchView('weight');
                     } else {
-                        // 右スワイプ（運動 → 体重 → 食事）
-                        if (currentCategory === 'exercise') switchView('weight');
-                        else if (currentCategory === 'weight') switchView('food');
+                        // 右スワイプ（体重 → 食事 → 運動）
+                        if (currentCategory === 'weight') switchView('food');
+                        else if (currentCategory === 'food') switchView('exercise');
                     }
                 }
             });
