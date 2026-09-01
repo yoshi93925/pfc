@@ -29,7 +29,7 @@
             --footer-bg: #FFFFFF;
             --footer-border: #E2E8F0;
             --send-btn-bg: #2B5C8F;
-            --header-top-height: 104px; /* 3枚目の画像と同じ元の大きさに戻しました */
+            --header-top-height: 104px;
             --footer-height: 75px;
 
             --pfc-p-bg: rgba(147, 197, 253, 0.045);
@@ -91,7 +91,6 @@
 
         .header-top { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px 2px 16px; height: 48px; }
         
-        /* 3枚目の画像と同じ元の大きさ（32px）に戻し、白丸が完全にセンターに合うように調整 */
         .header-nav-tabs { 
             position: relative;
             display: flex; 
@@ -129,7 +128,6 @@
         .icon-btn:active { opacity: 0.6; }
         .icon-btn.active-settings { background-color: rgba(255, 255, 255, 0.5); }
 
-        /* 3枚目の画像と同じ元の大きさに戻した週間カレンダー */
         .weekly-calendar {
             display: flex; justify-content: space-between; padding: 6px 12px 8px 12px;
             background-color: rgba(255, 255, 255, 0.45) !important; backdrop-filter: blur(4px);
@@ -150,7 +148,15 @@
         }
         .week-day-cell.is-today .week-day-name { color: #1E40AF !important; font-weight: 700; }
 
-        .sticky-summary-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 4px 0 4px 0; margin-bottom: 6px; }
+        /* カロリー・PFCサマリーカード（上部固定エリア） */
+        .sticky-summary-wrap { 
+            position: sticky; 
+            top: 0; 
+            z-index: 50; 
+            background-color: var(--bg-color); 
+            padding: 6px 0 6px 0; 
+            margin-bottom: 6px; 
+        }
         .nutrition-summary-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
         .summary-header { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--card-border); }
         .summary-cal-header-row { display: flex; justify-content: space-between; align-items: center; }
@@ -175,7 +181,7 @@
         .pfc-bar-f { background-color: var(--pfc-f-bar); }
         .pfc-bar-c { background-color: var(--pfc-c-bar); }
 
-        .sticky-chart-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 4px 0 4px 0; margin-bottom: 6px; }
+        .sticky-chart-wrap { position: sticky; top: 0; z-index: 50; background-color: var(--bg-color); padding: 6px 0 6px 0; margin-bottom: 6px; }
         .chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
         .chart-title { font-size: 0.92rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
@@ -208,8 +214,8 @@
         .month-cal-day.selected { background-color: var(--theme-color); color: var(--theme-text); font-weight: 700; box-shadow: 0 0 0 2px var(--theme-text); }
         .month-cal-day.is-today { border: 1.5px solid var(--send-btn-bg); }
 
-        /* メイン・スライド部分の修正（赤線部分も含めて画面全域でスワイプ可能に） */
-        main { padding: 0 14px 14px 14px; max-width: 600px; margin: 0 auto; overflow: hidden; position: relative; }
+        /* スライド＆全域スワイプ対応レイアウト */
+        main { padding: 10px 14px 14px 14px; max-width: 600px; margin: 0 auto; overflow: hidden; position: relative; }
         .views-slider {
             display: flex;
             width: 300%;
@@ -222,11 +228,11 @@
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
-            min-height: calc(100vh - var(--header-top-height) - var(--footer-height) - 40px);
         }
         .view-panel-scroll {
             flex: 1;
             overflow-y: auto;
+            max-height: calc(100vh - var(--header-top-height) - var(--footer-height) - 30px);
             padding-bottom: 20px;
         }
         #view-settings {
@@ -234,7 +240,7 @@
             width: 100%;
         }
 
-        .card-list { display: flex; flex-direction: column; gap: 6px; padding-bottom: 6px; }
+        .card-list { display: flex; flex-direction: column; gap: 8px; padding-bottom: 10px; }
         .item-card {
             border: 1px solid var(--card-border); border-left: 3.5px solid var(--theme-color); border-radius: 8px;
             padding: 8px 12px; background: var(--card-bg); box-shadow: 0 1px 2px rgba(0,0,0,0.02); cursor: pointer;
@@ -356,7 +362,7 @@
         <div class="weekly-calendar" id="weekly-calendar"></div>
     </header>
 
-    <!-- メインコンテンツ（スライド式コンテナ：赤線エリアも含めて全域スワイプ対応） -->
+    <!-- メインコンテンツ（スライド式コンテナ：全域スワイプ対応） -->
     <main id="main-swipe-container">
         <div class="views-slider" id="views-slider">
             <!-- 1. 食事画面 -->
@@ -392,7 +398,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card-list" id="food-list" style="margin-top: 6px;"></div>
+                    <div class="card-list" id="food-list" style="margin-top: 8px;"></div>
                 </div>
             </section>
 
@@ -427,7 +433,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card-list" id="weight-list" style="margin-top: 6px;"></div>
+                    <div class="card-list" id="weight-list" style="margin-top: 8px;"></div>
                 </div>
             </section>
 
@@ -1315,8 +1321,8 @@
             if (dayFoods.length === 0) {
                 list.innerHTML = `
                     <div class="blank-state">
-                        <i data-lucide="utensils" style="width: 24px; height: 24px; margin: 0 auto 4px auto; opacity: 0.5;"></i>
-                        <div style="font-size: 0.8rem;">この日の食事記録はありません</div>
+                        <i data-lucide="utensils" style="width: 28px; height: 28px; margin: 0 auto 6px auto; opacity: 0.5;"></i>
+                        <div style="font-size: 0.85rem;">この日の食事記録はありません</div>
                     </div>
                 `;
                 lucide.createIcons();
@@ -1495,8 +1501,8 @@
             if (dayWeights.length === 0) {
                 list.innerHTML = `
                     <div class="blank-state">
-                        <i data-lucide="scale" style="width: 24px; height: 24px; margin: 0 auto 4px auto; opacity: 0.5;"></i>
-                        <div style="font-size: 0.8rem;">この日の体重記録はありません</div>
+                        <i data-lucide="scale" style="width: 28px; height: 28px; margin: 0 auto 6px auto; opacity: 0.5;"></i>
+                        <div style="font-size: 0.85rem;">この日の体重記録はありません</div>
                     </div>
                 `;
             } else {
@@ -1617,8 +1623,8 @@
             if (dayExercises.length === 0) {
                 list.innerHTML = `
                     <div class="blank-state">
-                        <i data-lucide="activity" style="width: 24px; height: 24px; margin: 0 auto 4px auto; opacity: 0.5;"></i>
-                        <div style="font-size: 0.8rem;">この日の運動記録がありません</div>
+                        <i data-lucide="activity" style="width: 28px; height: 28px; margin: 0 auto 6px auto; opacity: 0.5;"></i>
+                        <div style="font-size: 0.85rem;">この日の運動記録がありません</div>
                     </div>
                 `;
                 lucide.createIcons();
@@ -1884,7 +1890,7 @@
 
                 slider.style.transform = `translateX(-${targetIndex * (100 / 3)}%)`;
                 
-                // 白丸インジケーターの移動位置を正確なボタン幅・ギャップ（32px + 6px = 38px間隔）に修正
+                // 元の正確なボタン幅(32px) + ギャップ(6px) = 38px間隔で白丸インジケーターをセンター配置
                 indicator.style.transform = `translateX(${targetIndex * 38}px)`;
                 
                 renderWeeklyCalendar();
@@ -1953,7 +1959,7 @@
             renderWeeklyCalendar();
             renderFoodList(true);
 
-            // 赤線エリアを含むメインコンテンツ全域（main要素）でスムーズな左右スワイプ＆タブ移動を実装
+            // ①赤線部分（空白部分）を含むメインコンテンツ全域で、どこをスワイプしても確実・スムーズにページが遷移するように修正
             let startX = 0;
             let startY = 0;
             let currentX = 0;
@@ -1980,7 +1986,7 @@
                 const diffX = startX - currentX;
                 const diffY = startY - e.changedTouches[0].clientY;
                 
-                // 横方向のスワイプ幅が縦スクロールよりも大きい場合、確実に画面遷移させる
+                // 横方向のスワイプが縦スクロールより大きく、一定以上動かした場合にタブ遷移
                 if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 35) {
                     if (diffX > 0) {
                         // 左スワイプ（食事 → 体重 → 運動）
