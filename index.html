@@ -29,7 +29,7 @@
             --footer-bg: #FFFFFF;
             --footer-border: #E2E8F0;
             --send-btn-bg: #2B5C8F;
-            --header-top-height: 104px;
+            --header-top-height: 94px;
             --footer-height: 75px;
 
             --pfc-p-bg: rgba(147, 197, 253, 0.045);
@@ -89,50 +89,50 @@
             height: 56px !important;
         }
 
-        .header-top { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px 2px 16px; height: 48px; }
+        .header-top { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px 2px 12px; height: 42px; }
         
-        .header-nav-tabs { display: flex; gap: 6px; align-items: center; background: rgba(255, 255, 255, 0.35); padding: 3px 6px; border-radius: 20px; }
+        .header-nav-tabs { display: flex; gap: 4px; align-items: center; background: rgba(255, 255, 255, 0.35); padding: 2px 4px; border-radius: 20px; }
         .header-tab-btn {
             background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            color: var(--header-text); width: 32px; height: 32px; border-radius: 50%; transition: background-color 0.2s, transform 0.1s;
+            color: var(--header-text); width: 30px; height: 30px; border-radius: 50%; transition: background-color 0.2s, transform 0.1s;
         }
         .header-tab-btn:active { transform: scale(0.92); }
         .header-tab-btn.active { background-color: rgba(255, 255, 255, 0.85); box-shadow: 0 1px 3px rgba(0,0,0,0.08); font-weight: bold; }
 
-        .header-btn-group { display: flex; gap: 10px; align-items: center; }
+        .header-btn-group { display: flex; gap: 8px; align-items: center; }
 
         .icon-btn {
             background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            color: var(--header-text); padding: 6px; border-radius: 50%; transition: opacity 0.2s;
+            color: var(--header-text); padding: 4px; border-radius: 50%; transition: opacity 0.2s;
         }
         .icon-btn:active { opacity: 0.6; }
         .icon-btn.active-settings { background-color: rgba(255, 255, 255, 0.5); }
 
         .weekly-calendar {
-            display: flex; justify-content: space-between; padding: 6px 12px 8px 12px;
+            display: flex; justify-content: space-between; padding: 2px 10px 4px 10px;
             background-color: rgba(255, 255, 255, 0.45) !important; backdrop-filter: blur(4px);
             border-top: 1px solid rgba(0, 0, 0, 0.04); gap: 4px;
         }
         .week-day-cell {
-            flex: 1; display: flex; flex-direction: column; align-items: center; padding: 4px 2px; border-radius: 8px; cursor: pointer; background: transparent; transition: background-color 0.2s, transform 0.1s;
+            flex: 1; display: flex; flex-direction: column; align-items: center; padding: 2px; border-radius: 6px; cursor: pointer; background: transparent; transition: background-color 0.2s, transform 0.1s;
         }
         .week-day-cell:active { transform: scale(0.95); }
         .week-day-cell.selected { background-color: rgba(255, 255, 255, 0.75) !important; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        .week-day-name { font-size: 0.65rem; font-weight: 600; color: var(--header-text) !important; opacity: 0.85; margin-bottom: 2px; }
+        .week-day-name { font-size: 0.6rem; font-weight: 600; color: var(--header-text) !important; opacity: 0.85; margin-bottom: 1px; }
         .week-day-date {
-            font-size: 0.85rem; font-weight: 700; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--header-text) !important; background: transparent; position: relative;
+            font-size: 0.8rem; font-weight: 700; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--header-text) !important; background: transparent; position: relative;
         }
         .week-day-cell.exceeded .week-day-date { background-color: #EF4444 !important; color: #FFFFFF !important; box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4); }
         .week-day-cell.has-record:not(.exceeded) .week-day-date::after {
-            content: ''; position: absolute; bottom: -2px; width: 4px; height: 4px; background-color: var(--header-text); border-radius: 50%;
+            content: ''; position: absolute; bottom: -2px; width: 3.5px; height: 3.5px; background-color: var(--header-text); border-radius: 50%;
         }
         .week-day-cell.is-today .week-day-name { color: #1E40AF !important; font-weight: 700; }
 
-        .sticky-summary-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 4px 0 2px 0; margin-bottom: 4px; }
-        .nutrition-summary-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
-        .summary-header { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--card-border); }
+        .sticky-summary-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 2px 0; margin-bottom: 2px; }
+        .nutrition-summary-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 8px 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+        .summary-header { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--card-border); }
         .summary-cal-header-row { display: flex; justify-content: space-between; align-items: center; }
-        .summary-cal-badge { font-size: 0.94rem; font-weight: 600; color: var(--text-main); letter-spacing: 0.02em; }
+        .summary-cal-badge { font-size: 0.9rem; font-weight: 600; color: var(--text-main); letter-spacing: 0.02em; }
         .val-current.over-limit { color: var(--over-limit-color) !important; font-weight: 700; }
 
         .progress-bar-bg { width: 100%; height: 5px; background-color: rgba(0, 0, 0, 0.05); border-radius: 6px; overflow: hidden; }
@@ -143,17 +143,17 @@
         .cal-bar-fill.success-limit { background-color: var(--theme-color) !important; }
 
         .pfc-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; }
-        .pfc-col { padding: 6px 4px; border-radius: 8px; display: flex; flex-direction: column; gap: 3px; border: 1px solid transparent; }
+        .pfc-col { padding: 5px 4px; border-radius: 8px; display: flex; flex-direction: column; gap: 2px; border: 1px solid transparent; }
         .pfc-col-p { background-color: var(--pfc-p-bg); border-color: var(--pfc-p-border); }
         .pfc-col-f { background-color: var(--pfc-f-bg); border-color: var(--pfc-f-border); }
         .pfc-col-c { background-color: var(--pfc-c-bg); border-color: var(--pfc-c-border); }
-        .pfc-label { font-size: 0.72rem; font-weight: 500; color: var(--text-sub); }
-        .pfc-value { font-size: 0.84rem; font-weight: 600; color: var(--text-main); }
+        .pfc-label { font-size: 0.7rem; font-weight: 500; color: var(--text-sub); }
+        .pfc-value { font-size: 0.82rem; font-weight: 600; color: var(--text-main); }
         .pfc-bar-p { background-color: var(--pfc-p-bar); }
         .pfc-bar-f { background-color: var(--pfc-f-bar); }
         .pfc-bar-c { background-color: var(--pfc-c-bar); }
 
-        .sticky-chart-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 4px 0 2px 0; margin-bottom: 4px; }
+        .sticky-chart-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 2px 0; margin-bottom: 2px; }
         .chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
         .chart-title { font-size: 0.92rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
@@ -186,6 +186,7 @@
         .month-cal-day.selected { background-color: var(--theme-color); color: var(--theme-text); font-weight: 700; box-shadow: 0 0 0 2px var(--theme-text); }
         .month-cal-day.is-today { border: 1.5px solid var(--send-btn-bg); }
 
+        /* スライド＆タブ遷移の完璧な構造 */
         main { padding: 4px 14px 14px 14px; max-width: 600px; margin: 0 auto; overflow: hidden; position: relative; }
         .views-slider {
             display: flex;
@@ -196,7 +197,7 @@
         .view-panel {
             width: 33.333%;
             flex-shrink: 0;
-            display: block;
+            display: block !important;
         }
         #view-settings {
             display: none;
@@ -1057,13 +1058,12 @@
             renderMonthlyCalendarGrid();
         }
 
-        // 共通の1日分の超過（どれかひとつでも赤かどうか）判定ロジック
+        // 赤丸判定ロジック（いずれかの項目が105%オーバーのとき赤）
         function checkDayIsExceeded(dateISO) {
             const dayFoods = window.foodRecords.filter(f => f.date === dateISO);
-            let totalCal = 0, totalP = 0, totalF = 0, totalC = 0;
+            let totalCal = 0, totalF = 0, totalC = 0;
             dayFoods.forEach(f => {
                 totalCal += Number(f.cal !== undefined ? f.cal : (f.calories || 0));
-                totalP += Number(f.p !== undefined ? f.p : (f.protein || 0));
                 totalF += Number(f.f !== undefined ? f.f : (f.fat || 0));
                 totalC += Number(f.c !== undefined ? f.c : (f.carbs || 0));
             });
@@ -1076,11 +1076,7 @@
             const fatRatio = maxFat > 0 ? (totalF / maxFat) * 100 : 0;
             const carbRatio = maxCarb > 0 ? (totalC / maxCarb) * 100 : 0;
 
-            const isCalOver = calRatio > 105;
-            const isFatOver = fatRatio > 105;
-            const isCarbOver = carbRatio > 105;
-
-            return (isCalOver || isFatOver || isCarbOver);
+            return (calRatio > 105 || fatRatio > 105 || carbRatio > 105);
         }
 
         function renderMonthlyCalendarGrid() {
@@ -1211,13 +1207,12 @@
                 totalC += Number(f.c !== undefined ? f.c : (f.carbs || 0));
             });
 
-            // 割合の計算
             const calPct = maxCal > 0 ? (totalCal / maxCal) * 100 : 0;
             const pPct = maxP > 0 ? (totalP / maxP) * 100 : 0;
             const fPct = maxF > 0 ? (totalF / maxF) * 100 : 0;
             const cPct = maxC > 0 ? (totalC / maxC) * 100 : 0;
 
-            // カロリー表示とバーの配色
+            // カロリー配色判定
             const curCalEl = document.getElementById('val-cur-cal');
             const tgtCalEl = document.getElementById('val-tgt-cal');
             const calPercentEl = document.getElementById('summary-cal-percent');
@@ -1234,13 +1229,12 @@
                 curCalEl.classList.add('over-limit');
                 calBar.classList.add('over-limit');
             } else if (calPct >= 90 && calPct <= 105) {
-                calBar.classList.add('success-limit'); // 合格ライン＝テーマカラー
+                calBar.classList.add('success-limit');
             } else {
-                // 下回っているときはグレー
                 calBar.style.backgroundColor = 'var(--cal-bar-color)';
             }
 
-            // たんぱく質 (P) 表示と配色（90%以上合格、以下グレー）
+            // たんぱく質 (P) 配色判定 (90%以上合格)
             const curPEl = document.getElementById('val-cur-p');
             const tgtPEl = document.getElementById('val-tgt-p');
             const pBar = document.getElementById('p-progress-bar');
@@ -1253,7 +1247,7 @@
                 pBar.style.backgroundColor = 'var(--cal-bar-color)';
             }
 
-            // 脂質 (F) 表示と配色（105%以下合格、オーバーで赤）
+            // 脂質 (F) 配色判定 (105%以下合格、オーバーで赤)
             const curFEl = document.getElementById('val-cur-f');
             const tgtFEl = document.getElementById('val-tgt-f');
             const fBar = document.getElementById('f-progress-bar');
@@ -1268,7 +1262,7 @@
                 fBar.style.backgroundColor = 'var(--pfc-f-bar)';
             }
 
-            // 炭水化物 (C) 表示と配色（85%〜105%合格、以下グレー、オーバーで赤）
+            // 炭水化物 (C) 配色判定 (85%〜105%合格)
             const curCEl = document.getElementById('val-cur-c');
             const tgtCEl = document.getElementById('val-tgt-c');
             const cBar = document.getElementById('c-progress-bar');
@@ -1808,6 +1802,7 @@
             if (e.key === 'Enter') submitRecord(false);
         });
 
+        // 画面スライド・タブ切り替え処理の修正
         function switchView(viewName) {
             document.querySelectorAll('.header-tab-btn').forEach(btn => btn.classList.remove('active'));
             
@@ -1946,4 +1941,4 @@
         }
     </script>
 </body>
-            </html>
+                    </html>
