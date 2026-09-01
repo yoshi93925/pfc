@@ -29,7 +29,7 @@
             --footer-bg: #FFFFFF;
             --footer-border: #E2E8F0;
             --send-btn-bg: #2B5C8F;
-            --header-top-height: 94px;
+            --header-top-height: 84px;
             --footer-height: 75px;
 
             --pfc-p-bg: rgba(147, 197, 253, 0.045);
@@ -89,17 +89,17 @@
             height: 56px !important;
         }
 
-        .header-top { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px 2px 12px; height: 42px; }
+        .header-top { display: flex; align-items: center; justify-content: space-between; padding: 4px 10px 2px 10px; height: 38px; }
         
         .header-nav-tabs { display: flex; gap: 4px; align-items: center; background: rgba(255, 255, 255, 0.35); padding: 2px 4px; border-radius: 20px; }
         .header-tab-btn {
             background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            color: var(--header-text); width: 30px; height: 30px; border-radius: 50%; transition: background-color 0.2s, transform 0.1s;
+            color: var(--header-text); width: 28px; height: 28px; border-radius: 50%; transition: background-color 0.2s, transform 0.1s;
         }
         .header-tab-btn:active { transform: scale(0.92); }
         .header-tab-btn.active { background-color: rgba(255, 255, 255, 0.85); box-shadow: 0 1px 3px rgba(0,0,0,0.08); font-weight: bold; }
 
-        .header-btn-group { display: flex; gap: 8px; align-items: center; }
+        .header-btn-group { display: flex; gap: 6px; align-items: center; }
 
         .icon-btn {
             background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -109,67 +109,68 @@
         .icon-btn.active-settings { background-color: rgba(255, 255, 255, 0.5); }
 
         .weekly-calendar {
-            display: flex; justify-content: space-between; padding: 2px 10px 4px 10px;
+            display: flex; justify-content: space-between; padding: 2px 8px 3px 8px;
             background-color: rgba(255, 255, 255, 0.45) !important; backdrop-filter: blur(4px);
-            border-top: 1px solid rgba(0, 0, 0, 0.04); gap: 4px;
+            border-top: 1px solid rgba(0, 0, 0, 0.04); gap: 2px;
         }
         .week-day-cell {
-            flex: 1; display: flex; flex-direction: column; align-items: center; padding: 2px; border-radius: 6px; cursor: pointer; background: transparent; transition: background-color 0.2s, transform 0.1s;
+            flex: 1; display: flex; flex-direction: column; align-items: center; padding: 2px 0; border-radius: 6px; cursor: pointer; background: transparent; transition: background-color 0.2s, transform 0.1s;
         }
         .week-day-cell:active { transform: scale(0.95); }
         .week-day-cell.selected { background-color: rgba(255, 255, 255, 0.75) !important; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        .week-day-name { font-size: 0.6rem; font-weight: 600; color: var(--header-text) !important; opacity: 0.85; margin-bottom: 1px; }
+        .week-day-name { font-size: 0.58rem; font-weight: 600; color: var(--header-text) !important; opacity: 0.85; margin-bottom: 1px; }
         .week-day-date {
-            font-size: 0.8rem; font-weight: 700; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--header-text) !important; background: transparent; position: relative;
+            font-size: 0.78rem; font-weight: 700; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--header-text) !important; background: transparent; position: relative;
         }
         .week-day-cell.exceeded .week-day-date { background-color: #EF4444 !important; color: #FFFFFF !important; box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4); }
         .week-day-cell.has-record:not(.exceeded) .week-day-date::after {
-            content: ''; position: absolute; bottom: -2px; width: 3.5px; height: 3.5px; background-color: var(--header-text); border-radius: 50%;
+            content: ''; position: absolute; bottom: -2px; width: 3px; height: 3px; background-color: var(--header-text); border-radius: 50%;
         }
         .week-day-cell.is-today .week-day-name { color: #1E40AF !important; font-weight: 700; }
 
-        .sticky-summary-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 2px 0; margin-bottom: 2px; }
-        .nutrition-summary-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 8px 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
-        .summary-header { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--card-border); }
+        /* 余白を完全になくすスタイル設定 */
+        .sticky-summary-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 0; margin-bottom: 2px; }
+        .nutrition-summary-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 6px 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.02); }
+        .summary-header { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; padding-bottom: 3px; border-bottom: 1px solid var(--card-border); }
         .summary-cal-header-row { display: flex; justify-content: space-between; align-items: center; }
-        .summary-cal-badge { font-size: 0.9rem; font-weight: 600; color: var(--text-main); letter-spacing: 0.02em; }
+        .summary-cal-badge { font-size: 0.88rem; font-weight: 600; color: var(--text-main); letter-spacing: 0.02em; }
         .val-current.over-limit { color: var(--over-limit-color) !important; font-weight: 700; }
 
-        .progress-bar-bg { width: 100%; height: 5px; background-color: rgba(0, 0, 0, 0.05); border-radius: 6px; overflow: hidden; }
+        .progress-bar-bg { width: 100%; height: 4px; background-color: rgba(0, 0, 0, 0.05); border-radius: 4px; overflow: hidden; }
         body.dark-mode .progress-bar-bg { background-color: rgba(255, 255, 255, 0.08); }
-        .progress-bar-fill { height: 100%; border-radius: 6px; width: 0%; transition: width 0.3s ease, background-color 0.3s ease; }
+        .progress-bar-fill { height: 100%; border-radius: 4px; width: 0%; transition: width 0.3s ease, background-color 0.3s ease; }
         .cal-bar-fill { background-color: var(--cal-bar-color); }
         .cal-bar-fill.over-limit { background-color: var(--over-limit-color) !important; }
         .cal-bar-fill.success-limit { background-color: var(--theme-color) !important; }
 
-        .pfc-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; }
-        .pfc-col { padding: 5px 4px; border-radius: 8px; display: flex; flex-direction: column; gap: 2px; border: 1px solid transparent; }
+        .pfc-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; text-align: center; }
+        .pfc-col { padding: 4px 2px; border-radius: 6px; display: flex; flex-direction: column; gap: 2px; border: 1px solid transparent; }
         .pfc-col-p { background-color: var(--pfc-p-bg); border-color: var(--pfc-p-border); }
         .pfc-col-f { background-color: var(--pfc-f-bg); border-color: var(--pfc-f-border); }
         .pfc-col-c { background-color: var(--pfc-c-bg); border-color: var(--pfc-c-border); }
-        .pfc-label { font-size: 0.7rem; font-weight: 500; color: var(--text-sub); }
-        .pfc-value { font-size: 0.82rem; font-weight: 600; color: var(--text-main); }
+        .pfc-label { font-size: 0.65rem; font-weight: 500; color: var(--text-sub); }
+        .pfc-value { font-size: 0.8rem; font-weight: 600; color: var(--text-main); }
         .pfc-bar-p { background-color: var(--pfc-p-bar); }
         .pfc-bar-f { background-color: var(--pfc-f-bar); }
         .pfc-bar-c { background-color: var(--pfc-c-bar); }
 
-        .sticky-chart-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 2px 0; margin-bottom: 2px; }
-        .chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-        .chart-title { font-size: 0.92rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
-        .chart-legend-wrap { display: flex; gap: 12px; font-size: 0.74rem; font-weight: 600; margin-bottom: 6px; justify-content: flex-end; }
-        .legend-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+        .sticky-chart-wrap { position: sticky; top: var(--header-top-height); z-index: 90; background-color: var(--bg-color); padding: 0; margin-bottom: 2px; }
+        .chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.02); }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+        .chart-title { font-size: 0.88rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
+        .chart-legend-wrap { display: flex; gap: 10px; font-size: 0.72rem; font-weight: 600; margin-bottom: 4px; justify-content: flex-end; }
+        .legend-indicator { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 3px; vertical-align: middle; }
 
         .custom-select-wrap { position: relative; display: inline-block; }
         .custom-select {
             appearance: none; -webkit-appearance: none;
             background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px;
-            padding: 4px 28px 4px 12px; font-size: 0.78rem; font-weight: 600; color: var(--text-main);
+            padding: 3px 24px 3px 10px; font-size: 0.75rem; font-weight: 600; color: var(--text-main);
             cursor: pointer; outline: none; box-shadow: 0 1px 2px rgba(0,0,0,0.02); transition: border-color 0.2s;
         }
         .custom-select:hover { border-color: var(--theme-color); }
         .custom-select-wrap::after {
-            content: '▼'; font-size: 0.6rem; color: var(--text-sub); position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none;
+            content: '▼'; font-size: 0.55rem; color: var(--text-sub); position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none;
         }
 
         .month-cal-header { display: flex; justify-content: space-between; align-items: center; padding: 4px 6px 12px 6px; }
@@ -301,22 +302,22 @@
         <div class="header-top">
             <div class="header-nav-tabs">
                 <button class="header-tab-btn active" id="tab-btn-food" onclick="switchView('food')" title="食事">
-                    <i data-lucide="utensils" style="width: 18px; height: 18px;"></i>
+                    <i data-lucide="utensils" style="width: 16px; height: 16px;"></i>
                 </button>
                 <button class="header-tab-btn" id="tab-btn-weight" onclick="switchView('weight')" title="体重">
-                    <i data-lucide="user" style="width: 18px; height: 18px;"></i>
+                    <i data-lucide="user" style="width: 16px; height: 16px;"></i>
                 </button>
                 <button class="header-tab-btn" id="tab-btn-exercise" onclick="switchView('exercise')" title="運動">
-                    <i data-lucide="dumbbell" style="width: 18px; height: 18px;"></i>
+                    <i data-lucide="dumbbell" style="width: 16px; height: 16px;"></i>
                 </button>
             </div>
 
             <div class="header-btn-group">
                 <button class="icon-btn" onclick="openMonthlyCalendarModal()" title="月間カレンダー">
-                    <i data-lucide="calendar" style="width: 22px; height: 22px;"></i>
+                    <i data-lucide="calendar" style="width: 20px; height: 20px;"></i>
                 </button>
                 <button class="icon-btn" id="settings-toggle-btn" onclick="toggleSettingsView()" title="設定">
-                    <i data-lucide="settings" style="width: 22px; height: 22px;"></i>
+                    <i data-lucide="settings" style="width: 20px; height: 20px;"></i>
                 </button>
             </div>
         </div>
@@ -341,17 +342,17 @@
                             </div>
                         </div>
                         <div class="pfc-grid">
-                            <div class="pfc-col pfc-col-p" style="background-color: rgba(147, 197, 253, 0.045); border-color: rgba(147, 197, 253, 0.25);">
+                            <div class="pfc-col pfc-col-p">
                                 <span class="pfc-label">たんぱく質 (P)</span>
                                 <span class="pfc-value"><span class="val-current" id="val-cur-p">0</span> / <span id="val-tgt-p">100</span>g</span>
                                 <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill" id="p-progress-bar"></div></div>
                             </div>
-                            <div class="pfc-col pfc-col-f" style="background-color: rgba(253, 230, 138, 0.045); border-color: rgba(253, 230, 138, 0.28);">
+                            <div class="pfc-col pfc-col-f">
                                 <span class="pfc-label">脂質 (F)</span>
                                 <span class="pfc-value"><span class="val-current" id="val-cur-f">0</span> / <span id="val-tgt-f">50</span>g</span>
                                 <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill" id="f-progress-bar"></div></div>
                             </div>
-                            <div class="pfc-col pfc-col-c" style="background-color: rgba(167, 243, 208, 0.045); border-color: rgba(167, 243, 208, 0.28);">
+                            <div class="pfc-col pfc-col-c">
                                 <span class="pfc-label">炭水化物 (C)</span>
                                 <span class="pfc-value"><span class="val-current" id="val-cur-c">0</span> / <span id="val-tgt-c">250</span>g</span>
                                 <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill" id="c-progress-bar"></div></div>
@@ -359,7 +360,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-list" id="food-list"></div>
+                <div class="card-list" id="food-list" style="margin-top: 4px;"></div>
             </section>
 
             <!-- 2. 体重画面 -->
@@ -373,7 +374,7 @@
                             </span>
                             <span style="font-size: 0.8rem; color: var(--text-sub);" id="latest-weight-stat">最新: -- kg</span>
                         </div>
-                        <div style="margin-bottom: 8px; display: flex; justify-content: flex-start;">
+                        <div style="margin-bottom: 4px; display: flex; justify-content: flex-start;">
                             <div class="custom-select-wrap">
                                 <select id="weight-range-select" class="custom-select" onchange="initOrUpdateWeightChart()">
                                     <option value="1m">1か月</option>
@@ -387,12 +388,12 @@
                             <span><span class="legend-indicator" style="background-color: #2B5C8F;"></span>体重 (kg)</span>
                             <span><span class="legend-indicator" style="background-color: #F59E0B;"></span>体脂肪率 (%)</span>
                         </div>
-                        <div style="position: relative; height: 180px; width: 100%;">
+                        <div style="position: relative; height: 160px; width: 100%;">
                             <canvas id="weightChart"></canvas>
                         </div>
                     </div>
                 </div>
-                <div class="card-list" id="weight-list"></div>
+                <div class="card-list" id="weight-list" style="margin-top: 4px;"></div>
             </section>
 
             <!-- 3. 運動画面 -->
@@ -1802,7 +1803,7 @@
             if (e.key === 'Enter') submitRecord(false);
         });
 
-        // 画面スライド・タブ切り替え処理の修正
+        // 修正：スライド機能とタブ切り替えを確実に動作させる関数
         function switchView(viewName) {
             document.querySelectorAll('.header-tab-btn').forEach(btn => btn.classList.remove('active'));
             
@@ -1934,6 +1935,41 @@
 
             renderWeeklyCalendar();
             renderFoodList(true);
+
+            // タッチスワイプによる画面切り替え機能の追加
+            const slider = document.getElementById('views-slider');
+            let startX = 0;
+            let currentX = 0;
+            let isSwiping = false;
+
+            slider.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isSwiping = true;
+            }, { passive: true });
+
+            slider.addEventListener('touchmove', (e) => {
+                if (!isSwiping) return;
+                currentX = e.touches[0].clientX;
+            }, { passive: true });
+
+            slider.addEventListener('touchend', () => {
+                if (!isSwiping) return;
+                isSwiping = false;
+                const diff = startX - currentX;
+                const threshold = 50; // スワイプ判定のしきい値
+
+                if (Math.abs(diff) > threshold) {
+                    if (diff > 0) {
+                        // 左スワイプ（次へ）
+                        if (currentCategory === 'food') switchView('weight');
+                        else if (currentCategory === 'weight') switchView('exercise');
+                    } else {
+                        // 右スワイプ（前へ）
+                        if (currentCategory === 'exercise') switchView('weight');
+                        else if (currentCategory === 'weight') switchView('food');
+                    }
+                }
+            });
         });
 
         function hexToRgbString(hex) {
