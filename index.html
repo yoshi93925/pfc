@@ -6,7 +6,7 @@
     <title>PFCバランス記録</title>
     <!-- PWA & 全画面化設定 -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" id="metaThemeColor" content="#B2D8D8">
+    <meta name="theme-color" id="metaThemeColor" content="#b2d8d8">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="PFC記録">
@@ -16,7 +16,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --theme-color: #B2D8D8;
+            --theme-color: #b2d8d8;
             --theme-text: #2C4A4A;
             --bg-color: #F8FAFC;
             --card-bg: #FFFFFF;
@@ -251,7 +251,7 @@
             font-size: 0.92rem; 
             font-weight: 600; 
             color: var(--text-main); 
-            white-space: pre-wrap; /* 改行をそのまま反映させる設定 */
+            white-space: pre-wrap; 
             word-break: break-all;
         }
         .item-detail { font-size: 0.8rem; font-weight: 400; color: var(--text-sub); }
@@ -281,17 +281,61 @@
         }
         .setting-save-btn:active { opacity: 0.8; }
 
+        /* フッター・入力エリア（部位選択タグ付き） */
         footer {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: var(--footer-height);
-            background-color: var(--footer-bg); border-top: 1px solid var(--footer-border); display: flex; align-items: center; padding: 0 16px; z-index: 100;
+            position: fixed; bottom: 0; left: 0; width: 100%; min-height: var(--footer-height);
+            background-color: var(--footer-bg); border-top: 1px solid var(--footer-border); display: flex; flex-direction: column; justify-content: center; padding: 6px 16px; z-index: 100;
         }
-        .record-bar-wrapper { width: 100%; max-width: 600px; margin: 0 auto; }
-        .record-bar { display: flex; align-items: center; gap: 10px; }
-        .input-bubble { flex: 1; background-color: var(--input-bg); border-radius: 24px; padding: 8px 16px; display: flex; align-items: center; cursor: pointer; }
-        .input-bubble input { width: 100%; border: none; background: transparent; font-size: 0.92rem; outline: none; color: var(--text-main); }
-        .footer-icons { display: flex; gap: 12px; align-items: center; }
+        .record-bar-wrapper { width: 100%; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 4px; }
+        
+        /* 運動画面でのみ表示する部位選択タグバー */
+        .exercise-tags-bar {
+            display: none; 
+            gap: 4px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+            white-space: nowrap;
+        }
+        .exercise-tag {
+            background-color: var(--input-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-sub);
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .exercise-tag.selected {
+            background-color: var(--theme-color);
+            color: var(--theme-text);
+            border-color: var(--theme-color);
+        }
+
+        .record-bar { display: flex; align-items: flex-end; gap: 10px; }
+        .input-bubble { flex: 1; background-color: var(--input-bg); border-radius: 20px; padding: 8px 16px; display: flex; align-items: center; cursor: pointer; }
+        
+        .input-bubble textarea {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 0.92rem;
+            outline: none;
+            color: var(--text-main);
+            resize: none;
+            font-family: inherit;
+            line-height: 1.4;
+            height: 24px;
+            max-height: 120px;
+            overflow-y: hidden;
+            display: block;
+        }
+
+        .footer-icons { display: flex; gap: 12px; align-items: center; padding-bottom: 4px; }
         .footer-btn { background: none; border: none; color: var(--text-sub); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 6px; }
-        .send-btn { display: none; width: 40px; height: 40px; border-radius: 50%; background-color: var(--send-btn-bg); border: none; color: #ffffff; cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0; }
+        .send-btn { display: none; width: 40px; height: 40px; border-radius: 50%; background-color: var(--send-btn-bg); border: none; color: #ffffff; cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0; margin-bottom: 2px; }
         #gallery-input, #camera-input { display: none; }
 
         .modal-overlay {
@@ -482,14 +526,15 @@
 
                 <!-- テーマカラー設定 -->
                 <div class="setting-section">
-                        <div class="setting-section-title"><i data-lucide="palette" style="width: 16px; height: 16px; color: var(--text-sub);"></i>テーマカラー設定</div>
-                        <div class="theme-picker">
+                    <div class="setting-section-title"><i data-lucide="palette" style="width: 16px; height: 16px; color: var(--text-sub);"></i>テーマカラー設定</div>
+                    <div class="theme-picker">
                         <div class="theme-color-circle selected" style="background-color: #b2d8d8;" onclick="changeThemeColor('#b2d8d8', '#2C4A4A', this)" title="カラー1"></div>
                         <div class="theme-color-circle" style="background-color: #b2b2d9;" onclick="changeThemeColor('#b2b2d9', '#2C4A4A', this)" title="カラー2"></div>
                         <div class="theme-color-circle" style="background-color: #d9b2d9;" onclick="changeThemeColor('#d9b2d9', '#2C4A4A', this)" title="カラー3"></div>
                         <div class="theme-color-circle" style="background-color: #d9b2b2;" onclick="changeThemeColor('#d9b2b2', '#2C4A4A', this)" title="カラー4"></div>
                         <div class="theme-color-circle" style="background-color: #d9d9b2;" onclick="changeThemeColor('#d9d9b2', '#2C4A4A', this)" title="カラー5"></div>
                         <div class="theme-color-circle" style="background-color: #b2d9b2;" onclick="changeThemeColor('#b2d9b2', '#2C4A4A', this)" title="カラー6"></div>
+                    </div>
                 </div>
 
                 <div class="setting-section">
@@ -514,9 +559,17 @@
     <!-- 下部固定入力バー -->
     <footer id="footer-bar">
         <div class="record-bar-wrapper">
+            <!-- 運動画面用：部位選択ボタン（腕、胸、腹、背中、足） -->
+            <div class="exercise-tags-bar" id="exercise-tags-bar">
+                <button type="button" class="exercise-tag" onclick="selectExerciseTag('腕', this)">腕</button>
+                <button type="button" class="exercise-tag" onclick="selectExerciseTag('胸', this)">胸</button>
+                <button type="button" class="exercise-tag" onclick="selectExerciseTag('腹', this)">腹</button>
+                <button type="button" class="exercise-tag" onclick="selectExerciseTag('背中', this)">背中</button>
+                <button type="button" class="exercise-tag" onclick="selectExerciseTag('足', this)">足</button>
+            </div>
             <div class="record-bar" id="footer-record-bar">
-                <div class="input-bubble" id="input-bubble-wrap" onclick="handleInputBubbleClick()">
-                    <input type="text" id="record-input" placeholder="食事内容を記録" oninput="handleInputChange()">
+                <div class="input-bubble" id="input-bubble-wrap" onclick="document.getElementById('record-input').focus()">
+                    <textarea id="record-input" rows="1" placeholder="食事内容を記録" oninput="handleInputChange()"></textarea>
                 </div>
                 <div class="footer-icons" id="footer-icons">
                     <button class="footer-btn" id="fav-btn" title="お気に入り" onclick="openFavoriteModal()"><i data-lucide="star" style="width: 20px; height: 20px;"></i></button>
@@ -786,7 +839,7 @@
                 const f = document.getElementById('target-fat').value;
                 const c = document.getElementById('target-carb').value;
                 const apiKey = document.getElementById('gemini-api-key').value.trim();
-                const currentTheme = localStorage.getItem('pfc_theme_color') || '#B2D8D8';
+                const currentTheme = localStorage.getItem('pfc_theme_color') || '#b2d8d8';
                 const currentThemeText = localStorage.getItem('pfc_theme_text') || '#2C4A4A';
 
                 await setDoc(userDocRef, {
@@ -810,6 +863,7 @@
 
         let currentCategory = 'food';
         let weightChartInstance = null;
+        let selectedExercisePart = ""; // 選択された部位を保持
         
         function getTodayISO() {
             const now = new Date();
@@ -1102,6 +1156,32 @@
             renderMonthlyCalendarGrid();
         }
 
+        // 部位ごとのカラーマップ（運動用）
+        const exercisePartColors = {
+            '胸': '#EF4444',
+            '背中': '#3B82F6',
+            '足': '#10B981',
+            '腕': '#F59E0B',
+            '腹': '#8B5CF6'
+        };
+
+        // 指定日の運動記録から色を決定する関数
+        function getExerciseColorForDay(dateISO) {
+            const dayExercises = window.exerciseRecords.filter(e => e.date === dateISO);
+            if (dayExercises.length === 0) return null;
+            
+            // 記録に含まれる部位を走査して最初にマッチした部位の色を返す
+            for (const ex of dayExercises) {
+                for (const part in exercisePartColors) {
+                    if (ex.name.includes(`【${part}】`) || ex.name.includes(part)) {
+                        return exercisePartColors[part];
+                    }
+                }
+            }
+            // 部位タグがない場合はデフォルトのテーマカラー
+            return getComputedStyle(document.documentElement).getPropertyValue('--theme-text').trim() || '#2C4A4A';
+        }
+
         function checkDayIsExceeded(dateISO) {
             const dayFoods = window.foodRecords.filter(f => f.date === dateISO);
             let totalCal = 0, totalF = 0, totalC = 0;
@@ -1148,13 +1228,28 @@
 
             for (let d = 1; d <= lastDate; d++) {
                 const dateISO = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                const isExceeded = checkDayIsExceeded(dateISO);
                 const isSelected = (dateISO === selectedDateStr);
                 const isToday = (dateISO === todayISO);
 
                 const dEl = document.createElement('div');
-                dEl.className = `month-cal-day ${isSelected ? 'selected' : ''} ${isToday ? 'is-today' : ''} ${isExceeded ? 'exceeded' : ''}`;
+                dEl.className = `month-cal-day ${isSelected ? 'selected' : ''} ${isToday ? 'is-today' : ''}`;
                 dEl.textContent = d;
+
+                // 画面モード（食事・運動）によってカレンダーの丸の色を切り替え
+                if (currentCategory === 'exercise') {
+                    const exColor = getExerciseColorForDay(dateISO);
+                    if (exColor) {
+                        dEl.style.backgroundColor = exColor;
+                        dEl.style.color = '#FFFFFF';
+                        dEl.style.boxShadow = `0 1px 4px ${exColor}66`;
+                    }
+                } else if (currentCategory === 'food') {
+                    const isExceeded = checkDayIsExceeded(dateISO);
+                    if (isExceeded) {
+                        dEl.classList.add('exceeded');
+                    }
+                }
+
                 dEl.onclick = () => selectDateAndAlignWeekly(dateISO);
                 grid.appendChild(dEl);
             }
@@ -1198,21 +1293,36 @@
                 const hasWeight = (window.weightDataHistory || []).some(w => (w.isoDate || "") === dateKey);
                 const hasExercise = (window.exerciseRecords || []).some(e => e.date === dateKey);
 
-                let hasRecordClass = '';
-                if (currentCategory === 'food' && isExceeded) {
-                    hasRecordClass = 'exceeded';
-                } else if (currentCategory === 'weight' && hasWeight) {
-                    hasRecordClass = 'has-record';
-                } else if (currentCategory === 'exercise' && hasExercise) {
-                    hasRecordClass = 'has-record';
-                } else if (currentCategory === 'food' && dayFoods.length > 0) {
-                    hasRecordClass = 'has-record';
-                }
-
                 const isSelected = (dateKey === selectedDateStr);
 
                 const cell = document.createElement('div');
-                cell.className = `week-day-cell ${isToday ? 'is-today' : ''} ${isSelected ? 'selected' : ''} ${hasRecordClass}`;
+                cell.className = `week-day-cell ${isToday ? 'is-today' : ''} ${isSelected ? 'selected' : ''}`;
+                
+                // 週間カレンダーの丸の色設定（運動画面なら部位別カラー、食事画面ならオーバーで赤）
+                let dateBadgeStyle = '';
+                if (currentCategory === 'exercise') {
+                    const exColor = getExerciseColorForDay(dateKey);
+                    if (exColor) {
+                        dateBadgeStyle = `background-color: ${exColor} !important; color: #FFFFFF !important; box-shadow: 0 1px 4px ${exColor}66;`;
+                    }
+                } else if (currentCategory === 'food') {
+                    if (isExceeded) {
+                        dateBadgeStyle = `background-color: #EF4444 !important; color: #FFFFFF !important; box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4);`;
+                    }
+                } else if (currentCategory === 'weight') {
+                    if (hasWeight) {
+                        // 体重のドット表示などはそのままクラス制御
+                    }
+                }
+
+                if (currentCategory === 'food' && !isExceeded && dayFoods.length > 0) {
+                    cell.classList.add('has-record');
+                } else if (currentCategory === 'weight' && hasWeight) {
+                    cell.classList.add('has-record');
+                } else if (currentCategory === 'exercise' && hasExercise && !getExerciseColorForDay(dateKey)) {
+                    cell.classList.add('has-record');
+                }
+
                 cell.onclick = () => {
                     selectedDateStr = dateKey;
                     renderWeeklyCalendar();
@@ -1223,11 +1333,18 @@
 
                 cell.innerHTML = `
                     <span class="week-day-name">${isToday ? '今日' : dayName}</span>
-                    <span class="week-day-date">${dateNum}</span>
+                    <span class="week-day-date" style="${dateBadgeStyle}">${dateNum}</span>
                 `;
                 calendarEl.appendChild(cell);
             }
         }
+
+        // 運動部位選択タグのクリック処理
+        window.selectExerciseTag = function(part, element) {
+            document.querySelectorAll('.exercise-tag').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedExercisePart = part;
+        };
 
         function renderFoodList(autoScrollToBottom = true) {
             const list = document.getElementById('food-list');
@@ -1645,84 +1762,15 @@
             });
         }
 
-        async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
-            const candidateModels = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-1.5-flash"];
-            
-            let prompt = "";
-            if (imageBase64) {
-                prompt = `あなたは厳密な栄養管理士です。この写真の料理を分析し、「文部科学省 日本食品標準成分表」または信頼できる公式メーカーの標準的な1食あたりの数値（カロリー、たんぱく質P、脂質F、炭水化物C）を正確に算出してJSONで返してください。不確かな場合は推測せず標準的な平均値を求めてください。出力は次のJSON形式のみとし、余計な文章やマークダウンは一切含めないでください。{"name": "品名", "cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
-            } else {
-                prompt = `あなたは厳密な栄養管理士です。「${foodText}」について、「文部科学省 日本食品標準成分表」または信頼できるメーカーの公式栄養成分データに基づいた1食あたりの正確な数値（カロリー、たんぱく質P、脂質F、炭水化物C）を算出してJSONで返してください。適当な推測値やブログ等の不確かな情報は除外してください。出力は次のJSON形式のみとし、余計な文章やマークダウンは一切含めないでください。{"name": "${foodText}", "cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
-            }
-
-            let lastError = null;
-
-            for (const model of candidateModels) {
-                try {
-                    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-                    
-                    let parts = [{ text: prompt }];
-                    if (imageBase64) {
-                        parts.push({
-                            inlineData: {
-                                mimeType: "image/jpeg",
-                                data: imageBase64
-                            }
-                        });
-                    }
-
-                    const response = await fetch(endpoint, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: parts }],
-                            tools: [{ googleSearch: {} }]
-                        })
-                    });
-                    const data = await response.json();
-                    
-                    if (data.error) {
-                        throw new Error(data.error.message || `[${model}] API制限または認証エラー`);
-                    }
-                    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-                        throw new Error(`[${model}] AIからの応答が空です`);
-                    }
-                    
-                    const contentParts = data.candidates[0].content.parts;
-                    let rawText = "";
-                    for (const p of contentParts) {
-                        if (p.text) {
-                            rawText += p.text;
-                        }
-                    }
-
-                    const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-                    const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
-                    
-                    if (jsonMatch) {
-                        const parsed = JSON.parse(jsonMatch[0]);
-                        return {
-                            name: parsed.name || foodText,
-                            cal: Number(parsed.cal !== undefined ? parsed.cal : (parsed.calories || 0)),
-                            p: Number(parsed.p !== undefined ? parsed.p : (parsed.protein || 0)),
-                            f: Number(parsed.f !== undefined ? parsed.f : (parsed.fat || 0)),
-                            c: Number(parsed.c !== undefined ? parsed.c : (parsed.carbs || 0))
-                        };
-                    }
-                    throw new Error("JSON形式にパースできませんでした");
-                } catch (err) {
-                    lastError = err;
-                    console.warn(`Model ${model} failed, trying next...`, err);
-                }
-            }
-            
-            throw lastError || new Error("すべてのAIモデルでの解析に失敗しました。");
-        }
-
         async function submitRecord(isPhoto = false) {
             const input = document.getElementById('record-input');
-            const text = isPhoto ? "写真解析" : input.value.trim();
+            let text = isPhoto ? "写真解析" : input.value.trim();
             if (!text && !base64Image) return;
+
+            // 運動画面で部位タグが選択されている場合、テキストの先頭に【部位】を付与する
+            if (currentCategory === 'exercise' && selectedExercisePart) {
+                text = `【${selectedExercisePart}】\n${text}`;
+            }
 
             const apiKey = window.geminiApiKey || localStorage.getItem('gemini_api_key');
 
@@ -1787,11 +1835,16 @@
             }
 
             input.value = '';
+            input.style.height = '24px';
             handleInputChange();
         }
 
         function handleInputChange() {
-            const inputVal = document.getElementById('record-input').value.trim();
+            const textarea = document.getElementById('record-input');
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+
+            const inputVal = textarea.value.trim();
             const footerIcons = document.getElementById('footer-icons');
             const sendBtn = document.getElementById('send-btn');
 
@@ -1820,11 +1873,7 @@
             }
         }
 
-        document.getElementById('record-input').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') submitRecord(false);
-        });
-
-        // タブおよびスライド切り替え（順序：運動[0] ⇄ 食事[1] ⇄ 体重[2]）
+        // タブおよびスライド切り替え（運動[0] ⇄ 食事[1] ⇄ 体重[2]）
         function switchView(viewName) {
             document.querySelectorAll('.header-tab-btn').forEach(btn => btn.classList.remove('active'));
             
@@ -1834,6 +1883,7 @@
             const slider = document.getElementById('views-slider');
             const settingsView = document.getElementById('view-settings');
             const indicator = document.getElementById('tab-indicator');
+            const exerciseTagsBar = document.getElementById('exercise-tags-bar');
 
             if (settingsBtn) settingsBtn.classList.remove('active-settings');
 
@@ -1862,11 +1912,12 @@
                 if (viewName === 'exercise') {
                     currentCategory = 'exercise';
                     targetIndex = 0;
-                    inputEl.placeholder = '運動内容を入力';
+                    inputEl.placeholder = '運動内容を入力 (複数行可)';
                     inputEl.readOnly = false;
-                    favBtn.style.display = 'flex';
+                    favBtn.style.display = 'none';
                     galleryBtn.style.display = 'none';
                     cameraBtn.style.display = 'none';
+                    exerciseTagsBar.style.display = 'flex'; // 運動画面のときだけ部位選択タグを表示
                     renderExerciseList(true);
                 } else if (viewName === 'food') {
                     currentCategory = 'food';
@@ -1876,6 +1927,7 @@
                     favBtn.style.display = 'flex';
                     galleryBtn.style.display = 'flex';
                     cameraBtn.style.display = 'flex';
+                    exerciseTagsBar.style.display = 'none'; // 食事画面では非表示
                     renderFoodList(true);
                 } else if (viewName === 'weight') {
                     currentCategory = 'weight';
@@ -1885,6 +1937,7 @@
                     favBtn.style.display = 'none';
                     galleryBtn.style.display = 'none';
                     cameraBtn.style.display = 'none';
+                    exerciseTagsBar.style.display = 'none'; // 体重画面では非表示
                     setTimeout(() => initOrUpdateWeightChart(), 50);
                 }
 
@@ -1958,8 +2011,9 @@
 
             renderWeeklyCalendar();
             renderFoodList(true);
+            switchView('food');
 
-            // 1枚目の画像の青線・緑枠エリア（グラフや空白部分）を含むメインコンテナ全体で、どこからでもスワイプ操作が確実に反応するように設定
+            // メインコンテナ全域でのスワイプ切り替え処理
             let startX = 0;
             let startY = 0;
             let currentX = 0;
@@ -1986,8 +2040,7 @@
                 const diffX = startX - currentX;
                 const diffY = startY - e.changedTouches[0].clientY;
                 
-                // 横方向のスワイプ移動量が縦スクロールより大きく、かつ一定以上の場合にページ遷移を発動
-                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 25) {
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 35) {
                     if (diffX > 0) {
                         // 左スワイプ（運動 → 食事 → 体重）
                         if (currentCategory === 'exercise') switchView('food');
