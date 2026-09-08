@@ -516,7 +516,7 @@
     <footer id="footer-bar">
         <div class="record-bar-wrapper">
             <div class="record-bar" id="footer-record-bar">
-                <div class="input-bubble" id="input-bubble-wrap" onclick="document.getElementById('record-input').focus()">
+                <div class="input-bubble" id="input-bubble-wrap" onclick="handleInputBubbleClick()">
                     <input type="text" id="record-input" placeholder="食事内容を記録" oninput="handleInputChange()">
                 </div>
                 <div class="footer-icons" id="footer-icons">
@@ -1159,7 +1159,7 @@
             renderMonthlyCalendarGrid();
         }
 
-        // 全6色のカラーパレット（同系色が被らないよう色相を完全に分離した淡いパステル調）
+        // 全6色のカラーパレット（見分けやすい淡いパステル調）
         const exercisePartColors = {
             '腕': '#FDE047',      /* 淡いレモンイエロー */
             '胸': '#FDA4AF',      /* ソフトなサーモンピンク */
@@ -1602,7 +1602,11 @@
                         },
                         yFat: {
                             type: 'linear', position: 'right', grid: { display: false },
-                            ticks: { color: '#D97706', font: { size: 9, weight: '600' }, callback: (v) => `${v}%` }
+                            ticks: { 
+                                color: '#D97706', 
+                                font: { size: 9, weight: '600' }, 
+                                callback: (v) => `${Number(v).toFixed(1)}%` 
+                            }
                         }
                     }
                 }
