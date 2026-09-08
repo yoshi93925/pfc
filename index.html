@@ -254,7 +254,7 @@
             white-space: pre-wrap; 
             word-break: break-all;
         }
-        .item-detail { font-size: 0.8rem; font-weight: 400; color: var(--text-sub); }
+        .item-detail { font-size: 0.8rem; font-weight: 400; color: var(--text-sub); white-space: pre-wrap; word-break: break-all; }
         .blank-state { text-align: center; padding: 40px 20px; color: var(--text-sub); background: var(--card-bg); border-radius: 10px; border: 1px dashed var(--card-border); margin-top: 10px; }
 
         /* 設定画面（フラットデザイン） */
@@ -281,61 +281,19 @@
         }
         .setting-save-btn:active { opacity: 0.8; }
 
-        /* フッター・入力エリア（部位選択タグ付き） */
+        /* フッター・入力エリア */
         footer {
-            position: fixed; bottom: 0; left: 0; width: 100%; min-height: var(--footer-height);
-            background-color: var(--footer-bg); border-top: 1px solid var(--footer-border); display: flex; flex-direction: column; justify-content: center; padding: 6px 16px; z-index: 100;
+            position: fixed; bottom: 0; left: 0; width: 100%; height: var(--footer-height);
+            background-color: var(--footer-bg); border-top: 1px solid var(--footer-border); display: flex; align-items: center; padding: 0 16px; z-index: 100;
         }
-        .record-bar-wrapper { width: 100%; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 4px; }
-        
-        /* 運動画面でのみ表示する部位選択タグバー */
-        .exercise-tags-bar {
-            display: none; 
-            gap: 4px;
-            overflow-x: auto;
-            padding-bottom: 2px;
-            white-space: nowrap;
-        }
-        .exercise-tag {
-            background-color: var(--input-bg);
-            border: 1px solid var(--card-border);
-            color: var(--text-sub);
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 0.72rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            flex-shrink: 0;
-        }
-        .exercise-tag.selected {
-            background-color: var(--theme-color);
-            color: var(--theme-text);
-            border-color: var(--theme-color);
-        }
+        .record-bar-wrapper { width: 100%; max-width: 600px; margin: 0 auto; }
+        .record-bar { display: flex; align-items: center; gap: 10px; }
+        .input-bubble { flex: 1; background-color: var(--input-bg); border-radius: 24px; padding: 8px 16px; display: flex; align-items: center; cursor: pointer; }
+        .input-bubble input { width: 100%; border: none; background: transparent; font-size: 0.92rem; outline: none; color: var(--text-main); }
 
-        .record-bar { display: flex; align-items: flex-end; gap: 10px; }
-        .input-bubble { flex: 1; background-color: var(--input-bg); border-radius: 20px; padding: 8px 16px; display: flex; align-items: center; cursor: pointer; }
-        
-        .input-bubble textarea {
-            width: 100%;
-            border: none;
-            background: transparent;
-            font-size: 0.92rem;
-            outline: none;
-            color: var(--text-main);
-            resize: none;
-            font-family: inherit;
-            line-height: 1.4;
-            height: 24px;
-            max-height: 120px;
-            overflow-y: hidden;
-            display: block;
-        }
-
-        .footer-icons { display: flex; gap: 12px; align-items: center; padding-bottom: 4px; }
+        .footer-icons { display: flex; gap: 12px; align-items: center; }
         .footer-btn { background: none; border: none; color: var(--text-sub); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 6px; }
-        .send-btn { display: none; width: 40px; height: 40px; border-radius: 50%; background-color: var(--send-btn-bg); border: none; color: #ffffff; cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0; margin-bottom: 2px; }
+        .send-btn { display: none; width: 40px; height: 40px; border-radius: 50%; background-color: var(--send-btn-bg); border: none; color: #ffffff; cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0; }
         #gallery-input, #camera-input { display: none; }
 
         .modal-overlay {
@@ -386,9 +344,7 @@
     <!-- ヘッダーエリア -->
     <header id="header">
         <div class="header-top">
-            <!-- 並び順：運動管理[0] → 食事管理[1]（初期選択） → 体重管理[2] -->
             <div class="header-nav-tabs" id="nav-tabs-container">
-                <!-- スライドする選択中の丸インジケーター（食事管理＝インデックス1の位置：translateX(38px)） -->
                 <div class="tab-indicator" id="tab-indicator" style="transform: translateX(38px);"></div>
                 <button class="header-tab-btn" id="tab-btn-exercise" onclick="switchView('exercise')" title="運動管理">
                     <i data-lucide="dumbbell" style="width: 18px; height: 18px;"></i>
@@ -559,17 +515,9 @@
     <!-- 下部固定入力バー -->
     <footer id="footer-bar">
         <div class="record-bar-wrapper">
-            <!-- 運動画面用：部位選択ボタン（腕、胸、腹、背中、足） -->
-            <div class="exercise-tags-bar" id="exercise-tags-bar">
-                <button type="button" class="exercise-tag" onclick="selectExerciseTag('腕', this)">腕</button>
-                <button type="button" class="exercise-tag" onclick="selectExerciseTag('胸', this)">胸</button>
-                <button type="button" class="exercise-tag" onclick="selectExerciseTag('腹', this)">腹</button>
-                <button type="button" class="exercise-tag" onclick="selectExerciseTag('背中', this)">背中</button>
-                <button type="button" class="exercise-tag" onclick="selectExerciseTag('足', this)">足</button>
-            </div>
             <div class="record-bar" id="footer-record-bar">
                 <div class="input-bubble" id="input-bubble-wrap" onclick="document.getElementById('record-input').focus()">
-                    <textarea id="record-input" rows="1" placeholder="食事内容を記録" oninput="handleInputChange()"></textarea>
+                    <input type="text" id="record-input" placeholder="食事内容を記録" oninput="handleInputChange()">
                 </div>
                 <div class="footer-icons" id="footer-icons">
                     <button class="footer-btn" id="fav-btn" title="お気に入り" onclick="openFavoriteModal()"><i data-lucide="star" style="width: 20px; height: 20px;"></i></button>
@@ -597,6 +545,24 @@
             <div style="margin-top: 14px; text-align: center;">
                 <button class="modal-btn modal-btn-secondary" style="width: 100%; padding: 8px;" id="today-back-btn" onclick="goToToday()">今日に戻る</button>
             </div>
+        </div>
+    </div>
+
+    <!-- 運動カテゴリ（部位）選択ポップアップモーダル -->
+    <div class="modal-overlay" id="exercise-category-modal">
+        <div class="modal-box" style="max-width: 320px; text-align: center;">
+            <div class="modal-header" style="justify-content: center; margin-bottom: 10px;">
+                <span>運動のカテゴリを選択</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
+                <button class="modal-btn modal-btn-primary" onclick="confirmExerciseCategory('腕')">腕</button>
+                <button class="modal-btn modal-btn-primary" onclick="confirmExerciseCategory('胸')">胸</button>
+                <button class="modal-btn modal-btn-primary" onclick="confirmExerciseCategory('腹')">腹</button>
+                <button class="modal-btn modal-btn-primary" onclick="confirmExerciseCategory('背中')">背中</button>
+                <button class="modal-btn modal-btn-primary" onclick="confirmExerciseCategory('足')">足</button>
+                <button class="modal-btn modal-btn-primary" onclick="confirmExerciseCategory('有酸素')">有酸素</button>
+            </div>
+            <button class="modal-btn modal-btn-secondary" onclick="closeModal('exercise-category-modal')">キャンセル</button>
         </div>
     </div>
 
@@ -630,17 +596,41 @@
         </div>
     </div>
 
-    <!-- 運動記録編集モーダル -->
+    <!-- 運動記録編集モーダル（タイトル右側にカテゴリ選択、記録時間は日付の右側、セット数は改行可能） -->
     <div class="modal-overlay" id="exercise-edit-modal">
         <div class="modal-box">
             <div class="modal-header">
-                <span>運動メニューの編集</span>
-                <button class="icon-btn" onclick="closeModal('exercise-edit-modal')"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <span>運動メニューの編集</span>
+                    <div class="custom-select-wrap">
+                        <select id="edit-exercise-part" class="custom-select" style="padding: 2px 24px 2px 8px; font-size: 0.8rem;">
+                            <option value="腕">腕</option>
+                            <option value="胸">胸</option>
+                            <option value="腹">腹</option>
+                            <option value="背中">背中</option>
+                            <option value="足">足</option>
+                            <option value="有酸素">有酸素</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="icon-btn" onclick="closeModal('exercise-edit-modal')" style="margin-left: 8px;"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
             </div>
             <input type="hidden" id="edit-exercise-id">
-            <div class="modal-form-group"><label class="modal-label">日付</label><input type="date" class="modal-input" id="edit-exercise-date"></div>
-            <div class="modal-form-group"><label class="modal-label">メニュー名</label><textarea class="modal-input" id="edit-exercise-name" rows="3" style="resize: vertical; font-family: inherit;" placeholder="複数行の入力が可能です"></textarea></div>
-            <div class="modal-form-group"><label class="modal-label">メモ欄</label><input type="text" class="modal-input" id="edit-exercise-detail" placeholder="詳細や時間を入力"></div>
+            
+            <!-- 日付と記録時間（記録時間に改称）を横並びに配置 -->
+            <div class="modal-grid-2">
+                <div class="modal-form-group"><label class="modal-label">日付</label><input type="date" class="modal-input" id="edit-exercise-date"></div>
+                <div class="modal-form-group"><label class="modal-label">記録時間</label><input type="time" class="modal-input" id="edit-exercise-time"></div>
+            </div>
+
+            <div class="modal-form-group"><label class="modal-label">メニュー名</label><input type="text" class="modal-input" id="edit-exercise-name"></div>
+            
+            <!-- セット数（複数行入力・改行可能） -->
+            <div class="modal-form-group">
+                <label class="modal-label">セット数 (複数行入力可)</label>
+                <textarea class="modal-input" id="edit-exercise-sets" rows="3" style="resize: vertical; font-family: inherit;" placeholder="例: 60kgx10 10&#10;50kgx10"></textarea>
+            </div>
+
             <div class="modal-actions">
                 <button class="modal-btn modal-btn-danger" onclick="deleteCurrentExercise()"><i data-lucide="trash-2" style="width:16px;height:16px;"></i> 削除</button>
                 <button class="modal-btn modal-btn-primary" onclick="saveExerciseEdit()"><i data-lucide="check" style="width:16px;height:16px;"></i> 保存</button>
@@ -863,7 +853,7 @@
 
         let currentCategory = 'food';
         let weightChartInstance = null;
-        let selectedExercisePart = "";
+        let pendingExerciseText = ""; 
         
         function getTodayISO() {
             const now = new Date();
@@ -1041,25 +1031,42 @@
             }
         };
 
+        // 運動記録の編集モーダルを開く
         function openExerciseEditModal(item) {
             document.getElementById('edit-exercise-id').value = item.id;
             document.getElementById('edit-exercise-date').value = item.date;
-            document.getElementById('edit-exercise-name').value = item.name;
-            document.getElementById('edit-exercise-detail').value = item.detail || "";
+            
+            let part = "腕";
+            let pureName = item.name;
+            const match = item.name.match(/^【(.*?)】\s*(.*)$/);
+            if (match) {
+                part = match[1];
+                pureName = match[2];
+            }
+            document.getElementById('edit-exercise-part').value = part;
+
+            document.getElementById('edit-exercise-name').value = pureName;
+            document.getElementById('edit-exercise-sets').value = item.sets || "";
+            document.getElementById('edit-exercise-time').value = item.recordTime || "08:00";
             openModal('exercise-edit-modal');
         }
 
         window.saveExerciseEdit = function() {
             const id = document.getElementById('edit-exercise-id').value;
             const date = document.getElementById('edit-exercise-date').value;
+            const part = document.getElementById('edit-exercise-part').value;
             const name = document.getElementById('edit-exercise-name').value.trim();
-            const detail = document.getElementById('edit-exercise-detail').value.trim();
+            const sets = document.getElementById('edit-exercise-sets').value.trim();
+            const recordTime = document.getElementById('edit-exercise-time').value;
 
             if (!name) { alert("メニュー名を入力してください"); return; }
 
+            const finalName = `【${part}】${name}`;
+            const detailText = `${sets || ''}${sets && recordTime ? ' / ' : ''}${recordTime ? recordTime : ''}`;
+
             window.exerciseRecords = window.exerciseRecords.map(item => {
                 if (String(item.id) === String(id)) {
-                    return { ...item, date, name, detail };
+                    return { ...item, date, name: finalName, sets, recordTime, detail: detailText };
                 }
                 return item;
             });
@@ -1068,6 +1075,7 @@
             if (window.syncDataToCloud) window.syncDataToCloud();
             closeModal('exercise-edit-modal');
             renderExerciseList(false);
+            renderWeeklyCalendar();
             showToast('記録しました');
         };
 
@@ -1079,6 +1087,7 @@
                 if (window.syncDataToCloud) window.syncDataToCloud();
                 closeModal('exercise-edit-modal');
                 renderExerciseList(false);
+                renderWeeklyCalendar();
                 showToast('記録しました');
             }
         };
@@ -1161,7 +1170,8 @@
             '背中': '#3B82F6',
             '足': '#10B981',
             '腕': '#F59E0B',
-            '腹': '#8B5CF6'
+            '腹': '#8B5CF6',
+            '有酸素': '#EC4899'
         };
 
         function getExerciseColorForDay(dateISO) {
@@ -1328,12 +1338,6 @@
                 calendarEl.appendChild(cell);
             }
         }
-
-        window.selectExerciseTag = function(part, element) {
-            document.querySelectorAll('.exercise-tag').forEach(el => el.classList.remove('selected'));
-            element.classList.add('selected');
-            selectedExercisePart = part;
-        };
 
         function renderFoodList(autoScrollToBottom = true) {
             const list = document.getElementById('food-list');
@@ -1741,11 +1745,17 @@
                 const card = document.createElement('div');
                 card.className = 'item-card';
                 card.onclick = () => openExerciseEditModal(item);
+                
+                // セット数に「セット：」の文字を含めず、かつ改行をそのまま反映
+                const setsText = item.sets ? `${item.sets}` : '';
+                const timeText = item.recordTime ? `${item.recordTime}` : `${item.date}`;
+                const detailText = `${setsText}${setsText && timeText ? ' / ' : ''}${timeText}`;
+
                 card.innerHTML = `
                     <div class="item-card-header">
                         <span class="item-title">${item.name}</span>
                     </div>
-                    <div class="item-detail">${item.detail || item.date}</div>
+                    <div class="item-detail">${detailText}</div>
                 `;
                 list.appendChild(card);
             });
@@ -1827,86 +1837,96 @@
 
         async function submitRecord(isPhoto = false) {
             const input = document.getElementById('record-input');
-            let text = isPhoto ? "写真解析" : input.value.trim();
+            const text = isPhoto ? "写真解析" : input.value.trim();
             if (!text && !base64Image) return;
 
-            if (currentCategory === 'exercise' && selectedExercisePart) {
-                text = `【${selectedExercisePart}】\n${text}`;
+            if (currentCategory === 'exercise') {
+                pendingExerciseText = text;
+                openModal('exercise-category-modal');
+                return;
             }
 
             const apiKey = window.geminiApiKey || localStorage.getItem('gemini_api_key');
+            if (!apiKey) {
+                alert("Gemini APIキーが設定されていません。設定画面からキーを入力してください。");
+                hideLoading();
+                return;
+            }
 
-            if (currentCategory === 'exercise') {
-                window.exerciseRecords.push({
-                    id: 'e_' + Date.now(),
-                    date: selectedDateStr,
-                    name: text,
-                    detail: `記録日時: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`,
-                    timestamp: Date.now()
-                });
-                localStorage.setItem('pfc_exercise_records', JSON.stringify(window.exerciseRecords));
-                if (window.syncDataToCloud) window.syncDataToCloud();
-                renderExerciseList(true);
-                renderWeeklyCalendar();
-                showToast('記録しました');
-            } else if (currentCategory === 'food') {
-                if (!apiKey) {
-                    alert("Gemini APIキーが設定されていません。設定画面からキーを入力してください。");
+            try {
+                const result = await fetchGeminiNutrients(text, apiKey, base64Image);
+                
+                if (!result || !result.name || result.name === "不明" || result.name.includes("該当なし") || result.name.includes("解析できません")) {
                     hideLoading();
+                    base64Image = null;
+                    alert("解析できませんでした");
                     return;
                 }
 
-                try {
-                    const result = await fetchGeminiNutrients(text, apiKey, base64Image);
-                    
-                    if (!result || !result.name || result.name === "不明" || result.name.includes("該当なし") || result.name.includes("解析できません")) {
-                        hideLoading();
-                        base64Image = null;
-                        alert("解析できませんでした");
-                        return;
-                    }
-
-                    const newFoodId = 'f_' + Date.now();
-                    const determinedName = result.name;
-                    
-                    window.foodRecords.push({
-                        id: newFoodId,
-                        date: selectedDateStr,
-                        name: determinedName,
-                        cal: result.cal || 0,
-                        p: result.p || 0,
-                        f: result.f || 0,
-                        c: result.c || 0,
-                        timestamp: Date.now()
-                    });
-                    
-                    localStorage.setItem('pfc_food_records', JSON.stringify(window.foodRecords));
-                    if (window.syncDataToCloud) window.syncDataToCloud();
-                    
-                    base64Image = null;
-                    hideLoading();
-                    
-                    renderWeeklyCalendar();
-                    renderFoodList(true);
-                    showToast('記録しました');
-                } catch (err) {
-                    console.error("Gemini API Error:", err);
-                    hideLoading();
-                    alert("解析できませんでした");
-                }
+                const newFoodId = 'f_' + Date.now();
+                window.foodRecords.push({
+                    id: newFoodId,
+                    date: selectedDateStr,
+                    name: result.name,
+                    cal: result.cal || 0,
+                    p: result.p || 0,
+                    f: result.f || 0,
+                    c: result.c || 0,
+                    timestamp: Date.now()
+                });
+                
+                localStorage.setItem('pfc_food_records', JSON.stringify(window.foodRecords));
+                if (window.syncDataToCloud) window.syncDataToCloud();
+                
+                base64Image = null;
+                hideLoading();
+                
+                renderWeeklyCalendar();
+                renderFoodList(true);
+                showToast('記録しました');
+            } catch (err) {
+                console.error("Gemini API Error:", err);
+                hideLoading();
+                alert("解析できませんでした");
             }
 
             input.value = '';
-            input.style.height = '24px';
             handleInputChange();
         }
 
-        function handleInputChange() {
-            const textarea = document.getElementById('record-input');
-            textarea.style.height = 'auto';
-            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        window.confirmExerciseCategory = function(part) {
+            closeModal('exercise-category-modal');
+            if (!pendingExerciseText) return;
 
-            const inputVal = textarea.value.trim();
+            const finalName = `【${part}】${pendingExerciseText}`;
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            window.exerciseRecords.push({
+                id: 'e_' + Date.now(),
+                date: selectedDateStr,
+                name: finalName,
+                sets: '',
+                recordTime: timeStr,
+                detail: timeStr,
+                timestamp: Date.now()
+            });
+
+            localStorage.setItem('pfc_exercise_records', JSON.stringify(window.exerciseRecords));
+            if (window.syncDataToCloud) window.syncDataToCloud();
+
+            renderExerciseList(true);
+            renderWeeklyCalendar();
+            showToast('記録しました');
+
+            pendingExerciseText = "";
+            const input = document.getElementById('record-input');
+            input.value = '';
+            handleInputChange();
+        };
+
+        function handleInputChange() {
+            const inputVal = document.getElementById('record-input').value.trim();
             const footerIcons = document.getElementById('footer-icons');
             const sendBtn = document.getElementById('send-btn');
 
@@ -1935,7 +1955,10 @@
             }
         }
 
-        // タブおよびスライド切り替え（運動[0] ⇄ 食事[1] ⇄ 体重[2]）
+        document.getElementById('record-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') submitRecord(false);
+        });
+
         function switchView(viewName) {
             document.querySelectorAll('.header-tab-btn').forEach(btn => btn.classList.remove('active'));
             
@@ -1945,7 +1968,6 @@
             const slider = document.getElementById('views-slider');
             const settingsView = document.getElementById('view-settings');
             const indicator = document.getElementById('tab-indicator');
-            const exerciseTagsBar = document.getElementById('exercise-tags-bar');
 
             if (settingsBtn) settingsBtn.classList.remove('active-settings');
 
@@ -1974,12 +1996,11 @@
                 if (viewName === 'exercise') {
                     currentCategory = 'exercise';
                     targetIndex = 0;
-                    inputEl.placeholder = '運動内容を入力 (複数行可)';
+                    inputEl.placeholder = '運動内容を入力';
                     inputEl.readOnly = false;
                     favBtn.style.display = 'none';
                     galleryBtn.style.display = 'none';
                     cameraBtn.style.display = 'none';
-                    exerciseTagsBar.style.display = 'flex';
                     renderExerciseList(true);
                 } else if (viewName === 'food') {
                     currentCategory = 'food';
@@ -1989,7 +2010,6 @@
                     favBtn.style.display = 'flex';
                     galleryBtn.style.display = 'flex';
                     cameraBtn.style.display = 'flex';
-                    exerciseTagsBar.style.display = 'none';
                     renderFoodList(true);
                 } else if (viewName === 'weight') {
                     currentCategory = 'weight';
@@ -1999,7 +2019,6 @@
                     favBtn.style.display = 'none';
                     galleryBtn.style.display = 'none';
                     cameraBtn.style.display = 'none';
-                    exerciseTagsBar.style.display = 'none';
                     setTimeout(() => initOrUpdateWeightChart(), 50);
                 }
 
