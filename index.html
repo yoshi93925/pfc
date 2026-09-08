@@ -596,7 +596,7 @@
         </div>
     </div>
 
-    <!-- 運動記録編集モーダル（タイトル右側にカテゴリ選択、記録時間は日付の右側、セット数は改行可能） -->
+    <!-- 運動記録編集モーダル -->
     <div class="modal-overlay" id="exercise-edit-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -617,7 +617,6 @@
             </div>
             <input type="hidden" id="edit-exercise-id">
             
-            <!-- 日付と記録時間（記録時間に改称）を横並びに配置 -->
             <div class="modal-grid-2">
                 <div class="modal-form-group"><label class="modal-label">日付</label><input type="date" class="modal-input" id="edit-exercise-date"></div>
                 <div class="modal-form-group"><label class="modal-label">記録時間</label><input type="time" class="modal-input" id="edit-exercise-time"></div>
@@ -625,9 +624,9 @@
 
             <div class="modal-form-group"><label class="modal-label">メニュー名</label><input type="text" class="modal-input" id="edit-exercise-name"></div>
             
-            <!-- セット数（複数行入力・改行可能） -->
+            <!-- 回数 / 時間 (複数行入力可) -->
             <div class="modal-form-group">
-                <label class="modal-label">セット数 (複数行入力可)</label>
+                <label class="modal-label">回数 / 時間 (複数行入力可)</label>
                 <textarea class="modal-input" id="edit-exercise-sets" rows="3" style="resize: vertical; font-family: inherit;" placeholder="例: 60kgx10 10&#10;50kgx10"></textarea>
             </div>
 
@@ -1031,12 +1030,11 @@
             }
         };
 
-        // 運動記録の編集モーダルを開く
         function openExerciseEditModal(item) {
             document.getElementById('edit-exercise-id').value = item.id;
             document.getElementById('edit-exercise-date').value = item.date;
             
-            let part = "腕";
+            let part = item.part || "腕";
             let pureName = item.name;
             const match = item.name.match(/^【(.*?)】\s*(.*)$/);
             if (match) {
@@ -1061,12 +1059,9 @@
 
             if (!name) { alert("メニュー名を入力してください"); return; }
 
-            const finalName = `【${part}】${name}`;
-            const detailText = `${sets || ''}${sets && recordTime ? ' / ' : ''}${recordTime ? recordTime : ''}`;
-
             window.exerciseRecords = window.exerciseRecords.map(item => {
                 if (String(item.id) === String(id)) {
-                    return { ...item, date, name: finalName, sets, recordTime, detail: detailText };
+                    return { ...item, date, part, name, sets, recordTime };
                 }
                 return item;
             });
@@ -1174,18 +1169,38 @@
             '有酸素': '#EC4899'
         };
 
-        function getExerciseColorForDay(dateISO) {
+        function getExerciseBadgeStyleForDay(dateISO) {
             const dayExercises = window.exerciseRecords.filter(e => e.date === dateISO);
             if (dayExercises.length === 0) return null;
             
-            for (const ex of dayExercises) {
-                for (const part in exercisePartColors) {
-                    if (ex.name.includes(`【${part}】`) || ex.name.includes(part)) {
-                        return exercisePartColors[part];
+            const uniqueColors = [];
+            dayExercises.forEach(ex => {
+                const part = ex.part || (ex.name.match(/^【(.*?)】/) ? ex.name.match(/^【(.*?)】/)[1] : null);
+                if (part && exercisePartColors[part]) {
+                    if (!uniqueColors.includes(exercisePartColors[part])) {
+                        uniqueColors.push(exercisePartColors[part]);
                     }
                 }
+            });
+
+            if (uniqueColors.length === 0) {
+                const defaultColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-text').trim() || '#2C4A4A';
+                uniqueColors.push(defaultColor);
             }
-            return getComputedStyle(document.documentElement).getPropertyValue('--theme-text').trim() || '#2C4A4A';
+
+            if (uniqueColors.length === 1) {
+                return `background-color: ${uniqueColors[0]} !important; color: #FFFFFF !important; box-shadow: 0 1px 4px ${uniqueColors[0]}66;`;
+            } else {
+                let gradStrs = [];
+                const step = 100 / uniqueColors.length;
+                uniqueColors.forEach((color, idx) => {
+                    const start = idx * step;
+                    const end = (idx + 1) * step;
+                    gradStrs.push(`${color} ${start}% ${end}%`);
+                });
+                const gradStr = `conic-gradient(${gradStrs.join(', ')})`;
+                return `background: ${gradStr} !important; color: #FFFFFF !important; box-shadow: 0 1px 4px rgba(0,0,0,0.2);`;
+            }
         }
 
         function checkDayIsExceeded(dateISO) {
@@ -1242,11 +1257,9 @@
                 dEl.textContent = d;
 
                 if (currentCategory === 'exercise') {
-                    const exColor = getExerciseColorForDay(dateISO);
-                    if (exColor) {
-                        dEl.style.backgroundColor = exColor;
-                        dEl.style.color = '#FFFFFF';
-                        dEl.style.boxShadow = `0 1px 4px ${exColor}66`;
+                    const badgeStyle = getExerciseBadgeStyleForDay(dateISO);
+                    if (badgeStyle) {
+                        dEl.style.cssText += badgeStyle;
                     }
                 } else if (currentCategory === 'food') {
                     const isExceeded = checkDayIsExceeded(dateISO);
@@ -1305,9 +1318,9 @@
                 
                 let dateBadgeStyle = '';
                 if (currentCategory === 'exercise') {
-                    const exColor = getExerciseColorForDay(dateKey);
-                    if (exColor) {
-                        dateBadgeStyle = `background-color: ${exColor} !important; color: #FFFFFF !important; box-shadow: 0 1px 4px ${exColor}66;`;
+                    const badgeStyle = getExerciseBadgeStyleForDay(dateKey);
+                    if (badgeStyle) {
+                        dateBadgeStyle = badgeStyle;
                     }
                 } else if (currentCategory === 'food') {
                     if (isExceeded) {
@@ -1319,7 +1332,7 @@
                     cell.classList.add('has-record');
                 } else if (currentCategory === 'weight' && hasWeight) {
                     cell.classList.add('has-record');
-                } else if (currentCategory === 'exercise' && hasExercise && !getExerciseColorForDay(dateKey)) {
+                } else if (currentCategory === 'exercise' && hasExercise && !getExerciseBadgeStyleForDay(dateKey)) {
                     cell.classList.add('has-record');
                 }
 
@@ -1744,18 +1757,31 @@
             dayExercises.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'item-card';
+                
+                // カテゴリに応じた左側ボーダー色を設定
+                const part = item.part || (item.name.match(/^【(.*?)】/) ? item.name.match(/^【(.*?)】/)[1] : null);
+                if (part && exercisePartColors[part]) {
+                    card.style.borderLeftColor = exercisePartColors[part];
+                }
+
                 card.onclick = () => openExerciseEditModal(item);
                 
-                // セット数に「セット：」の文字を含めず、かつ改行をそのまま反映
-                const setsText = item.sets ? `${item.sets}` : '';
-                const timeText = item.recordTime ? `${item.recordTime}` : `${item.date}`;
-                const detailText = `${setsText}${setsText && timeText ? ' / ' : ''}${timeText}`;
+                // メニュー名から【〜】がついている場合は除去
+                let pureName = item.name || "";
+                pureName = pureName.replace(/^【.*?】\s*/, '');
 
+                const setsText = item.sets ? `${item.sets}` : '';
+                const timeText = item.recordTime ? `${item.recordTime}` : '';
+
+                // 記録時間をカードの右下に表示
                 card.innerHTML = `
-                    <div class="item-card-header">
-                        <span class="item-title">${item.name}</span>
+                    <div class="item-card-header" style="margin-bottom: 2px;">
+                        <span class="item-title">${pureName}</span>
                     </div>
-                    <div class="item-detail">${detailText}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 8px;">
+                        <div class="item-detail" style="flex: 1;">${setsText}</div>
+                        <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-sub); white-space: nowrap;">${timeText}</div>
+                    </div>
                 `;
                 list.appendChild(card);
             });
@@ -1898,17 +1924,16 @@
             closeModal('exercise-category-modal');
             if (!pendingExerciseText) return;
 
-            const finalName = `【${part}】${pendingExerciseText}`;
             const now = new Date();
             const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
             window.exerciseRecords.push({
                 id: 'e_' + Date.now(),
                 date: selectedDateStr,
-                name: finalName,
+                part: part,
+                name: pendingExerciseText,
                 sets: '',
                 recordTime: timeStr,
-                detail: timeStr,
                 timestamp: Date.now()
             });
 
