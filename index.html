@@ -242,10 +242,29 @@
         }
 
         .card-list { display: flex; flex-direction: column; gap: 8px; padding-bottom: 10px; }
-        .item-card {
-            border: 1px solid var(--card-border); border-left: 3.5px solid var(--theme-color); border-radius: 8px;
-            padding: 8px 12px; background: var(--card-bg); box-shadow: 0 1px 2px rgba(0,0,0,0.02); cursor: pointer;
+        
+        /* 食事記録カード（左側のボーダーを無くし、スクリーンショットのようなシンプルな形に） */
+        .food-item-card {
+            border: 1px solid var(--card-border); 
+            border-left: 1px solid var(--card-border); 
+            border-radius: 8px;
+            padding: 10px 12px; 
+            background: var(--card-bg); 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02); 
+            cursor: pointer;
         }
+
+        /* 運動記録カード（こちらは従来通り左側ボーダーを残す場合） */
+        .item-card {
+            border: 1px solid var(--card-border); 
+            border-left: 3.5px solid var(--theme-color); 
+            border-radius: 8px;
+            padding: 8px 12px; 
+            background: var(--card-bg); 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02); 
+            cursor: pointer;
+        }
+
         .item-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
         .item-title { 
             font-size: 0.92rem; 
@@ -1454,7 +1473,7 @@
 
             dayFoods.forEach(item => {
                 const card = document.createElement('div');
-                card.className = 'item-card';
+                card.className = 'food-item-card'; // スクリーンショットの形状（左ボーダーなし）に合わせるクラス
                 card.onclick = () => openFoodEditModal(item);
                 const itemName = item.name || item.foodName || "名称未設定";
                 const itemCal = item.cal !== undefined ? item.cal : (item.calories || 0);
