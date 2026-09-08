@@ -624,7 +624,6 @@
 
             <div class="modal-form-group"><label class="modal-label">メニュー名</label><input type="text" class="modal-input" id="edit-exercise-name"></div>
             
-            <!-- 回数 / 時間 (複数行入力可) -->
             <div class="modal-form-group">
                 <label class="modal-label">回数 / 時間 (複数行入力可)</label>
                 <textarea class="modal-input" id="edit-exercise-sets" rows="3" style="resize: vertical; font-family: inherit;" placeholder="例: 60kgx10 10&#10;50kgx10"></textarea>
@@ -1160,13 +1159,14 @@
             renderMonthlyCalendarGrid();
         }
 
+        // 全6色のカラーパレット（同系色が被らないよう色相を完全に分離した淡いパステル調）
         const exercisePartColors = {
-            '胸': '#EF4444',
-            '背中': '#3B82F6',
-            '足': '#10B981',
-            '腕': '#F59E0B',
-            '腹': '#8B5CF6',
-            '有酸素': '#EC4899'
+            '腕': '#FDE047',      /* 淡いレモンイエロー */
+            '胸': '#FDA4AF',      /* ソフトなサーモンピンク */
+            '腹': '#C4B5FD',      /* 淡いパープル */
+            '背中': '#93C5FD',    /* 爽やかなライトブルー */
+            '足': '#FDBA74',      /* 温かみのあるテラコッタ/オレンジ */
+            '有酸素': '#6EE7B7'   /* クリアなミントグリーン */
         };
 
         function getExerciseBadgeStyleForDay(dateISO) {
@@ -1189,7 +1189,7 @@
             }
 
             if (uniqueColors.length === 1) {
-                return `background-color: ${uniqueColors[0]} !important; color: #FFFFFF !important; box-shadow: 0 1px 4px ${uniqueColors[0]}66;`;
+                return `background-color: ${uniqueColors[0]} !important; color: #1E293B !important; box-shadow: 0 1px 4px ${uniqueColors[0]}66;`;
             } else {
                 let gradStrs = [];
                 const step = 100 / uniqueColors.length;
@@ -1199,7 +1199,7 @@
                     gradStrs.push(`${color} ${start}% ${end}%`);
                 });
                 const gradStr = `conic-gradient(${gradStrs.join(', ')})`;
-                return `background: ${gradStr} !important; color: #FFFFFF !important; box-shadow: 0 1px 4px rgba(0,0,0,0.2);`;
+                return `background: ${gradStr} !important; color: #1E293B !important; box-shadow: 0 1px 4px rgba(0,0,0,0.15);`;
             }
         }
 
@@ -1758,7 +1758,6 @@
                 const card = document.createElement('div');
                 card.className = 'item-card';
                 
-                // カテゴリに応じた左側ボーダー色を設定
                 const part = item.part || (item.name.match(/^【(.*?)】/) ? item.name.match(/^【(.*?)】/)[1] : null);
                 if (part && exercisePartColors[part]) {
                     card.style.borderLeftColor = exercisePartColors[part];
@@ -1766,14 +1765,12 @@
 
                 card.onclick = () => openExerciseEditModal(item);
                 
-                // メニュー名から【〜】がついている場合は除去
                 let pureName = item.name || "";
                 pureName = pureName.replace(/^【.*?】\s*/, '');
 
                 const setsText = item.sets ? `${item.sets}` : '';
                 const timeText = item.recordTime ? `${item.recordTime}` : '';
 
-                // 記録時間をカードの右下に表示
                 card.innerHTML = `
                     <div class="item-card-header" style="margin-bottom: 2px;">
                         <span class="item-title">${pureName}</span>
