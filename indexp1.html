@@ -242,18 +242,35 @@
         }
 
         .card-list { display: flex; flex-direction: column; gap: 8px; padding-bottom: 10px; width: 100%; }
+
+        /* 2枚目画像のデザインを再現した食事記録カード（テーマカラーの左アクセント線） */
         .food-item-card {
-            border: 1px solid var(--card-border); 
+            border: 1px solid var(--card-border);
+            border-left: 4px solid var(--theme-color);
             border-radius: 8px;
-            padding: 10px 12px; 
-            background: var(--card-bg); 
-            box-shadow: 0 1px 2px rgba(0,0,0,0.02); 
+            padding: 9px 12px;
+            background: var(--card-bg);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
             cursor: pointer;
+            transition: transform 0.1s ease;
         }
-        .item-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
-        .item-title { font-size: 0.92rem; font-weight: 600; color: var(--text-main); white-space: pre-wrap; word-break: break-all; }
-        .item-detail { font-size: 0.8rem; font-weight: 400; color: var(--text-sub); white-space: pre-wrap; word-break: break-all; }
-        .blank-state { text-align: center; padding: 40px 20px; color: var(--text-sub); background: var(--card-bg); border-radius: 10px; border: 1px dashed var(--card-border); margin-top: 10px; }
+        .food-item-card:active {
+            transform: scale(0.99);
+        }
+        .food-item-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 4px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .food-item-detail {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-sub);
+            letter-spacing: 0.01em;
+        }
 
         /* トレーニング記録カード */
         .workout-card {
@@ -597,6 +614,8 @@
         .modal-btn-danger { background-color: #EF4444; color: #FFFFFF; }
         .modal-btn-secondary { background-color: var(--input-bg); color: var(--text-main); }
 
+        .blank-state { text-align: center; padding: 40px 20px; color: var(--text-sub); background: var(--card-bg); border-radius: 10px; border: 1px dashed var(--card-border); margin-top: 10px; }
+
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.6);
             z-index: 500; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 12px; color: #FFFFFF;
@@ -872,19 +891,19 @@
         </div>
     </div>
 
-    <!-- 運動カテゴリ選択モーダル（明るいくすみカラー適用） -->
+    <!-- 運動カテゴリ選択モーダル（元気が出るちょうどいい塩梅のカラー） -->
     <div class="modal-overlay" id="exercise-category-modal">
         <div class="modal-box" style="max-width: 320px; text-align: center;">
             <div class="modal-header" style="justify-content: center; margin-bottom: 12px;">
                 <span style="font-size: 1.05rem; font-weight:700;">カテゴリを選択</span>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
-                <button class="modal-btn" style="background-color: #E6C875; color: #FFFFFF;" onclick="confirmExerciseCategory('腕')">腕</button>
-                <button class="modal-btn" style="background-color: #E08282; color: #FFFFFF;" onclick="confirmExerciseCategory('胸')">胸</button>
-                <button class="modal-btn" style="background-color: #B5A6DB; color: #FFFFFF;" onclick="confirmExerciseCategory('腹')">腹</button>
-                <button class="modal-btn" style="background-color: #8EB4DC; color: #FFFFFF;" onclick="confirmExerciseCategory('背中')">背中</button>
-                <button class="modal-btn" style="background-color: #E2A27F; color: #FFFFFF;" onclick="confirmExerciseCategory('足')">足</button>
-                <button class="modal-btn" style="background-color: #8CCCA8; color: #FFFFFF;" onclick="confirmExerciseCategory('有酸素')">有酸素</button>
+                <button class="modal-btn" style="background-color: #F59E0B; color: #FFFFFF;" onclick="confirmExerciseCategory('腕')">腕</button>
+                <button class="modal-btn" style="background-color: #EF4444; color: #FFFFFF;" onclick="confirmExerciseCategory('胸')">胸</button>
+                <button class="modal-btn" style="background-color: #8B5CF6; color: #FFFFFF;" onclick="confirmExerciseCategory('腹')">腹</button>
+                <button class="modal-btn" style="background-color: #3B82F6; color: #FFFFFF;" onclick="confirmExerciseCategory('背中')">背中</button>
+                <button class="modal-btn" style="background-color: #F97316; color: #FFFFFF;" onclick="confirmExerciseCategory('足')">足</button>
+                <button class="modal-btn" style="background-color: #10B981; color: #FFFFFF;" onclick="confirmExerciseCategory('有酸素')">有酸素</button>
             </div>
             <button class="modal-btn modal-btn-secondary" style="width: 100%;" onclick="closeModal('exercise-category-modal')">キャンセル</button>
         </div>
@@ -1002,7 +1021,7 @@
         </div>
     </div>
 
-    <!-- お気に入り（リスト選択）モーダル -->
+    <!-- お気に入り（リスト選択）モーダル（閉じるボタンなし・連続追加可能） -->
     <div class="modal-overlay" id="favorite-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1015,8 +1034,7 @@
             <div class="modal-form-group" style="margin-bottom: 8px;">
                 <input type="text" class="modal-input" id="fav-search-input" placeholder="メニュー名で検索..." oninput="renderFavoriteList()">
             </div>
-            <div id="favorite-list-container" style="max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;"></div>
-            <button class="modal-btn modal-btn-secondary" style="width: 100%;" onclick="closeModal('favorite-modal')">閉じる</button>
+            <div id="favorite-list-container" style="max-height: 340px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;"></div>
         </div>
     </div>
 
@@ -1195,14 +1213,14 @@
         let exerciseRecords = JSON.parse(localStorage.getItem('pfc_exercise_records') || '[]');
         window.exerciseRecords = exerciseRecords;
 
-        // 明るく見やすいパステル調くすみカラー
+        // 元気が出るちょうどいい塩梅のカラーパレット
         const exercisePartColors = {
-            '腕': '#E6C875',      /* ライトマスタード */
-            '胸': '#E08282',      /* コーラルピンク/テラコッタ */
-            '腹': '#B5A6DB',      /* ライトラベンダー */
-            '背中': '#8EB4DC',    /* サックスブルー */
-            '足': '#E2A27F',      /* アプリコット */
-            '有酸素': '#8CCCA8'   /* ミントグリーン */
+            '腕': '#F59E0B',      /* サニーアンバー/イエローゴールド */
+            '胸': '#EF4444',      /* ブライトコーラルレッド */
+            '腹': '#8B5CF6',      /* アメジストパープル */
+            '背中': '#3B82F6',    /* オーシャンブルー */
+            '足': '#F97316',      /* ウォームアプリコットオレンジ */
+            '有酸素': '#10B981'   /* フレッシュエメラルドグリーン */
         };
 
         function showToast(message) {
@@ -1242,7 +1260,7 @@
             if (metaTheme) metaTheme.setAttribute('content', bgColor);
         };
 
-        // --- お気に入り機能の実装 ---
+        // --- お気に入り機能（閉じずに連続追加・閉じるボタンなし） ---
         window.openFavoriteModal = function() {
             const searchInput = document.getElementById('fav-search-input');
             if (searchInput) searchInput.value = "";
@@ -1284,6 +1302,7 @@
             lucide.createIcons();
         }
 
+        // モーダルを閉じずに連続追加
         window.selectFavoriteItem = function(event, item) {
             if (event) event.stopPropagation();
             window.foodRecords.push({
@@ -1299,10 +1318,9 @@
 
             localStorage.setItem('pfc_food_records', JSON.stringify(window.foodRecords));
             if (window.syncDataToCloud) window.syncDataToCloud();
-            closeModal('favorite-modal');
             renderWeeklyCalendar();
             renderFoodList();
-            showToast('記録しました');
+            showToast(`「${item.name}」を追加しました`);
         };
 
         function openFavoriteEditModal(item) {
@@ -1531,7 +1549,7 @@
                 const labelCol2 = isCardio ? '距離' : '回数';
                 const unitCol2 = isCardio ? 'km' : '回';
 
-                const headerColor = exercisePartColors[part] || '#E08282';
+                const headerColor = exercisePartColors[part] || '#EF4444';
                 const sets = normalizeExerciseSets(item.setsList || item.sets);
 
                 const card = document.createElement('div');
@@ -1970,7 +1988,7 @@
             renderWeeklyCalendar();
         }
 
-        // 直線（折れ線）グラフ
+        // 直線グラフ
         function initOrUpdateWeightChart() {
             const ctx = document.getElementById('weightChart');
             if (!ctx) return;
@@ -2041,7 +2059,7 @@
             });
         }
 
-        // --- 食事・PFCバー表示 ---
+        // --- 食事・PFCバー表示 ＆ 2枚目画像UIの適用 ---
         function renderFoodList() {
             const list = document.getElementById('food-list');
             list.innerHTML = '';
@@ -2131,6 +2149,7 @@
                 return;
             }
 
+            // 2枚目画像通りのカードUIを生成
             dayFoods.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'food-item-card';
@@ -2142,10 +2161,8 @@
                 const itemC = item.c !== undefined ? item.c : (item.carbs || 0);
 
                 card.innerHTML = `
-                    <div class="item-card-header">
-                        <span class="item-title">${itemName}</span>
-                    </div>
-                    <div class="item-detail">
+                    <div class="food-item-title">${itemName}</div>
+                    <div class="food-item-detail">
                         P: ${itemP}g / F: ${itemF}g / C: ${itemC}g (${itemCal} kcal)
                     </div>
                 `;
@@ -2322,7 +2339,7 @@
             if (e.key === 'Enter') submitRecord(false);
         });
 
-        // 複数カテゴリ円形グラデーション（明るいくすみカラー）
+        // 複数カテゴリ円形グラデーション（明るい元気カラー）
         function getExerciseBadgeStyleForDay(dateISO) {
             const dayExercises = window.exerciseRecords.filter(e => e.date === dateISO);
             if (dayExercises.length === 0) return null;
