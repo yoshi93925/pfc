@@ -79,6 +79,10 @@
             padding-bottom: 20px !important;
         }
 
+        body.no-footer {
+            padding-bottom: 20px !important;
+        }
+
         header {
             position: fixed; top: 0; left: 0; width: 100%; height: var(--header-top-height);
             background-color: var(--header-bg); border-bottom: 1px solid var(--card-border); z-index: 100;
@@ -148,24 +152,38 @@
         }
         .week-day-cell.is-today .week-day-name { color: #1E40AF !important; font-weight: 700; }
 
-        /* メインコンテナ：チラ見えを完全に防ぐ独立タブ切り替え方式 */
+        /* スライド＆スワイプ対応メインコンテナ */
         main { 
             padding: 10px 14px 14px 14px; 
             max-width: 600px; 
             margin: 0 auto; 
+            overflow: hidden; 
+            position: relative; 
             width: 100%;
+        }
+        .views-slider {
+            display: flex;
+            width: 300%;
+            transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1);
+            will-change: transform;
+            touch-action: pan-y;
+            transform: translateX(-33.333333%);
         }
         .view-panel {
-            display: none;
-            width: 100%;
-            flex-direction: column;
-        }
-        .view-panel.active-panel {
+            width: 33.333333%;
+            max-width: 33.333333%;
+            box-sizing: border-box;
+            flex-shrink: 0;
             display: flex;
+            flex-direction: column;
+            padding: 0 2px;
         }
         .view-panel-scroll {
             flex: 1;
+            overflow-y: auto;
+            max-height: calc(100vh - var(--header-top-height) - var(--footer-height) - 25px);
             padding-bottom: 20px;
+            touch-action: pan-y;
         }
         #view-settings {
             display: none;
@@ -237,7 +255,7 @@
         .item-detail { font-size: 0.8rem; font-weight: 400; color: var(--text-sub); white-space: pre-wrap; word-break: break-all; }
         .blank-state { text-align: center; padding: 40px 20px; color: var(--text-sub); background: var(--card-bg); border-radius: 10px; border: 1px dashed var(--card-border); margin-top: 10px; }
 
-        /* トレーニング記録専用カード */
+        /* トレーニング記録カード */
         .workout-card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -289,6 +307,7 @@
             font-weight: 700;
             color: var(--text-main);
             letter-spacing: -0.02em;
+            cursor: pointer;
         }
         .workout-unit {
             font-size: 0.78rem;
@@ -297,12 +316,12 @@
             margin-left: 2px;
         }
         .workout-inline-input {
-            width: 55px;
-            padding: 4px 2px;
+            width: 58px;
+            padding: 3px 2px;
             font-size: 1.05rem;
             font-weight: 700;
             text-align: center;
-            border: 1px solid var(--theme-color);
+            border: 1.5px solid var(--theme-color);
             background: var(--input-bg);
             color: var(--text-main);
             border-radius: 6px;
@@ -333,7 +352,7 @@
             color: #CBD5E1;
         }
 
-        /* 4枚目：体重・体脂肪管理UI & ルーラー */
+        /* 体重・体脂肪UI & ルーラー */
         .body-metrics-card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -394,9 +413,7 @@
             padding: 0;
             opacity: 0.8;
         }
-        .metric-clear-btn:active { opacity: 1; }
 
-        /* ルーラー（目盛りスライダー）コンテナ */
         .ruler-container {
             display: none;
             flex-direction: column;
@@ -467,7 +484,7 @@
             font-weight: 600;
         }
 
-        /* 編集モーダルのセット行 */
+        /* 編集モーダル */
         .set-editor-row {
             display: grid;
             grid-template-columns: 46px 1fr auto 1fr auto 28px;
@@ -548,7 +565,7 @@
             padding: 10px; font-size: 0.9rem; font-weight: 700; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: opacity 0.2s; margin-top: 4px;
         }
 
-        /* フッター・入力エリア */
+        /* フッター */
         footer {
             position: fixed; bottom: 0; left: 0; width: 100%; height: var(--footer-height);
             background-color: var(--footer-bg); border-top: 1px solid var(--footer-border); display: flex; align-items: center; padding: 0 16px; z-index: 100;
@@ -636,138 +653,134 @@
         <div class="weekly-calendar" id="weekly-calendar"></div>
     </header>
 
-    <!-- メインコンテンツ -->
+    <!-- メインコンテンツ（スライド式） -->
     <main id="main-swipe-container">
-        <!-- 0. 運動画面 -->
-        <section id="view-exercise" class="view-panel">
-            <div class="view-panel-scroll">
-                <div class="card-list" id="exercise-list" style="padding-top: 4px;"></div>
-            </div>
-        </section>
+        <div class="views-slider" id="views-slider">
+            <!-- 0. 運動画面 -->
+            <section id="view-exercise" class="view-panel">
+                <div class="view-panel-scroll">
+                    <div class="card-list" id="exercise-list" style="padding-top: 4px;"></div>
+                </div>
+            </section>
 
-        <!-- 1. 食事画面 -->
-        <section id="view-food" class="view-panel active-panel">
-            <div class="view-panel-scroll">
-                <div class="sticky-summary-wrap">
-                    <div class="nutrition-summary-card">
-                        <div class="summary-header">
-                            <div class="summary-cal-header-row">
-                                <span class="summary-cal-badge" id="summary-cal-display">カロリー: <span class="val-current" id="val-cur-cal">0</span> / <span id="val-tgt-cal">2000</span> kcal</span>
-                                <span style="font-size:0.75rem; font-weight:600; color:var(--text-sub);" id="summary-cal-percent">0%</span>
+            <!-- 1. 食事画面 -->
+            <section id="view-food" class="view-panel">
+                <div class="view-panel-scroll">
+                    <div class="sticky-summary-wrap">
+                        <div class="nutrition-summary-card">
+                            <div class="summary-header">
+                                <div class="summary-cal-header-row">
+                                    <span class="summary-cal-badge" id="summary-cal-display">カロリー: <span class="val-current" id="val-cur-cal">0</span> / <span id="val-tgt-cal">2000</span> kcal</span>
+                                    <span style="font-size:0.75rem; font-weight:600; color:var(--text-sub);" id="summary-cal-percent">0%</span>
+                                </div>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill cal-bar-fill" id="cal-progress-bar"></div>
+                                </div>
                             </div>
-                            <div class="progress-bar-bg">
-                                <div class="progress-bar-fill cal-bar-fill" id="cal-progress-bar"></div>
+                            <div class="pfc-grid">
+                                <div class="pfc-col pfc-col-p">
+                                    <span class="pfc-label">たんぱく質 (P)</span>
+                                    <span class="pfc-value"><span class="val-current" id="val-cur-p">0</span> / <span id="val-tgt-p">100</span>g</span>
+                                    <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill" id="p-progress-bar"></div></div>
+                                </div>
+                                <div class="pfc-col pfc-col-f">
+                                    <span class="pfc-label">脂質 (F)</span>
+                                    <span class="pfc-value"><span class="val-current" id="val-cur-f">0</span> / <span id="val-tgt-f">50</span>g</span>
+                                    <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill" id="f-progress-bar"></div></div>
+                                </div>
+                                <div class="pfc-col pfc-col-c">
+                                    <span class="pfc-label">炭水化物 (C)</span>
+                                    <span class="pfc-value"><span class="val-current" id="val-cur-c">0</span> / <span id="val-tgt-c">250</span>g</span>
+                                    <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill" id="c-progress-bar"></div></div>
+                                </div>
                             </div>
                         </div>
-                        <div class="pfc-grid">
-                            <div class="pfc-col pfc-col-p">
-                                <span class="pfc-label">たんぱく質 (P)</span>
-                                <span class="pfc-value"><span class="val-current" id="val-cur-p">0</span> / <span id="val-tgt-p">100</span>g</span>
-                                <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill" id="p-progress-bar"></div></div>
+                    </div>
+                    <div class="card-list" id="food-list" style="margin-top: 8px;"></div>
+                </div>
+            </section>
+
+            <!-- 2. 体重画面 -->
+            <section id="view-weight" class="view-panel">
+                <div class="view-panel-scroll">
+                    <div class="sticky-chart-wrap">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <span class="chart-title">
+                                    <i data-lucide="trending-up" style="width: 18px; height: 18px; color: var(--theme-color);"></i>
+                                    体重・体脂肪推移
+                                </span>
+                                <span style="font-size: 0.8rem; color: var(--text-sub);" id="latest-weight-stat">最新: -- kg</span>
                             </div>
-                            <div class="pfc-col pfc-col-f">
-                                <span class="pfc-label">脂質 (F)</span>
-                                <span class="pfc-value"><span class="val-current" id="val-cur-f">0</span> / <span id="val-tgt-f">50</span>g</span>
-                                <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill" id="f-progress-bar"></div></div>
+                            <div style="margin-bottom: 4px; display: flex; justify-content: flex-start;">
+                                <div class="custom-select-wrap">
+                                    <select id="weight-range-select" class="custom-select" onchange="initOrUpdateWeightChart()">
+                                        <option value="1m">1か月</option>
+                                        <option value="3m">3か月</option>
+                                        <option value="1y">1年</option>
+                                        <option value="all" selected>全期間</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="pfc-col pfc-col-c">
-                                <span class="pfc-label">炭水化物 (C)</span>
-                                <span class="pfc-value"><span class="val-current" id="val-cur-c">0</span> / <span id="val-tgt-c">250</span>g</span>
-                                <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill" id="c-progress-bar"></div></div>
+                            <div class="chart-legend-wrap">
+                                <span><span class="legend-indicator" style="background-color: #2B5C8F;"></span>体重 (kg)</span>
+                                <span><span class="legend-indicator" style="background-color: #F59E0B;"></span>体脂肪率 (%)</span>
+                            </div>
+                            <div style="position: relative; height: 160px; width: 100%;">
+                                <canvas id="weightChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 体重・体脂肪・計算項目 ＆ ルーラー -->
+                    <div class="body-metrics-card">
+                        <div class="metric-row" id="metric-row-weight" onclick="toggleMetricRuler('weight')">
+                            <span class="metric-name">体重</span>
+                            <div class="metric-right">
+                                <div class="metric-value-wrap" id="disp-metric-weight">--<span>kg</span></div>
+                                <button class="metric-clear-btn" onclick="clearMetricValue(event, 'weight')"><i data-lucide="x" style="width:12px;height:12px;"></i></button>
+                            </div>
+                        </div>
+                        <div class="ruler-container" id="ruler-container-weight">
+                            <div class="ruler-indicator"></div>
+                            <div class="ruler-scroll-view" id="ruler-scroll-weight" onscroll="handleRulerScroll('weight')">
+                                <div class="ruler-track" id="ruler-track-weight"></div>
+                            </div>
+                        </div>
+
+                        <div class="metric-row" id="metric-row-fat" onclick="toggleMetricRuler('fat')">
+                            <span class="metric-name">体脂肪</span>
+                            <div class="metric-right">
+                                <div class="metric-value-wrap" id="disp-metric-fat">--<span>%</span></div>
+                                <button class="metric-clear-btn" onclick="clearMetricValue(event, 'fat')"><i data-lucide="x" style="width:12px;height:12px;"></i></button>
+                            </div>
+                        </div>
+                        <div class="ruler-container" id="ruler-container-fat">
+                            <div class="ruler-indicator"></div>
+                            <div class="ruler-scroll-view" id="ruler-scroll-fat" onscroll="handleRulerScroll('fat')">
+                                <div class="ruler-track" id="ruler-track-fat"></div>
+                            </div>
+                        </div>
+
+                        <div class="metric-row" style="cursor: default;">
+                            <span class="metric-name">体脂肪量</span>
+                            <div class="metric-right">
+                                <div class="metric-value-wrap" id="disp-metric-fatmass">--<span>kg</span></div>
+                                <div style="width: 20px;"></div>
+                            </div>
+                        </div>
+
+                        <div class="metric-row" style="cursor: default;">
+                            <span class="metric-name">除脂肪体重</span>
+                            <div class="metric-right">
+                                <div class="metric-value-wrap" id="disp-metric-lbm">--<span>kg</span></div>
+                                <div style="width: 20px;"></div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-list" id="food-list" style="margin-top: 8px;"></div>
-            </div>
-        </section>
-
-        <!-- 2. 体重画面（4枚目レイアウト） -->
-        <section id="view-weight" class="view-panel">
-            <div class="view-panel-scroll">
-                <div class="sticky-chart-wrap">
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <span class="chart-title">
-                                <i data-lucide="trending-up" style="width: 18px; height: 18px; color: var(--theme-color);"></i>
-                                体重・体脂肪推移
-                            </span>
-                            <span style="font-size: 0.8rem; color: var(--text-sub);" id="latest-weight-stat">最新: -- kg</span>
-                        </div>
-                        <div style="margin-bottom: 4px; display: flex; justify-content: flex-start;">
-                            <div class="custom-select-wrap">
-                                <select id="weight-range-select" class="custom-select" onchange="initOrUpdateWeightChart()">
-                                    <option value="1m">1か月</option>
-                                    <option value="3m">3か月</option>
-                                    <option value="1y">1年</option>
-                                    <option value="all" selected>全期間</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="chart-legend-wrap">
-                            <span><span class="legend-indicator" style="background-color: #2B5C8F;"></span>体重 (kg)</span>
-                            <span><span class="legend-indicator" style="background-color: #F59E0B;"></span>体脂肪率 (%)</span>
-                        </div>
-                        <div style="position: relative; height: 160px; width: 100%;">
-                            <canvas id="weightChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 4枚目：体重・体脂肪・計算項目 ＆ スライド目盛りルーラー -->
-                <div class="body-metrics-card">
-                    <!-- 体重 行 -->
-                    <div class="metric-row" id="metric-row-weight" onclick="toggleMetricRuler('weight')">
-                        <span class="metric-name">体重</span>
-                        <div class="metric-right">
-                            <div class="metric-value-wrap" id="disp-metric-weight">--<span>kg</span></div>
-                            <button class="metric-clear-btn" onclick="clearMetricValue(event, 'weight')"><i data-lucide="x" style="width:12px;height:12px;"></i></button>
-                        </div>
-                    </div>
-                    <!-- 体重用スライドルーラー -->
-                    <div class="ruler-container" id="ruler-container-weight">
-                        <div class="ruler-indicator"></div>
-                        <div class="ruler-scroll-view" id="ruler-scroll-weight" onscroll="handleRulerScroll('weight')">
-                            <div class="ruler-track" id="ruler-track-weight"></div>
-                        </div>
-                    </div>
-
-                    <!-- 体脂肪 行 -->
-                    <div class="metric-row" id="metric-row-fat" onclick="toggleMetricRuler('fat')">
-                        <span class="metric-name">体脂肪</span>
-                        <div class="metric-right">
-                            <div class="metric-value-wrap" id="disp-metric-fat">--<span>%</span></div>
-                            <button class="metric-clear-btn" onclick="clearMetricValue(event, 'fat')"><i data-lucide="x" style="width:12px;height:12px;"></i></button>
-                        </div>
-                    </div>
-                    <!-- 体脂肪用スライドルーラー -->
-                    <div class="ruler-container" id="ruler-container-fat">
-                        <div class="ruler-indicator"></div>
-                        <div class="ruler-scroll-view" id="ruler-scroll-fat" onscroll="handleRulerScroll('fat')">
-                            <div class="ruler-track" id="ruler-track-fat"></div>
-                        </div>
-                    </div>
-
-                    <!-- 自動計算：体脂肪量 行 -->
-                    <div class="metric-row" style="cursor: default;">
-                        <span class="metric-name">体脂肪量</span>
-                        <div class="metric-right">
-                            <div class="metric-value-wrap" id="disp-metric-fatmass">--<span>kg</span></div>
-                            <div style="width: 20px;"></div>
-                        </div>
-                    </div>
-
-                    <!-- 自動計算：除脂肪体重 行 -->
-                    <div class="metric-row" style="cursor: default;">
-                        <span class="metric-name">除脂肪体重</span>
-                        <div class="metric-right">
-                            <div class="metric-value-wrap" id="disp-metric-lbm">--<span>kg</span></div>
-                            <div style="width: 20px;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+            </section>
+        </div>
 
         <!-- 4. 設定画面 -->
         <section id="view-settings">
@@ -859,21 +872,21 @@
         </div>
     </div>
 
-    <!-- 運動カテゴリ選択モーダル -->
+    <!-- 運動カテゴリ選択モーダル（固有カラー適用） -->
     <div class="modal-overlay" id="exercise-category-modal">
         <div class="modal-box" style="max-width: 320px; text-align: center;">
-            <div class="modal-header" style="justify-content: center; margin-bottom: 10px;">
-                <span>運動のカテゴリを選択</span>
+            <div class="modal-header" style="justify-content: center; margin-bottom: 12px;">
+                <span style="font-size: 1.05rem; font-weight:700;">カテゴリを選択</span>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
-                <button class="modal-btn modal-btn-primary" onclick="confirmExerciseCategory('腕')">腕</button>
-                <button class="modal-btn modal-btn-primary" onclick="confirmExerciseCategory('胸')">胸</button>
-                <button class="modal-btn modal-btn-primary" onclick="confirmExerciseCategory('腹')">腹</button>
-                <button class="modal-btn modal-btn-primary" onclick="confirmExerciseCategory('背中')">背中</button>
-                <button class="modal-btn modal-btn-primary" onclick="confirmExerciseCategory('足')">足</button>
-                <button class="modal-btn modal-btn-primary" onclick="confirmExerciseCategory('有酸素')">有酸素</button>
+                <button class="modal-btn" style="background-color: #EAB308; color: #FFFFFF;" onclick="confirmExerciseCategory('腕')">腕</button>
+                <button class="modal-btn" style="background-color: #EF4444; color: #FFFFFF;" onclick="confirmExerciseCategory('胸')">胸</button>
+                <button class="modal-btn" style="background-color: #8B5CF6; color: #FFFFFF;" onclick="confirmExerciseCategory('腹')">腹</button>
+                <button class="modal-btn" style="background-color: #3B82F6; color: #FFFFFF;" onclick="confirmExerciseCategory('背中')">背中</button>
+                <button class="modal-btn" style="background-color: #F97316; color: #FFFFFF;" onclick="confirmExerciseCategory('足')">足</button>
+                <button class="modal-btn" style="background-color: #10B981; color: #FFFFFF;" onclick="confirmExerciseCategory('有酸素')">有酸素</button>
             </div>
-            <button class="modal-btn modal-btn-secondary" onclick="closeModal('exercise-category-modal')">キャンセル</button>
+            <button class="modal-btn modal-btn-secondary" style="width: 100%;" onclick="closeModal('exercise-category-modal')">キャンセル</button>
         </div>
     </div>
 
@@ -1089,9 +1102,9 @@
                         localStorage.setItem('gemini_api_key', data.geminiApiKey);
                     }
                     renderWeeklyCalendar();
-                    if (window.currentCategory === 'food') renderFoodList(false);
+                    if (window.currentCategory === 'food') renderFoodList();
                     if (window.currentCategory === 'weight') updateBodyMetricsDisplay();
-                    if (window.currentCategory === 'exercise') renderExerciseList(false);
+                    if (window.currentCategory === 'exercise') renderExerciseList();
                 } else {
                     window.syncDataToCloud();
                 }
@@ -1205,14 +1218,14 @@
             if (metaTheme) metaTheme.setAttribute('content', bgColor);
         };
 
-        // --- タブ切り替え（チラ見えゼロの完全排他表示） ---
+        // --- タブ切り替え ＆ スライダー制御 ---
         function switchView(viewName) {
             document.querySelectorAll('.header-tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active-panel'));
 
             const settingsBtn = document.getElementById('settings-toggle-btn');
             const weeklyCalEl = document.getElementById('weekly-calendar');
             const footerBarEl = document.getElementById('footer-bar');
+            const slider = document.getElementById('views-slider');
             const settingsView = document.getElementById('view-settings');
             const indicator = document.getElementById('tab-indicator');
             const inputEl = document.getElementById('record-input');
@@ -1224,51 +1237,54 @@
 
             if (viewName === 'settings') {
                 currentCategory = 'settings';
+                slider.style.display = 'none';
                 settingsView.style.display = 'block';
                 if (settingsBtn) settingsBtn.classList.add('active-settings');
                 document.body.classList.add('is-settings-mode');
+                document.body.classList.remove('no-footer');
                 if (weeklyCalEl) weeklyCalEl.style.display = 'none';
                 if (footerBarEl) footerBarEl.style.display = 'none';
             } else {
                 settingsView.style.display = 'none';
+                slider.style.display = 'flex';
                 document.body.classList.remove('is-settings-mode');
                 if (weeklyCalEl) weeklyCalEl.style.display = 'flex';
-                if (footerBarEl) footerBarEl.style.display = 'flex';
 
                 let targetIndex = 0;
                 if (viewName === 'exercise') {
                     currentCategory = 'exercise';
                     targetIndex = 0;
-                    document.getElementById('view-exercise').classList.add('active-panel');
+                    document.body.classList.remove('no-footer');
+                    if (footerBarEl) footerBarEl.style.display = 'flex';
                     document.getElementById('tab-btn-exercise').classList.add('active');
-                    inputEl.placeholder = '運動内容を入力（例: ベンチプレス）';
+                    inputEl.placeholder = '運動内容を入力';
                     favBtn.style.display = 'none';
                     galleryBtn.style.display = 'none';
                     cameraBtn.style.display = 'none';
-                    renderExerciseList(true);
+                    renderExerciseList();
                 } else if (viewName === 'food') {
                     currentCategory = 'food';
                     targetIndex = 1;
-                    document.getElementById('view-food').classList.add('active-panel');
+                    document.body.classList.remove('no-footer');
+                    if (footerBarEl) footerBarEl.style.display = 'flex';
                     document.getElementById('tab-btn-food').classList.add('active');
                     inputEl.placeholder = '食事内容を記録';
                     favBtn.style.display = 'flex';
                     galleryBtn.style.display = 'flex';
                     cameraBtn.style.display = 'flex';
-                    renderFoodList(true);
+                    renderFoodList();
                 } else if (viewName === 'weight') {
                     currentCategory = 'weight';
                     targetIndex = 2;
-                    document.getElementById('view-weight').classList.add('active-panel');
+                    // 体重管理画面では入力欄を非表示
+                    document.body.classList.add('no-footer');
+                    if (footerBarEl) footerBarEl.style.display = 'none';
                     document.getElementById('tab-btn-weight').classList.add('active');
-                    inputEl.placeholder = '体重・体脂肪は上のルーラーで調整できます';
-                    favBtn.style.display = 'none';
-                    galleryBtn.style.display = 'none';
-                    cameraBtn.style.display = 'none';
                     updateBodyMetricsDisplay();
-                    setTimeout(() => initOrUpdateWeightChart(), 50);
+                    setTimeout(() => initOrUpdateWeightChart(), 60);
                 }
 
+                slider.style.transform = `translateX(-${targetIndex * 33.333333}%)`;
                 indicator.style.transform = `translateX(${targetIndex * 38}px)`;
                 renderWeeklyCalendar();
             }
@@ -1279,7 +1295,7 @@
             else switchView('settings');
         }
 
-        // --- 運動記録ロジック（有酸素対応＆インライン編集） ---
+        // --- 運動記録ロジック ---
         function normalizeExerciseSets(setsData) {
             if (Array.isArray(setsData)) return setsData;
             if (!setsData || typeof setsData !== 'string') return [];
@@ -1361,9 +1377,9 @@
                 }
 
                 card.innerHTML = `
-                    <div class="workout-card-header" style="background-color: ${headerColor};" onclick="openExerciseEditModal(${JSON.stringify(item).replace(/"/g, '&quot;')})">
-                        <span style="display:flex; align-items:center; gap:6px;">${pureName} <i data-lucide="edit-2" style="width:14px; height:14px; opacity:0.85;"></i></span>
-                        <div style="display:flex; align-items:center; gap:6px;" onclick="openExerciseHistory(event, '${pureName.replace(/'/g, "\\'")}', '${part}')">
+                    <div class="workout-card-header" style="background-color: ${headerColor};">
+                        <span onclick="openExerciseEditModal(${JSON.stringify(item).replace(/"/g, '&quot;')})">${pureName}</span>
+                        <div style="display:flex; align-items:center; gap:4px;" onclick="openExerciseHistory(event, '${pureName.replace(/'/g, "\\'")}', '${part}')">
                             <span style="font-size:0.75rem; font-weight:500; opacity:0.95;">履歴</span>
                             <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
                         </div>
@@ -1390,7 +1406,6 @@
             lucide.createIcons();
         }
 
-        // 数字タップで直接インライン編集
         window.makeInlineEditable = function(itemId, setIdx, field, currentVal, unit) {
             const spanEl = document.getElementById(`val-disp-${field}-${itemId}-${setIdx}`);
             if (!spanEl || spanEl.querySelector('input')) return;
@@ -1425,9 +1440,7 @@
 
             input.onblur = finishEdit;
             input.onkeydown = (e) => {
-                if (e.key === 'Enter') {
-                    input.blur();
-                }
+                if (e.key === 'Enter') input.blur();
             };
         };
 
@@ -1564,7 +1577,6 @@
             }
         };
 
-        // 履歴モーダル
         window.openExerciseHistory = function(event, exerciseName, part) {
             if (event) event.stopPropagation();
             const cleanName = exerciseName.replace(/^【.*?】\s*/, '').trim();
@@ -1625,9 +1637,9 @@
             openModal('exercise-history-modal');
         };
 
-        // --- 4枚目：体重・体脂肪UI＆スライドルーラー実装 ---
-        let currentRulerMode = null; // 'weight' or 'fat'
-        const TICK_WIDTH = 8; // 1目盛り(0.1)あたりの横幅(px)
+        // --- 体重・体脂肪UI＆スライドルーラー ---
+        let currentRulerMode = null;
+        const TICK_WIDTH = 8;
 
         function getOrCreateDayWeightItem(dateStr) {
             let item = window.weightDataHistory.find(w => (w.isoDate || "") === dateStr);
@@ -1675,7 +1687,6 @@
             const row = document.getElementById(`metric-row-${type}`);
             const isOpening = container.style.display !== 'flex';
 
-            // 他を閉じる
             document.getElementById('ruler-container-weight').style.display = 'none';
             document.getElementById('ruler-container-fat').style.display = 'none';
             document.getElementById('metric-row-weight').classList.remove('active');
@@ -1686,7 +1697,6 @@
                 container.style.display = 'flex';
                 row.classList.add('active');
 
-                // 現在日または直近最新の数値を初期値として取得
                 const item = getOrCreateDayWeightItem(selectedDateStr);
                 let val = type === 'weight' ? item.weight : item.bodyFat;
 
@@ -1881,7 +1891,7 @@
 
             document.getElementById('val-cur-c').textContent = totalC.toFixed(1);
             document.getElementById('val-tgt-c').textContent = maxC;
-            document.getElementById('c-progress-bar').style.width = `${Math.min((totalC / maxCarb) * 100, 100)}%`;
+            document.getElementById('c-progress-bar').style.width = `${Math.min((totalC / maxC) * 100, 100)}%`;
 
             if (dayFoods.length === 0) {
                 list.innerHTML = `
@@ -1958,11 +1968,14 @@
             }
         }
 
-        // 送信＆AI解析処理
+        // 送信＆AI解析処理（キーボード強制格納対応）
         async function submitRecord(isPhoto = false) {
             const input = document.getElementById('record-input');
             const text = isPhoto ? "写真解析" : input.value.trim();
             if (!text && !base64Image) return;
+
+            // キーボードを自動で閉じる
+            input.blur();
 
             if (currentCategory === 'exercise') {
                 pendingExerciseText = text;
@@ -2083,7 +2096,62 @@
             if (e.key === 'Enter') submitRecord(false);
         });
 
-        // カレンダー処理
+        // 複数カテゴリ対応のカレンダーバッジスタイル生成（円形グラデーション）
+        function getExerciseBadgeStyleForDay(dateISO) {
+            const dayExercises = window.exerciseRecords.filter(e => e.date === dateISO);
+            if (dayExercises.length === 0) return null;
+            
+            const uniqueColors = [];
+            dayExercises.forEach(ex => {
+                const part = ex.part || (ex.name.match(/^【(.*?)】/) ? ex.name.match(/^【(.*?)】/)[1] : null);
+                if (part && exercisePartColors[part]) {
+                    if (!uniqueColors.includes(exercisePartColors[part])) {
+                        uniqueColors.push(exercisePartColors[part]);
+                    }
+                }
+            });
+
+            if (uniqueColors.length === 0) {
+                const defaultColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-text').trim() || '#2C4A4A';
+                uniqueColors.push(defaultColor);
+            }
+
+            if (uniqueColors.length === 1) {
+                return `background-color: ${uniqueColors[0]} !important; color: #FFFFFF !important; box-shadow: 0 1px 4px ${uniqueColors[0]}66;`;
+            } else {
+                let gradStrs = [];
+                const step = 100 / uniqueColors.length;
+                uniqueColors.forEach((color, idx) => {
+                    const start = idx * step;
+                    const end = (idx + 1) * step;
+                    gradStrs.push(`${color} ${start}% ${end}%`);
+                });
+                const gradStr = `conic-gradient(${gradStrs.join(', ')})`;
+                return `background: ${gradStr} !important; color: #FFFFFF !important; box-shadow: 0 1px 4px rgba(0,0,0,0.15);`;
+            }
+        }
+
+        function checkDayIsExceeded(dateISO) {
+            const dayFoods = window.foodRecords.filter(f => f.date === dateISO);
+            let totalCal = 0, totalF = 0, totalC = 0;
+            dayFoods.forEach(f => {
+                totalCal += Number(f.cal !== undefined ? f.cal : (f.calories || 0));
+                totalF += Number(f.f !== undefined ? f.f : (f.fat || 0));
+                totalC += Number(f.c !== undefined ? f.c : (f.carbs || 0));
+            });
+
+            const maxCal = parseFloat(document.getElementById('target-calories').value) || 2000;
+            const maxFat = parseFloat(document.getElementById('target-fat').value) || 50;
+            const maxCarb = parseFloat(document.getElementById('target-carb').value) || 250;
+
+            const calRatio = maxCal > 0 ? (totalCal / maxCal) * 100 : 0;
+            const fatRatio = maxFat > 0 ? (totalF / maxFat) * 100 : 0;
+            const carbRatio = maxCarb > 0 ? (totalC / maxCarb) * 100 : 0;
+
+            return (calRatio > 105 || fatRatio > 105 || carbRatio > 105);
+        }
+
+        // 週間カレンダー
         function renderWeeklyCalendar() {
             const calendarEl = document.getElementById('weekly-calendar');
             calendarEl.innerHTML = '';
@@ -2108,11 +2176,13 @@
                 cell.className = `week-day-cell ${isToday ? 'is-today' : ''} ${isSelected ? 'selected' : ''}`;
                 
                 let badgeStyle = '';
-                const dayExercises = window.exerciseRecords.filter(e => e.date === dateKey);
-                if (currentCategory === 'exercise' && dayExercises.length > 0) {
-                    const ex = dayExercises[0];
-                    const c = exercisePartColors[ex.part || '胸'] || '#EF4444';
-                    badgeStyle = `background-color: ${c} !important; color: #FFF !important;`;
+                if (currentCategory === 'exercise') {
+                    const style = getExerciseBadgeStyleForDay(dateKey);
+                    if (style) badgeStyle = style;
+                } else if (currentCategory === 'food') {
+                    if (checkDayIsExceeded(dateKey)) {
+                        badgeStyle = `background-color: #EF4444 !important; color: #FFFFFF !important; box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4);`;
+                    }
                 }
 
                 cell.onclick = () => {
@@ -2129,6 +2199,96 @@
                 `;
                 calendarEl.appendChild(cell);
             }
+        }
+
+        // 月間カレンダー
+        function openMonthlyCalendarModal() {
+            calViewingDate = new Date(selectedDateStr);
+            renderMonthlyCalendarGrid();
+            openModal('monthly-calendar-modal');
+        }
+
+        function changeMonth(diff) {
+            calViewingDate.setMonth(calViewingDate.getMonth() + diff);
+            renderMonthlyCalendarGrid();
+        }
+
+        function renderMonthlyCalendarGrid() {
+            const year = calViewingDate.getFullYear();
+            const month = calViewingDate.getMonth();
+            document.getElementById('month-cal-title').textContent = `${year}年 ${month + 1}月`;
+            const grid = document.getElementById('month-cal-grid');
+            grid.innerHTML = '';
+
+            const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+            weekdays.forEach(w => {
+                const wEl = document.createElement('div');
+                wEl.style.fontSize = '0.75rem';
+                wEl.style.fontWeight = '600';
+                wEl.style.color = 'var(--text-sub)';
+                wEl.textContent = w;
+                grid.appendChild(wEl);
+            });
+
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+            const todayISO = getTodayISO();
+
+            for (let i = 0; i < firstDayIndex; i++) {
+                grid.appendChild(document.createElement('div'));
+            }
+
+            for (let d = 1; d <= lastDate; d++) {
+                const dateISO = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const isSelected = (dateISO === selectedDateStr);
+                const isToday = (dateISO === todayISO);
+
+                const dEl = document.createElement('div');
+                dEl.style.aspectRatio = '1';
+                dEl.style.display = 'flex';
+                dEl.style.alignItems = 'center';
+                dEl.style.justifyContent = 'center';
+                dEl.style.fontSize = '0.88rem';
+                dEl.style.fontWeight = '600';
+                dEl.style.borderRadius = '50%';
+                dEl.style.cursor = 'pointer';
+                dEl.textContent = d;
+
+                if (isToday) dEl.style.border = '1.5px solid var(--send-btn-bg)';
+                if (isSelected) {
+                    dEl.style.backgroundColor = 'var(--theme-color)';
+                    dEl.style.color = 'var(--theme-text)';
+                }
+
+                if (currentCategory === 'exercise') {
+                    const badgeStyle = getExerciseBadgeStyleForDay(dateISO);
+                    if (badgeStyle) dEl.style.cssText += badgeStyle;
+                } else if (currentCategory === 'food') {
+                    if (checkDayIsExceeded(dateISO)) {
+                        dEl.style.backgroundColor = '#EF4444';
+                        dEl.style.color = '#FFFFFF';
+                    }
+                }
+
+                dEl.onclick = () => {
+                    selectedDateStr = dateISO;
+                    closeModal('monthly-calendar-modal');
+                    renderWeeklyCalendar();
+                    if (currentCategory === 'food') renderFoodList();
+                    if (currentCategory === 'exercise') renderExerciseList();
+                    if (currentCategory === 'weight') updateBodyMetricsDisplay();
+                };
+                grid.appendChild(dEl);
+            }
+        }
+
+        function goToToday() {
+            selectedDateStr = getTodayISO();
+            closeModal('monthly-calendar-modal');
+            renderWeeklyCalendar();
+            if (currentCategory === 'food') renderFoodList();
+            if (currentCategory === 'exercise') renderExerciseList();
+            if (currentCategory === 'weight') updateBodyMetricsDisplay();
         }
 
         function openModal(id) { document.getElementById(id).classList.add('active'); }
@@ -2160,6 +2320,49 @@
             renderWeeklyCalendar();
             renderFoodList();
             switchView('food');
+
+            // --- スワイプジェスチャー処理 ---
+            let startX = 0;
+            let startY = 0;
+            let currentX = 0;
+            let isSwiping = false;
+
+            const mainContainer = document.getElementById('main-swipe-container');
+
+            mainContainer.addEventListener('touchstart', (e) => {
+                if (document.querySelector('.modal-overlay.active')) return;
+                // ルーラー操作中はスワイプ遷移を無効化
+                if (e.target.closest('.ruler-container')) return;
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                currentX = startX;
+                isSwiping = true;
+            }, { passive: true });
+
+            mainContainer.addEventListener('touchmove', (e) => {
+                if (!isSwiping) return;
+                currentX = e.touches[0].clientX;
+            }, { passive: true });
+
+            mainContainer.addEventListener('touchend', (e) => {
+                if (!isSwiping) return;
+                isSwiping = false;
+                const diffX = startX - currentX;
+                const diffY = startY - e.changedTouches[0].clientY;
+                
+                // 横方向のスワイプ判定（縦スクロールと誤爆しないよう比率をチェック）
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
+                    if (diffX > 0) {
+                        // 右から左へスワイプ（次へ）
+                        if (currentCategory === 'exercise') switchView('food');
+                        else if (currentCategory === 'food') switchView('weight');
+                    } else {
+                        // 左から右へスワイプ（前へ）
+                        if (currentCategory === 'weight') switchView('food');
+                        else if (currentCategory === 'food') switchView('exercise');
+                    }
+                }
+            });
         });
     </script>
 </body>
