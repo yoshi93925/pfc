@@ -735,7 +735,7 @@
                 </div>
             </section>
 
-            <!-- 2. 体重画面（最新◯kg削除、期間ボタン左寄せ、凡例を同列に上詰め） -->
+            <!-- 2. 体重画面 -->
             <section id="view-weight" class="view-panel">
                 <div class="view-panel-scroll">
                     <div class="sticky-chart-wrap">
@@ -810,7 +810,7 @@
             </section>
         </div>
 
-        <!-- 4. 設定画面（絵文字なしタイトル） -->
+        <!-- 4. 設定画面 -->
         <section id="view-settings">
             <div class="settings-container">
                 <div class="setting-section">
@@ -955,7 +955,7 @@
         </div>
     </div>
 
-    <!-- 種目別 歴代履歴モーダル（開いたとき今月選択済み） -->
+    <!-- 種目別 歴代履歴モーダル -->
     <div class="modal-overlay" id="exercise-history-modal" onclick="if(event.target === this) closeModal('exercise-history-modal')">
         <div class="modal-box">
             <div class="modal-header" style="margin-bottom: 10px;">
@@ -1790,14 +1790,13 @@
             }
         };
 
-        // --- 運動履歴モーダル（開いたとき今月を選択済み・「今月」基準） ---
+        // --- 運動履歴モーダル（開いたとき今月が選択されている仕様） ---
         window.openExerciseHistory = function(event, exerciseName, part) {
             if (event) event.stopPropagation();
             const cleanName = exerciseName.replace(/^【.*?】\s*/, '').trim();
             activeHistoryExerciseName = cleanName;
             activeHistoryExercisePart = part;
 
-            // 該当種目の存在する年月リストを抽出
             const matches = window.exerciseRecords.filter(e => {
                 const n = (e.name || "").replace(/^【.*?】\s*/, '').trim();
                 return n.toLowerCase() === cleanName.toLowerCase();
@@ -1821,11 +1820,12 @@
                 selectEl.appendChild(opt);
             });
 
-            // 開いたとき「今月」（例: 2026-09）がリストにあればそれを、なければ「全期間」を選択
             const now = new Date();
             const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
             if (sortedMonths.includes(currentYM)) {
                 selectEl.value = currentYM;
+            } else if (sortedMonths.length > 0) {
+                selectEl.value = sortedMonths[0]; // 記録がある最新の月を選択
             } else {
                 selectEl.value = 'all';
             }
@@ -1940,7 +1940,7 @@
 
             const sorted = [...window.weightDataHistory].filter(w => w.weight).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
             const latest = sorted[sorted.length - 1];
-            document.getElementById('latest-weight-stat').textContent = latest ? `最新: ${latest.weight} kg` : '記録なし';
+            // ヘッダーの「最新: ◯kg」表記は削除済
         }
 
         window.toggleMetricRuler = function(type) {
@@ -2044,75 +2044,85 @@
             renderWeeklyCalendar();
         }
 
-        // 直線グラフ
+        // 安全な体重グラフ初期化関数
         function initOrUpdateWeightChart() {
-            const ctx = document.getElementById('weightChart');
-            if (!ctx) return;
+            try {
+                const ctx = document.getElementById('weightChart');
+                if (!ctx) return;
 
-            const rangeVal = document.getElementById('weight-range-select').value;
-            const now = new Date();
-            let cutoffTime = 0;
-            if (rangeVal === '1m') cutoffTime = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()).getTime();
-            else if (rangeVal === '3m') cutoffTime = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate()).getTime();
-            else if (rangeVal === '1y') cutoffTime = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()).getTime();
+                const rangeSelect = document.getElementById('weight-range-select');
+                const rangeVal = rangeSelect ? rangeSelect.value : 'all';
+                const now = new Date();
+                let cutoffTime = 0;
+                
+                if (rangeVal === '1m') cutoffTime = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()).getTime();
+                else if (rangeVal === '3m') cutoffTime = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate()).getTime();
+                else if (rangeVal === '1y') cutoffTime = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()).getTime();
 
-            const sortedHistory = [...window.weightDataHistory].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-            const filtered = sortedHistory.filter(d => (d.timestamp || 0) >= cutoffTime && (d.weight || d.bodyFat));
+                const history = window.weightDataHistory || [];
+                const sortedHistory = [...history].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                const filtered = sortedHistory.filter(d => (d.timestamp || 0) >= cutoffTime && (d.weight || d.bodyFat));
 
-            const labels = filtered.map(d => d.date);
-            const weightValues = filtered.map(d => d.weight || null);
-            const fatValues = filtered.map(d => d.bodyFat || null);
+                const labels = filtered.map(d => d.date);
+                const weightValues = filtered.map(d => d.weight || null);
+                const fatValues = filtered.map(d => d.bodyFat || null);
 
-            if (weightChartInstance) weightChartInstance.destroy();
+                if (weightChartInstance) {
+                    weightChartInstance.destroy();
+                    weightChartInstance = null;
+                }
 
-            weightChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: '体重 (kg)',
-                            data: weightValues,
-                            borderColor: '#2B5C8F',
-                            backgroundColor: 'rgba(43, 92, 143, 0.12)',
-                            borderWidth: 2.5,
-                            pointBackgroundColor: '#2B5C8F',
-                            pointRadius: 4,
-                            tension: 0,
-                            yAxisID: 'yWeight',
-                            fill: false
-                        },
-                        {
-                            label: '体脂肪率 (%)',
-                            data: fatValues,
-                            borderColor: '#F59E0B',
-                            backgroundColor: 'rgba(245, 158, 11, 0.12)',
-                            borderWidth: 2,
-                            pointBackgroundColor: '#F59E0B',
-                            pointRadius: 4,
-                            tension: 0,
-                            yAxisID: 'yFat',
-                            fill: false
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { font: { size: 9 } } },
-                        yWeight: {
-                            type: 'linear', position: 'left',
-                            ticks: { color: '#2B5C8F', font: { size: 9, weight: '600' }, callback: v => `${v}kg` }
-                        },
-                        yFat: {
-                            type: 'linear', position: 'right', grid: { display: false },
-                            ticks: { color: '#D97706', font: { size: 9, weight: '600' }, callback: v => `${v}%` }
+                weightChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: '体重 (kg)',
+                                data: weightValues,
+                                borderColor: '#2B5C8F',
+                                backgroundColor: 'rgba(43, 92, 143, 0.12)',
+                                borderWidth: 2.5,
+                                pointBackgroundColor: '#2B5C8F',
+                                pointRadius: 4,
+                                tension: 0,
+                                yAxisID: 'yWeight',
+                                fill: false
+                            },
+                            {
+                                label: '体脂肪率 (%)',
+                                data: fatValues,
+                                borderColor: '#F59E0B',
+                                backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                                borderWidth: 2,
+                                pointBackgroundColor: '#F59E0B',
+                                pointRadius: 4,
+                                tension: 0,
+                                yAxisID: 'yFat',
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { font: { size: 9 } } },
+                            yWeight: {
+                                type: 'linear', position: 'left',
+                                ticks: { color: '#2B5C8F', font: { size: 9, weight: '600' }, callback: v => `${v}kg` }
+                            },
+                            yFat: {
+                                type: 'linear', position: 'right', grid: { display: false },
+                                ticks: { color: '#D97706', font: { size: 9, weight: '600' }, callback: v => `${v}%` }
+                            }
                         }
                     }
-                }
-            });
+                });
+            } catch (err) {
+                console.error("Weight chart error:", err);
+            }
         }
 
         // --- 食事・PFCバー表示 ---
@@ -2162,8 +2172,7 @@
             document.getElementById('val-cur-p').textContent = totalP.toFixed(1);
             document.getElementById('val-tgt-p').textContent = maxP;
             pBar.style.width = `${Math.min(pPct, 100)}%`;
-            curPEl = document.getElementById('val-cur-p');
-            curPEl.className = "val-current";
+            document.getElementById('val-cur-p').className = "val-current";
             if (pPct >= 90) {
                 pBar.style.backgroundColor = 'var(--pfc-p-bar)';
             } else {
@@ -2272,8 +2281,9 @@
             }
         }
 
+        // --- 高速・軽量モデル指定 ---
         async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
-            const candidateModels = ["gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-2.5-flash"];
+            const candidateModels = ["gemini-3.5-flash-lite", "gemini-2.5-flash"];
             
             let prompt = "";
             if (imageBase64) {
