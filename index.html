@@ -226,9 +226,21 @@
 
         .sticky-chart-wrap { position: sticky; top: 0; z-index: 50; background-color: var(--bg-color); padding: 4px 0 4px 0; margin-bottom: 6px; }
         .chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
-        .chart-header { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 4px; }
-        .chart-legend-wrap { display: flex; gap: 12px; font-size: 0.74rem; font-weight: 600; margin-bottom: 6px; justify-content: flex-end; }
-        .legend-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+        
+        /* 体重グラフヘッダー（左にボタン、右に凡例を同一行に配置） */
+        .chart-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .chart-legend-inline {
+            display: flex;
+            gap: 10px;
+            font-size: 0.74rem;
+            font-weight: 600;
+        }
+        .legend-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 3px; vertical-align: middle; }
 
         .custom-select-wrap { position: relative; display: inline-block; }
         .custom-select {
@@ -723,12 +735,12 @@
                 </div>
             </section>
 
-            <!-- 2. 体重画面（タイトル等からアイコン削除済み） -->
+            <!-- 2. 体重画面（最新◯kg削除、期間ボタン左寄せ、凡例を同列に上詰め） -->
             <section id="view-weight" class="view-panel">
                 <div class="view-panel-scroll">
                     <div class="sticky-chart-wrap">
                         <div class="chart-card">
-                            <div class="chart-header">
+                            <div class="chart-header-row">
                                 <div class="custom-select-wrap">
                                     <select id="weight-range-select" class="custom-select" onchange="initOrUpdateWeightChart()">
                                         <option value="1m">1か月</option>
@@ -737,13 +749,12 @@
                                         <option value="all" selected>全期間</option>
                                     </select>
                                 </div>
-                                <span style="font-size: 0.8rem; color: var(--text-sub);" id="latest-weight-stat">最新: -- kg</span>
+                                <div class="chart-legend-inline">
+                                    <span><span class="legend-indicator" style="background-color: #2B5C8F;"></span>体重 (kg)</span>
+                                    <span><span class="legend-indicator" style="background-color: #F59E0B;"></span>体脂肪率 (%)</span>
+                                </div>
                             </div>
-                            <div class="chart-legend-wrap" style="margin-top: 4px;">
-                                <span><span class="legend-indicator" style="background-color: #2B5C8F;"></span>体重 (kg)</span>
-                                <span><span class="legend-indicator" style="background-color: #F59E0B;"></span>体脂肪率 (%)</span>
-                            </div>
-                            <div style="position: relative; height: 155px; width: 100%;">
+                            <div style="position: relative; height: 165px; width: 100%;">
                                 <canvas id="weightChart"></canvas>
                             </div>
                         </div>
@@ -799,7 +810,7 @@
             </section>
         </div>
 
-        <!-- 4. 設定画面（セクションの絵文字削除済み） -->
+        <!-- 4. 設定画面（絵文字なしタイトル） -->
         <section id="view-settings">
             <div class="settings-container">
                 <div class="setting-section">
@@ -944,7 +955,7 @@
         </div>
     </div>
 
-    <!-- 種目別 歴代履歴モーダル（下部閉じるボタン削除・年月選択ドロップダウン追加） -->
+    <!-- 種目別 歴代履歴モーダル（開いたとき今月選択済み） -->
     <div class="modal-overlay" id="exercise-history-modal" onclick="if(event.target === this) closeModal('exercise-history-modal')">
         <div class="modal-box">
             <div class="modal-header" style="margin-bottom: 10px;">
@@ -1779,14 +1790,14 @@
             }
         };
 
-        // --- 運動履歴モーダル（月別絞り込み・下部閉じるボタン削除） ---
+        // --- 運動履歴モーダル（開いたとき今月を選択済み・「今月」基準） ---
         window.openExerciseHistory = function(event, exerciseName, part) {
             if (event) event.stopPropagation();
             const cleanName = exerciseName.replace(/^【.*?】\s*/, '').trim();
             activeHistoryExerciseName = cleanName;
             activeHistoryExercisePart = part;
 
-            // 該当種目の存在する年月リストを抽出してドロップダウンにセット
+            // 該当種目の存在する年月リストを抽出
             const matches = window.exerciseRecords.filter(e => {
                 const n = (e.name || "").replace(/^【.*?】\s*/, '').trim();
                 return n.toLowerCase() === cleanName.toLowerCase();
@@ -1795,8 +1806,7 @@
             const monthsSet = new Set();
             matches.forEach(m => {
                 if (m.date) {
-                    const ym = m.date.substring(0, 7); // "YYYY-MM"
-                    monthsSet.add(ym);
+                    monthsSet.add(m.date.substring(0, 7)); // "YYYY-MM"
                 }
             });
             const sortedMonths = Array.from(monthsSet).sort().reverse();
@@ -1810,7 +1820,15 @@
                 opt.textContent = `${parts[0]}年 ${parseInt(parts[1], 10)}月`;
                 selectEl.appendChild(opt);
             });
-            selectEl.value = 'all';
+
+            // 開いたとき「今月」（例: 2026-09）がリストにあればそれを、なければ「全期間」を選択
+            const now = new Date();
+            const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            if (sortedMonths.includes(currentYM)) {
+                selectEl.value = currentYM;
+            } else {
+                selectEl.value = 'all';
+            }
 
             renderExerciseHistoryList();
             openModal('exercise-history-modal');
@@ -2254,7 +2272,6 @@
             }
         }
 
-        // --- 最新モデル（gemini-3.6-flash / gemini-3.5-flash-lite）による解析 ---
         async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
             const candidateModels = ["gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-2.5-flash"];
             
@@ -2485,7 +2502,6 @@
             }
         }
 
-        // 実際に上限をオーバーした日のみ赤色にする判定
         function checkDayIsExceeded(dateISO) {
             const dayFoods = window.foodRecords.filter(f => f.date === dateISO);
             if (dayFoods.length === 0) return false;
