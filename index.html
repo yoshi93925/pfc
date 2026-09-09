@@ -878,27 +878,23 @@
         </div>
     </footer>
 
-    <!-- 月間カレンダーモーダル -->
-    <div class="modal-overlay" id="monthly-calendar-modal">
+    <!-- 月間カレンダーモーダル（背景タップで閉じる・タイトル等削除対応） -->
+    <div class="modal-overlay" id="monthly-calendar-modal" onclick="if(event.target === this) closeModal('monthly-calendar-modal')">
         <div class="modal-box">
-            <div class="modal-header">
-                <span>日付を選択</span>
-                <button class="icon-btn" onclick="closeModal('monthly-calendar-modal')"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
-            </div>
-            <div class="month-cal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div class="month-cal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                 <button class="icon-btn" onclick="changeMonth(-1)"><i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i></button>
-                <div style="font-weight: 700;" id="month-cal-title">2026年 9月</div>
+                <div style="font-weight: 700; font-size: 1.05rem;" id="month-cal-title">2026年 9月</div>
                 <button class="icon-btn" onclick="changeMonth(1)"><i data-lucide="chevron-right" style="width: 20px; height: 20px;"></i></button>
             </div>
             <div class="month-cal-grid" id="month-cal-grid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:5px; text-align:center;"></div>
-            <div style="margin-top: 14px; text-align: center;">
+            <div style="margin-top: 16px; text-align: center;">
                 <button class="modal-btn modal-btn-secondary" style="width: 100%; padding: 8px;" id="today-back-btn" onclick="goToToday()">今日に戻る</button>
             </div>
         </div>
     </div>
 
-    <!-- 運動カテゴリ選択モーダル -->
-    <div class="modal-overlay" id="exercise-category-modal">
+    <!-- 運動カテゴリ選択モーダル（背景タップで閉じる） -->
+    <div class="modal-overlay" id="exercise-category-modal" onclick="if(event.target === this) closeModal('exercise-category-modal')">
         <div class="modal-box" style="max-width: 320px; text-align: center;">
             <div class="modal-header" style="justify-content: center; margin-bottom: 12px;">
                 <span style="font-size: 1.05rem; font-weight:700;">カテゴリを選択</span>
@@ -915,8 +911,8 @@
         </div>
     </div>
 
-    <!-- 運動記録全体編集モーダル -->
-    <div class="modal-overlay" id="exercise-edit-modal">
+    <!-- 運動記録全体編集モーダル（背景タップで閉じる） -->
+    <div class="modal-overlay" id="exercise-edit-modal" onclick="if(event.target === this) closeModal('exercise-edit-modal')">
         <div class="modal-box">
             <div class="modal-header">
                 <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
@@ -956,8 +952,8 @@
         </div>
     </div>
 
-    <!-- 種目別 歴代履歴モーダル -->
-    <div class="modal-overlay" id="exercise-history-modal">
+    <!-- 種目別 歴代履歴モーダル（背景タップで閉じる） -->
+    <div class="modal-overlay" id="exercise-history-modal" onclick="if(event.target === this) closeModal('exercise-history-modal')">
         <div class="modal-box">
             <div class="modal-header">
                 <div style="display: flex; align-items: center; gap: 6px;">
@@ -973,8 +969,8 @@
         </div>
     </div>
 
-    <!-- 食事記録編集モーダル -->
-    <div class="modal-overlay" id="food-edit-modal">
+    <!-- 食事記録編集モーダル（背景タップで閉じる） -->
+    <div class="modal-overlay" id="food-edit-modal" onclick="if(event.target === this) closeModal('food-edit-modal')">
         <div class="modal-box">
             <div class="modal-header">
                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -1003,8 +999,8 @@
         </div>
     </div>
 
-    <!-- お気に入り詳細・編集モーダル -->
-    <div class="modal-overlay" id="favorite-edit-modal">
+    <!-- お気に入り詳細・編集モーダル（背景タップで閉じる） -->
+    <div class="modal-overlay" id="favorite-edit-modal" onclick="if(event.target === this) closeModal('favorite-edit-modal')">
         <div class="modal-box">
             <div class="modal-header">
                 <span>お気に入りアイテムの編集</span>
@@ -1027,8 +1023,8 @@
         </div>
     </div>
 
-    <!-- お気に入り（リスト選択）モーダル -->
-    <div class="modal-overlay" id="favorite-modal">
+    <!-- お気に入り（リスト選択）モーダル（背景タップで閉じる） -->
+    <div class="modal-overlay" id="favorite-modal" onclick="if(event.target === this) closeModal('favorite-modal')">
         <div class="modal-box">
             <div class="modal-header">
                 <div style="display: flex; align-items: center; gap: 6px;">
@@ -2067,7 +2063,7 @@
             });
         }
 
-        // --- 食事・PFCバー表示 ＆ 合格ライン判定ロジック適用 ---
+        // --- 食事・PFCバー表示 ---
         function renderFoodList() {
             const list = document.getElementById('food-list');
             list.innerHTML = '';
@@ -2094,7 +2090,6 @@
             const fPct = maxF > 0 ? (totalF / maxF) * 100 : 0;
             const cPct = maxC > 0 ? (totalC / maxC) * 100 : 0;
 
-            // 1. カロリー判定 (90% 〜 100%)
             const curCalEl = document.getElementById('val-cur-cal');
             const calBar = document.getElementById('cal-progress-bar');
             curCalEl.textContent = Math.round(totalCal);
@@ -2112,7 +2107,6 @@
                 calBar.classList.add('success-limit');
             }
 
-            // 2. たんぱく質 (P) 判定 (90% 以上)
             const curPEl = document.getElementById('val-cur-p');
             const pBar = document.getElementById('p-progress-bar');
             curPEl.textContent = totalP.toFixed(1);
@@ -2126,7 +2120,6 @@
                 pBar.style.backgroundColor = 'var(--cal-bar-color)';
             }
 
-            // 3. 脂質 (F) 判定 (〜 100%以内)
             const curFEl = document.getElementById('val-cur-f');
             const fBar = document.getElementById('f-progress-bar');
             curFEl.textContent = totalF.toFixed(1);
@@ -2141,7 +2134,6 @@
                 fBar.style.backgroundColor = 'var(--success-color)';
             }
 
-            // 4. 炭水化物 (C) 判定 (90% 〜 110%)
             const curCEl = document.getElementById('val-cur-c');
             const cBar = document.getElementById('c-progress-bar');
             curCEl.textContent = totalC.toFixed(1);
@@ -2230,6 +2222,78 @@
                 renderWeeklyCalendar();
                 renderFoodList();
             }
+        }
+
+        // --- 最新の指定モデル（gemini-3.6-flash / gemini-3.5-flash-lite）による解析 ---
+        async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
+            const candidateModels = ["gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-2.5-flash"];
+            
+            let prompt = "";
+            if (imageBase64) {
+                prompt = `あなたは厳密な栄養管理士です。この写真の料理を分析し、「文部科学省 日本食品標準成分表」または信頼できる公式メーカーの標準的な1食あたりの数値（カロリー、たんぱく質P、脂質F、炭水化物C）を正確に算出してJSONで返してください。不確かな場合は推測せず標準的な平均値を求めてください。出力は次のJSON形式のみとし、余計な文章やマークダウンは一切含めないでください。{"name": "品名", "cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
+            } else {
+                prompt = `あなたは厳密な栄養管理士です。「${foodText}」について、「文部科学省 日本食品標準成分表」または信頼できるメーカーの公式栄養成分データに基づいた1食あたりの正確な数値（カロリー、たんぱく質P、脂質F、炭水化物C）を算出してJSONで返してください。出力は次のJSON形式のみとし、余計な文章やマークダウンは一切含めないでください。{"name": "${foodText}", "cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
+            }
+
+            let lastError = null;
+
+            for (const model of candidateModels) {
+                try {
+                    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                    
+                    let parts = [{ text: prompt }];
+                    if (imageBase64) {
+                        parts.push({
+                            inlineData: {
+                                mimeType: "image/jpeg",
+                                data: imageBase64
+                            }
+                        });
+                    }
+
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: parts }]
+                        })
+                    });
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        throw new Error(data.error.message || `[${model}] APIエラー`);
+                    }
+                    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+                        throw new Error(`[${model}] AI応答が空です`);
+                    }
+                    
+                    const contentParts = data.candidates[0].content.parts;
+                    let rawText = "";
+                    for (const p of contentParts) {
+                        if (p.text) rawText += p.text;
+                    }
+
+                    const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+                    const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
+                    
+                    if (jsonMatch) {
+                        const parsed = JSON.parse(jsonMatch[0]);
+                        return {
+                            name: parsed.name || foodText,
+                            cal: Number(parsed.cal !== undefined ? parsed.cal : (parsed.calories || 0)),
+                            p: Number(parsed.p !== undefined ? parsed.p : (parsed.protein || 0)),
+                            f: Number(parsed.f !== undefined ? parsed.f : (parsed.fat || 0)),
+                            c: Number(parsed.c !== undefined ? parsed.c : (parsed.carbs || 0))
+                        };
+                    }
+                    throw new Error("JSONパースに失敗しました");
+                } catch (err) {
+                    lastError = err;
+                    console.warn(`Model ${model} failed, trying next...`, err);
+                }
+            }
+            
+            throw lastError || new Error("解析に失敗しました。時間をおいて再度お試しください。");
         }
 
         async function submitRecord(isPhoto = false) {
@@ -2411,7 +2475,6 @@
             const fatRatio = maxFat > 0 ? (totalF / maxFat) * 100 : 0;
             const carbRatio = maxCarb > 0 ? (totalC / maxCarb) * 100 : 0;
 
-            // 失敗（赤色表示になる条件）：カロリー > 100%, P < 90%, F > 100%, C > 110% または C < 90%
             const isCalFail = (calRatio > 100);
             const isPFail = (pRatio < 90);
             const isFFail = (fatRatio > 100);
@@ -2531,10 +2594,10 @@
                 dEl.style.cursor = 'pointer';
                 dEl.textContent = d;
 
-                if (isToday) dEl.style.border = '1.5px solid var(--send-btn-bg)';
+                // 選択中（表示中）の日は色をつけず、丸い枠線（ボーダー）で囲む
                 if (isSelected) {
-                    dEl.style.backgroundColor = 'var(--theme-color)';
-                    dEl.style.color = 'var(--theme-text)';
+                    dEl.style.border = '2px solid var(--theme-text)';
+                    dEl.style.color = 'var(--text-main)';
                 }
 
                 if (currentCategory === 'exercise') {
