@@ -213,21 +213,31 @@
         .month-cal-day.selected { background-color: var(--theme-color); color: var(--theme-text); font-weight: 700; box-shadow: 0 0 0 2px var(--theme-text); }
         .month-cal-day.is-today { border: 1.5px solid var(--send-btn-bg); }
 
-        /* スライド＆全域スワイプ対応レイアウト */
-        main { padding: 10px 14px 14px 14px; max-width: 600px; margin: 0 auto; overflow: hidden; position: relative; }
+        /* スライド＆チラ見え防止レイアウト */
+        main { 
+            padding: 10px 14px 14px 14px; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            overflow: hidden; 
+            position: relative; 
+            width: 100%;
+        }
         .views-slider {
             display: flex;
             width: 300%;
-            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1);
             will-change: transform;
             touch-action: pan-y;
-            transform: translateX(-33.333%);
+            transform: translateX(-33.333333%);
         }
         .view-panel {
-            width: 33.333%;
+            width: 33.333333%;
+            max-width: 33.333333%;
+            box-sizing: border-box;
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
+            padding: 0 4px;
         }
         .view-panel-scroll {
             flex: 1;
@@ -241,7 +251,7 @@
             width: 100%;
         }
 
-        .card-list { display: flex; flex-direction: column; gap: 8px; padding-bottom: 10px; }
+        .card-list { display: flex; flex-direction: column; gap: 8px; padding-bottom: 10px; width: 100%; }
         
         /* 食事記録カード */
         .food-item-card {
@@ -264,7 +274,7 @@
             cursor: pointer;
         }
 
-        /* トレーニング記録専用カード（画像のデザイン再現） */
+        /* トレーニング記録専用カード（画像デザイン再現） */
         .workout-card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -272,6 +282,7 @@
             overflow: hidden;
             box-shadow: 0 2px 6px rgba(0,0,0,0.04);
             margin-bottom: 10px;
+            width: 100%;
         }
         .workout-card-header {
             padding: 10px 16px;
@@ -362,7 +373,7 @@
         .item-detail { font-size: 0.8rem; font-weight: 400; color: var(--text-sub); white-space: pre-wrap; word-break: break-all; }
         .blank-state { text-align: center; padding: 40px 20px; color: var(--text-sub); background: var(--card-bg); border-radius: 10px; border: 1px dashed var(--card-border); margin-top: 10px; }
 
-        /* 設定画面（フラットデザイン） */
+        /* 設定画面 */
         .settings-container { display: flex; flex-direction: column; gap: 10px; padding-top: 2px; padding-bottom: 15px; }
         .setting-section { background: transparent; border-bottom: 1px solid var(--card-border); padding: 6px 0 10px 0; }
         .setting-section-title { font-size: 0.85rem; font-weight: 700; color: var(--text-sub); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.03em; }
@@ -406,7 +417,7 @@
             z-index: 300; display: none; align-items: center; justify-content: center; padding: 16px; opacity: 0; transition: opacity 0.25s ease;
         }
         .modal-overlay.active { display: flex; opacity: 1; }
-        .modal-box { background: var(--card-bg); border-radius: 14px; width: 100%; max-width: 380px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); padding: 18px; max-height: 85vh; overflow-y: auto; }
+        .modal-box { background: var(--card-bg); border-radius: 14px; width: 100%; max-width: 390px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); padding: 18px; max-height: 85vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; font-weight: 600; font-size: 1.05rem; }
         .modal-form-group { margin-bottom: 12px; }
         .modal-label { font-size: 0.8rem; font-weight: 600; color: var(--text-sub); margin-bottom: 4px; display: block; }
@@ -418,16 +429,19 @@
         .modal-btn-danger { background-color: #EF4444; color: #FFFFFF; }
         .modal-btn-secondary { background-color: var(--input-bg); color: var(--text-main); }
 
-        /* セット行の入力エディタ */
+        /* 運動メニュー編集モーダルのセット行（はみ出し防止対応） */
         .set-editor-row {
-            display: flex;
+            display: grid;
+            grid-template-columns: 46px 1fr auto 1fr auto 28px;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             margin-bottom: 6px;
+            width: 100%;
         }
         .set-editor-row input {
-            flex: 1;
-            padding: 6px 8px;
+            width: 100%;
+            min-width: 0;
+            padding: 6px 4px;
             font-size: 0.88rem;
             border: 1px solid var(--card-border);
             background: var(--input-bg);
@@ -435,6 +449,43 @@
             border-radius: 6px;
             outline: none;
             text-align: center;
+        }
+
+        /* 履歴モーダルカード・テーブル */
+        .history-card {
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .history-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 6px;
+            margin-bottom: 6px;
+            border-bottom: 1px solid var(--card-border);
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-sub);
+        }
+        .history-mini-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+        .history-mini-table th {
+            color: var(--text-sub);
+            font-weight: 500;
+            padding-bottom: 4px;
+            font-size: 0.72rem;
+        }
+        .history-mini-table td {
+            padding: 4px 2px;
+            color: var(--text-main);
+            border-top: 1px dashed rgba(0,0,0,0.05);
         }
 
         .loading-overlay {
@@ -720,7 +771,7 @@
         </div>
     </div>
 
-    <!-- 運動記録編集モーダル -->
+    <!-- 運動記録編集モーダル（はみ出し防止構造） -->
     <div class="modal-overlay" id="exercise-edit-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -750,7 +801,7 @@
             
             <div class="modal-form-group">
                 <label class="modal-label">セット内容</label>
-                <div id="exercise-sets-editor-container" style="display:flex; flex-direction:column; gap:6px; margin-bottom:8px;"></div>
+                <div id="exercise-sets-editor-container" style="display:flex; flex-direction:column; gap:6px; margin-bottom:8px; width: 100%;"></div>
                 <button type="button" class="modal-btn modal-btn-secondary" style="padding: 6px; font-size: 0.8rem;" onclick="addEditorSetRow()">+ セットを追加</button>
             </div>
 
@@ -761,7 +812,7 @@
         </div>
     </div>
 
-    <!-- 種目別 歴代履歴モーダル -->
+    <!-- 種目別 歴代履歴モーダル（美しく整理されたUI） -->
     <div class="modal-overlay" id="exercise-history-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1171,7 +1222,7 @@
             }
         };
 
-        // セットデータの正規化（従来のテキスト形式と新構造の相互変換）
+        // セットデータの正規化
         function normalizeExerciseSets(setsData) {
             if (Array.isArray(setsData)) return setsData;
             if (!setsData || typeof setsData !== 'string') return [];
@@ -1181,7 +1232,6 @@
             lines.forEach(line => {
                 const trimmed = line.trim();
                 if (!trimmed) return;
-                // 例: "80kg x 3" または "80 x 3" または "80kgx3 3" などをパース
                 const m = trimmed.match(/([0-9.]+)\s*(?:kg)?\s*[x×*]\s*([0-9]+)/i);
                 if (m) {
                     parsed.push({ weight: parseFloat(m[1]), reps: parseInt(m[2], 10) });
@@ -1213,7 +1263,7 @@
 
             const sets = normalizeExerciseSets(item.setsList || item.sets);
             if (sets.length === 0) {
-                addEditorSetRow(80, 3);
+                addEditorSetRow(60, 10);
             } else {
                 sets.forEach(s => addEditorSetRow(s.weight, s.reps));
             }
@@ -1221,18 +1271,21 @@
             openModal('exercise-edit-modal');
         }
 
+        // 枠内にはみ出さないよう横幅比率・文字サイズを最適化
         window.addEditorSetRow = function(w = '', r = '') {
             const container = document.getElementById('exercise-sets-editor-container');
             const rowIdx = container.children.length + 1;
             const row = document.createElement('div');
             row.className = 'set-editor-row';
             row.innerHTML = `
-                <span style="font-size:0.8rem; font-weight:600; width:45px; color:var(--text-sub);">第${rowIdx}set</span>
-                <input type="number" step="0.5" class="set-w-input" placeholder="重さ (kg)" value="${w !== undefined ? w : ''}">
-                <span style="font-size:0.75rem; color:var(--text-sub);">kg</span>
-                <input type="number" step="1" class="set-r-input" placeholder="回数" value="${r !== undefined ? r : ''}">
-                <span style="font-size:0.75rem; color:var(--text-sub);">回</span>
-                <button type="button" class="icon-btn" style="color:#EF4444;" onclick="this.parentElement.remove(); reindexEditorRows();"><i data-lucide="minus-circle" style="width:18px;height:18px;"></i></button>
+                <span style="font-size:0.75rem; font-weight:600; color:var(--text-sub); white-space:nowrap; line-height:1;">第${rowIdx}set</span>
+                <input type="number" step="0.5" class="set-w-input" placeholder="0" value="${w !== undefined ? w : ''}">
+                <span style="font-size:0.7rem; color:var(--text-sub);">kg</span>
+                <input type="number" step="1" class="set-r-input" placeholder="0" value="${r !== undefined ? r : ''}">
+                <span style="font-size:0.7rem; color:var(--text-sub);">回</span>
+                <button type="button" class="icon-btn" style="color:#EF4444; padding:2px;" onclick="this.parentElement.remove(); reindexEditorRows();">
+                    <i data-lucide="minus-circle" style="width:16px; height:16px;"></i>
+                </button>
             `;
             container.appendChild(row);
             lucide.createIcons();
@@ -1313,7 +1366,7 @@
             showToast('セットを追加しました');
         };
 
-        // 種目名をタップした際に歴代履歴を表示
+        // 履歴モーダルの表示（見やすい表形式UI）
         window.openExerciseHistory = function(event, exerciseName) {
             if (event) event.stopPropagation();
             const cleanName = exerciseName.replace(/^【.*?】\s*/, '').trim();
@@ -1332,22 +1385,34 @@
                 matches.forEach(item => {
                     const sets = normalizeExerciseSets(item.setsList || item.sets);
                     const card = document.createElement('div');
-                    card.style.cssText = "background:var(--input-bg); border:1px solid var(--card-border); border-radius:8px; padding:10px;";
+                    card.className = 'history-card';
                     
-                    let setsHtml = sets.map((s, idx) => `
-                        <span style="display:inline-block; margin-right:8px; font-size:0.82rem; color:var(--text-main);">
-                            ${idx + 1}set: <strong>${s.weight}kg</strong> × ${s.reps}回
-                        </span>
-                    `).join('');
-
-                    if (!setsHtml) setsHtml = `<span style="font-size:0.8rem; color:var(--text-sub);">セット詳細なし</span>`;
+                    let rowsHtml = '';
+                    sets.forEach((s, idx) => {
+                        rowsHtml += `
+                            <tr>
+                                <td style="width:25%; font-weight:600; color:var(--text-sub);">${idx + 1}</td>
+                                <td style="width:45%; font-weight:700;">${Number(s.weight).toFixed(1)} <span style="font-size:0.7rem; font-weight:normal; color:var(--text-sub);">kg</span></td>
+                                <td style="width:30%; font-weight:700;">${s.reps} <span style="font-size:0.7rem; font-weight:normal; color:var(--text-sub);">回</span></td>
+                            </tr>
+                        `;
+                    });
 
                     card.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; font-size:0.82rem; font-weight:700; color:var(--text-sub);">
+                        <div class="history-card-header">
                             <span>${item.date}</span>
                             <span>${item.recordTime || ''}</span>
                         </div>
-                        <div style="display:flex; flex-wrap:wrap; gap:4px;">${setsHtml}</div>
+                        <table class="history-mini-table">
+                            <thead>
+                                <tr>
+                                    <th>セット</th>
+                                    <th>重さ</th>
+                                    <th>回数</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rowsHtml}</tbody>
+                        </table>
                     `;
                     container.appendChild(card);
                 });
@@ -1432,7 +1497,7 @@
         // 部位別テーマカラー
         const exercisePartColors = {
             '腕': '#EAB308',      /* イエロー */
-            '胸': '#EF4444',      /* レッド（画像のような鮮やかな赤） */
+            '胸': '#EF4444',      /* レッド */
             '腹': '#8B5CF6',      /* パープル */
             '背中': '#3B82F6',    /* ブルー */
             '足': '#F97316',      /* オレンジ */
@@ -2009,7 +2074,7 @@
             }
         };
 
-        // トレーニング一覧レンダリング（画像のUIを完全再現）
+        // トレーニング一覧レンダリング
         function renderExerciseList(autoScrollToBottom = true) {
             const list = document.getElementById('exercise-list');
             list.innerHTML = '';
@@ -2240,8 +2305,6 @@
 
             const now = new Date();
             const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-            // デフォルトで第1セットを作成（60kg x 10回）
             const defaultSets = [{ weight: 60, reps: 10 }];
 
             window.exerciseRecords.push({
@@ -2339,6 +2402,7 @@
                 if (viewName === 'exercise') {
                     currentCategory = 'exercise';
                     targetIndex = 0;
+                    document.getElementById('tab-btn-exercise').classList.add('active');
                     inputEl.placeholder = '運動内容を入力（例: ベンチプレス）';
                     inputEl.readOnly = false;
                     favBtn.style.display = 'none';
@@ -2348,6 +2412,7 @@
                 } else if (viewName === 'food') {
                     currentCategory = 'food';
                     targetIndex = 1;
+                    document.getElementById('tab-btn-food').classList.add('active');
                     inputEl.placeholder = '食事内容を記録';
                     inputEl.readOnly = false;
                     favBtn.style.display = 'flex';
@@ -2357,6 +2422,7 @@
                 } else if (viewName === 'weight') {
                     currentCategory = 'weight';
                     targetIndex = 2;
+                    document.getElementById('tab-btn-weight').classList.add('active');
                     inputEl.placeholder = 'タップして体重・体脂肪を入力';
                     inputEl.readOnly = true;
                     favBtn.style.display = 'none';
@@ -2365,7 +2431,8 @@
                     setTimeout(() => initOrUpdateWeightChart(), 50);
                 }
 
-                slider.style.transform = `translateX(-${targetIndex * (100 / 3)}%)`;
+                // 3分割されたパネルの100%基準で厳密にシフト（チラ見えを防止）
+                slider.style.transform = `translateX(-${targetIndex * 33.333333}%)`;
                 indicator.style.transform = `translateX(${targetIndex * 38}px)`;
                 renderWeeklyCalendar();
             }
