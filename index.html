@@ -34,15 +34,15 @@
 
             --pfc-p-bg: rgba(147, 197, 253, 0.045);
             --pfc-p-border: rgba(147, 197, 253, 0.25);
-            --pfc-p-bar: #93C5FD;
+            --pfc-p-bar: #60A5FA; /* 画像の爽やかなブルー */
 
             --pfc-f-bg: rgba(253, 230, 138, 0.045);
             --pfc-f-border: rgba(253, 230, 138, 0.28);
-            --pfc-f-bar: #FDE68A;
+            --pfc-f-bar: #FCD34D; /* 画像の爽やかなイエロー */
 
             --pfc-c-bg: rgba(167, 243, 208, 0.045);
             --pfc-c-border: rgba(167, 243, 208, 0.28);
-            --pfc-c-bar: #A7F3D0;
+            --pfc-c-bar: #34D399; /* 画像の爽やかなグリーン */
 
             --cal-bar-color: #CBD5E1;
             --over-limit-color: #EF4444;
@@ -150,7 +150,7 @@
         }
         .week-day-cell.exceeded .week-day-date { background-color: #EF4444 !important; color: #FFFFFF !important; box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4); }
         .week-day-cell.has-record:not(.exceeded) .week-day-date::after {
-            content: ''; position: absolute; bottom: -2px; width: 4px; height: 4px; background-color: var(--header-text); border-radius: 50%;
+            content: ''; position: absolute; bottom: -3px; width: 4px; height: 4px; background-color: var(--header-text); border-radius: 50%;
         }
         .week-day-cell.is-today .week-day-name { color: #1E40AF !important; font-weight: 700; }
 
@@ -212,7 +212,7 @@
         .progress-bar-fill { height: 100%; border-radius: 6px; width: 0%; transition: width 0.3s ease, background-color 0.3s ease; }
         .cal-bar-fill { background-color: var(--cal-bar-color); }
         .cal-bar-fill.over-limit { background-color: var(--over-limit-color) !important; }
-        .cal-bar-fill.success-limit { background-color: var(--success-color) !important; }
+        .cal-bar-fill.success-limit { background-color: var(--theme-color) !important; } /* カロリー合格時はテーマカラー */
 
         .pfc-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; }
         .pfc-col { padding: 6px 4px; border-radius: 8px; display: flex; flex-direction: column; gap: 3px; border: 1px solid transparent; }
@@ -878,7 +878,7 @@
         </div>
     </footer>
 
-    <!-- 月間カレンダーモーダル（背景タップで閉じる・タイトル等削除対応） -->
+    <!-- 月間カレンダーモーダル -->
     <div class="modal-overlay" id="monthly-calendar-modal" onclick="if(event.target === this) closeModal('monthly-calendar-modal')">
         <div class="modal-box">
             <div class="month-cal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -893,7 +893,7 @@
         </div>
     </div>
 
-    <!-- 運動カテゴリ選択モーダル（背景タップで閉じる） -->
+    <!-- 運動カテゴリ選択モーダル -->
     <div class="modal-overlay" id="exercise-category-modal" onclick="if(event.target === this) closeModal('exercise-category-modal')">
         <div class="modal-box" style="max-width: 320px; text-align: center;">
             <div class="modal-header" style="justify-content: center; margin-bottom: 12px;">
@@ -911,7 +911,7 @@
         </div>
     </div>
 
-    <!-- 運動記録全体編集モーダル（背景タップで閉じる） -->
+    <!-- 運動記録全体編集モーダル -->
     <div class="modal-overlay" id="exercise-edit-modal" onclick="if(event.target === this) closeModal('exercise-edit-modal')">
         <div class="modal-box">
             <div class="modal-header">
@@ -952,7 +952,7 @@
         </div>
     </div>
 
-    <!-- 種目別 歴代履歴モーダル（背景タップで閉じる） -->
+    <!-- 種目別 歴代履歴モーダル -->
     <div class="modal-overlay" id="exercise-history-modal" onclick="if(event.target === this) closeModal('exercise-history-modal')">
         <div class="modal-box">
             <div class="modal-header">
@@ -969,7 +969,7 @@
         </div>
     </div>
 
-    <!-- 食事記録編集モーダル（背景タップで閉じる） -->
+    <!-- 食事記録編集モーダル -->
     <div class="modal-overlay" id="food-edit-modal" onclick="if(event.target === this) closeModal('food-edit-modal')">
         <div class="modal-box">
             <div class="modal-header">
@@ -999,7 +999,7 @@
         </div>
     </div>
 
-    <!-- お気に入り詳細・編集モーダル（背景タップで閉じる） -->
+    <!-- お気に入り詳細・編集モーダル -->
     <div class="modal-overlay" id="favorite-edit-modal" onclick="if(event.target === this) closeModal('favorite-edit-modal')">
         <div class="modal-box">
             <div class="modal-header">
@@ -1023,7 +1023,7 @@
         </div>
     </div>
 
-    <!-- お気に入り（リスト選択）モーダル（背景タップで閉じる） -->
+    <!-- お気に入り（リスト選択）モーダル -->
     <div class="modal-overlay" id="favorite-modal" onclick="if(event.target === this) closeModal('favorite-modal')">
         <div class="modal-box">
             <div class="modal-header">
@@ -2063,7 +2063,7 @@
             });
         }
 
-        // --- 食事・PFCバー表示 ---
+        // --- 食事・PFCバー表示 ＆ 合格ライン判定適用 ---
         function renderFoodList() {
             const list = document.getElementById('food-list');
             list.innerHTML = '';
@@ -2090,6 +2090,7 @@
             const fPct = maxF > 0 ? (totalF / maxF) * 100 : 0;
             const cPct = maxC > 0 ? (totalC / maxC) * 100 : 0;
 
+            // 1. カロリー判定 (90% 〜 100%でテーマカラー、>100%で赤)
             const curCalEl = document.getElementById('val-cur-cal');
             const calBar = document.getElementById('cal-progress-bar');
             curCalEl.textContent = Math.round(totalCal);
@@ -2104,9 +2105,10 @@
                 calBar.classList.add('over-limit');
             } else if (calPct >= 90 && calPct <= 100) {
                 curCalEl.classList.add('success-text');
-                calBar.classList.add('success-limit');
+                calBar.style.backgroundColor = 'var(--theme-color)'; // カロリー合格時はテーマカラー
             }
 
+            // 2. たんぱく質 (P) 判定 (90% 以上で合格)
             const curPEl = document.getElementById('val-cur-p');
             const pBar = document.getElementById('p-progress-bar');
             curPEl.textContent = totalP.toFixed(1);
@@ -2115,11 +2117,12 @@
             curPEl.className = "val-current";
             if (pPct >= 90) {
                 curPEl.classList.add('success-text');
-                pBar.style.backgroundColor = 'var(--success-color)';
+                pBar.style.backgroundColor = 'var(--pfc-p-bar)';
             } else {
                 pBar.style.backgroundColor = 'var(--cal-bar-color)';
             }
 
+            // 3. 脂質 (F) 判定 (〜100%以内)
             const curFEl = document.getElementById('val-cur-f');
             const fBar = document.getElementById('f-progress-bar');
             curFEl.textContent = totalF.toFixed(1);
@@ -2131,9 +2134,10 @@
                 fBar.style.backgroundColor = 'var(--over-limit-color)';
             } else {
                 curFEl.classList.add('success-text');
-                fBar.style.backgroundColor = 'var(--success-color)';
+                fBar.style.backgroundColor = 'var(--pfc-f-bar)';
             }
 
+            // 4. 炭水化物 (C) 判定 (90% 〜 110%)
             const curCEl = document.getElementById('val-cur-c');
             const cBar = document.getElementById('c-progress-bar');
             curCEl.textContent = totalC.toFixed(1);
@@ -2145,7 +2149,7 @@
                 cBar.style.backgroundColor = 'var(--over-limit-color)';
             } else if (cPct >= 90 && cPct <= 110) {
                 curCEl.classList.add('success-text');
-                cBar.style.backgroundColor = 'var(--success-color)';
+                cBar.style.backgroundColor = 'var(--pfc-c-bar)';
             } else {
                 cBar.style.backgroundColor = 'var(--cal-bar-color)';
             }
@@ -2224,7 +2228,6 @@
             }
         }
 
-        // --- 最新の指定モデル（gemini-3.6-flash / gemini-3.5-flash-lite）による解析 ---
         async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
             const candidateModels = ["gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-2.5-flash"];
             
@@ -2420,7 +2423,7 @@
             if (e.key === 'Enter') submitRecord(false);
         });
 
-        // 複数カテゴリ円形グラデーション
+        // 運動バッジスタイル
         function getExerciseBadgeStyleForDay(dateISO) {
             const dayExercises = window.exerciseRecords.filter(e => e.date === dateISO);
             if (dayExercises.length === 0) return null;
@@ -2455,9 +2458,12 @@
             }
         }
 
+        // 栄養素やカロリーが1つでもオーバーまたは合格ライン未満（P<90%, C外れ）の場合にtrue（赤色にする）を返す
         function checkDayIsExceeded(dateISO) {
             const dayFoods = window.foodRecords.filter(f => f.date === dateISO);
-            let totalCal = 0, totalF = 0, totalC = 0, totalP = 0;
+            if (dayFoods.length === 0) return false;
+
+            let totalCal = 0, totalP = 0, totalF = 0, totalC = 0;
             dayFoods.forEach(f => {
                 totalCal += Number(f.cal !== undefined ? f.cal : (f.calories || 0));
                 totalP += Number(f.p !== undefined ? f.p : (f.protein || 0));
@@ -2475,10 +2481,10 @@
             const fatRatio = maxFat > 0 ? (totalF / maxFat) * 100 : 0;
             const carbRatio = maxCarb > 0 ? (totalC / maxCarb) * 100 : 0;
 
-            const isCalFail = (calRatio > 100);
+            const isCalFail = (calRatio > 100 || calRatio < 90);
             const isPFail = (pRatio < 90);
             const isFFail = (fatRatio > 100);
-            const isCFail = (carbRatio > 110 || (totalC > 0 && carbRatio < 90));
+            const isCFail = (carbRatio > 110 || carbRatio < 90);
 
             return (isCalFail || isPFail || isFFail || isCFail);
         }
@@ -2515,6 +2521,12 @@
                 } else if (currentCategory === 'food') {
                     if (checkDayIsExceeded(dateKey)) {
                         badgeStyle = `background-color: #EF4444 !important; color: #FFFFFF !important; box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4);`;
+                    }
+                } else if (currentCategory === 'weight') {
+                    // 体重管理画面のときは体重記録がある日にドットマークをつける
+                    const hasWeight = (window.weightDataHistory || []).some(w => (w.isoDate || "") === dateKey && w.weight);
+                    if (hasWeight) {
+                        cell.classList.add('has-record');
                     }
                 }
 
@@ -2586,15 +2598,16 @@
                 const dEl = document.createElement('div');
                 dEl.style.aspectRatio = '1';
                 dEl.style.display = 'flex';
+                dEl.style.flexDirection = 'column';
                 dEl.style.alignItems = 'center';
                 dEl.style.justifyContent = 'center';
                 dEl.style.fontSize = '0.88rem';
                 dEl.style.fontWeight = '600';
                 dEl.style.borderRadius = '50%';
                 dEl.style.cursor = 'pointer';
+                dEl.style.position = 'relative';
                 dEl.textContent = d;
 
-                // 選択中（表示中）の日は色をつけず、丸い枠線（ボーダー）で囲む
                 if (isSelected) {
                     dEl.style.border = '2px solid var(--theme-text)';
                     dEl.style.color = 'var(--text-main)';
@@ -2607,6 +2620,14 @@
                     if (checkDayIsExceeded(dateISO)) {
                         dEl.style.backgroundColor = '#EF4444';
                         dEl.style.color = '#FFFFFF';
+                    }
+                } else if (currentCategory === 'weight') {
+                    // 体重管理画面の月間カレンダーにも体重記録がある日小さくドットマークを表示
+                    const hasWeight = (window.weightDataHistory || []).some(w => (w.isoDate || "") === dateISO && w.weight);
+                    if (hasWeight) {
+                        const dot = document.createElement('span');
+                        dot.style.cssText = "position:absolute; bottom:3px; width:4px; height:4px; background-color:var(--theme-text); border-radius:50%;";
+                        dEl.appendChild(dot);
                     }
                 }
 
