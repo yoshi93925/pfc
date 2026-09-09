@@ -226,8 +226,7 @@
 
         .sticky-chart-wrap { position: sticky; top: 0; z-index: 50; background-color: var(--bg-color); padding: 4px 0 4px 0; margin-bottom: 6px; }
         .chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-        .chart-title { font-size: 0.92rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
+        .chart-header { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 4px; }
         .chart-legend-wrap { display: flex; gap: 12px; font-size: 0.74rem; font-weight: 600; margin-bottom: 6px; justify-content: flex-end; }
         .legend-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
 
@@ -724,19 +723,12 @@
                 </div>
             </section>
 
-            <!-- 2. 体重画面 -->
+            <!-- 2. 体重画面（タイトル等からアイコン削除済み） -->
             <section id="view-weight" class="view-panel">
                 <div class="view-panel-scroll">
                     <div class="sticky-chart-wrap">
                         <div class="chart-card">
                             <div class="chart-header">
-                                <span class="chart-title">
-                                    <i data-lucide="trending-up" style="width: 18px; height: 18px; color: var(--theme-color);"></i>
-                                    体重・体脂肪推移
-                                </span>
-                                <span style="font-size: 0.8rem; color: var(--text-sub);" id="latest-weight-stat">最新: -- kg</span>
-                            </div>
-                            <div style="margin-bottom: 4px; display: flex; justify-content: flex-start;">
                                 <div class="custom-select-wrap">
                                     <select id="weight-range-select" class="custom-select" onchange="initOrUpdateWeightChart()">
                                         <option value="1m">1か月</option>
@@ -745,12 +737,13 @@
                                         <option value="all" selected>全期間</option>
                                     </select>
                                 </div>
+                                <span style="font-size: 0.8rem; color: var(--text-sub);" id="latest-weight-stat">最新: -- kg</span>
                             </div>
-                            <div class="chart-legend-wrap">
+                            <div class="chart-legend-wrap" style="margin-top: 4px;">
                                 <span><span class="legend-indicator" style="background-color: #2B5C8F;"></span>体重 (kg)</span>
                                 <span><span class="legend-indicator" style="background-color: #F59E0B;"></span>体脂肪率 (%)</span>
                             </div>
-                            <div style="position: relative; height: 160px; width: 100%;">
+                            <div style="position: relative; height: 155px; width: 100%;">
                                 <canvas id="weightChart"></canvas>
                             </div>
                         </div>
@@ -806,11 +799,11 @@
             </section>
         </div>
 
-        <!-- 4. 設定画面 -->
+        <!-- 4. 設定画面（セクションの絵文字削除済み） -->
         <section id="view-settings">
             <div class="settings-container">
                 <div class="setting-section">
-                    <div class="setting-section-title"><i data-lucide="target" style="width: 16px; height: 16px; color: var(--text-sub);"></i>1日の目標設定</div>
+                    <div class="setting-section-title">1日の目標設定</div>
                     <div class="setting-row">
                         <span class="setting-label">目標カロリー</span>
                         <div class="setting-input-wrap"><input type="number" class="setting-input" id="target-calories" value="2000"><span class="setting-unit">kcal</span></div>
@@ -830,7 +823,7 @@
                 </div>
 
                 <div class="setting-section">
-                    <div class="setting-section-title"><i data-lucide="palette" style="width: 16px; height: 16px; color: var(--text-sub);"></i>テーマカラー設定</div>
+                    <div class="setting-section-title">テーマカラー設定</div>
                     <div class="theme-picker">
                         <div class="theme-color-circle selected" style="background-color: #b2d8d8;" onclick="changeThemeColor('#b2d8d8', '#2C4A4A', this)"></div>
                         <div class="theme-color-circle" style="background-color: #b2b2d9;" onclick="changeThemeColor('#b2b2d9', '#2C4A4A', this)"></div>
@@ -842,7 +835,7 @@
                 </div>
 
                 <div class="setting-section">
-                    <div class="setting-section-title"><i data-lucide="cloud" style="width: 16px; height: 16px; color: var(--text-sub);"></i>クラウド同期 ＆ AI設定</div>
+                    <div class="setting-section-title">クラウド同期 ＆ AI設定</div>
                     <div style="margin-bottom: 6px;">
                         <div class="setting-label">クラウド同期ログイン</div>
                         <div class="setting-sublabel" id="google-auth-status" style="font-size: 0.75rem; color: var(--text-sub);">未連携</div>
@@ -951,20 +944,21 @@
         </div>
     </div>
 
-    <!-- 種目別 歴代履歴モーダル -->
+    <!-- 種目別 歴代履歴モーダル（下部閉じるボタン削除・年月選択ドロップダウン追加） -->
     <div class="modal-overlay" id="exercise-history-modal" onclick="if(event.target === this) closeModal('exercise-history-modal')">
         <div class="modal-box">
-            <div class="modal-header">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <i data-lucide="history" style="width: 18px; height: 18px; color: var(--theme-color);"></i>
-                    <span id="history-modal-title">歴代履歴</span>
+            <div class="modal-header" style="margin-bottom: 10px;">
+                <span id="history-modal-title" style="font-weight:700;">履歴</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div class="custom-select-wrap">
+                        <select id="history-month-select" class="custom-select" style="padding: 3px 26px 3px 10px; font-size: 0.8rem;" onchange="renderExerciseHistoryList()">
+                            <option value="all">全期間</option>
+                        </select>
+                    </div>
+                    <button class="icon-btn" onclick="closeModal('exercise-history-modal')" style="padding:2px;"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
                 </div>
-                <button class="icon-btn" onclick="closeModal('exercise-history-modal')"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
             </div>
             <div id="exercise-history-container" style="display:flex; flex-direction:column; gap:10px; max-height:60vh; overflow-y:auto; padding-right:2px;"></div>
-            <div style="margin-top: 14px;">
-                <button class="modal-btn modal-btn-secondary" style="width:100%;" onclick="closeModal('exercise-history-modal')">閉じる</button>
-            </div>
         </div>
     </div>
 
@@ -1191,6 +1185,8 @@
         let currentCategory = 'food';
         let weightChartInstance = null;
         let pendingExerciseText = ""; 
+        let activeHistoryExerciseName = "";
+        let activeHistoryExercisePart = "";
         
         function getTodayISO() {
             const now = new Date();
@@ -1783,12 +1779,50 @@
             }
         };
 
+        // --- 運動履歴モーダル（月別絞り込み・下部閉じるボタン削除） ---
         window.openExerciseHistory = function(event, exerciseName, part) {
             if (event) event.stopPropagation();
             const cleanName = exerciseName.replace(/^【.*?】\s*/, '').trim();
-            document.getElementById('history-modal-title').textContent = `${cleanName} の履歴`;
+            activeHistoryExerciseName = cleanName;
+            activeHistoryExercisePart = part;
+
+            // 該当種目の存在する年月リストを抽出してドロップダウンにセット
+            const matches = window.exerciseRecords.filter(e => {
+                const n = (e.name || "").replace(/^【.*?】\s*/, '').trim();
+                return n.toLowerCase() === cleanName.toLowerCase();
+            });
+
+            const monthsSet = new Set();
+            matches.forEach(m => {
+                if (m.date) {
+                    const ym = m.date.substring(0, 7); // "YYYY-MM"
+                    monthsSet.add(ym);
+                }
+            });
+            const sortedMonths = Array.from(monthsSet).sort().reverse();
+
+            const selectEl = document.getElementById('history-month-select');
+            selectEl.innerHTML = '<option value="all">全期間</option>';
+            sortedMonths.forEach(ym => {
+                const parts = ym.split('-');
+                const opt = document.createElement('option');
+                opt.value = ym;
+                opt.textContent = `${parts[0]}年 ${parseInt(parts[1], 10)}月`;
+                selectEl.appendChild(opt);
+            });
+            selectEl.value = 'all';
+
+            renderExerciseHistoryList();
+            openModal('exercise-history-modal');
+        };
+
+        window.renderExerciseHistoryList = function() {
             const container = document.getElementById('exercise-history-container');
             container.innerHTML = '';
+
+            const selectedMonth = document.getElementById('history-month-select').value;
+            const cleanName = activeHistoryExerciseName;
+            const part = activeHistoryExercisePart;
 
             const isCardio = (part === '有酸素');
             const labelCol1 = isCardio ? '時間' : '重さ';
@@ -1798,7 +1832,9 @@
 
             const matches = window.exerciseRecords.filter(e => {
                 const n = (e.name || "").replace(/^【.*?】\s*/, '').trim();
-                return n.toLowerCase() === cleanName.toLowerCase();
+                if (n.toLowerCase() !== cleanName.toLowerCase()) return false;
+                if (selectedMonth !== 'all' && (!e.date || !e.date.startsWith(selectedMonth))) return false;
+                return true;
             }).sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.timestamp || 0) - (a.timestamp || 0));
 
             if (matches.length === 0) {
@@ -1841,8 +1877,7 @@
                     container.appendChild(card);
                 });
             }
-
-            openModal('exercise-history-modal');
+            lucide.createIcons();
         };
 
         // --- 体重・体脂肪UI＆スライドルーラー ---
@@ -2062,7 +2097,7 @@
             });
         }
 
-        // --- 食事・PFCバー表示 ＆ 合格ライン判定適用 ---
+        // --- 食事・PFCバー表示 ---
         function renderFoodList() {
             const list = document.getElementById('food-list');
             list.innerHTML = '';
@@ -2089,7 +2124,6 @@
             const fPct = maxF > 0 ? (totalF / maxF) * 100 : 0;
             const cPct = maxC > 0 ? (totalC / maxC) * 100 : 0;
 
-            // 1. カロリー判定 (90% 〜 100%)
             const curCalEl = document.getElementById('val-cur-cal');
             const calBar = document.getElementById('cal-progress-bar');
             curCalEl.textContent = Math.round(totalCal);
@@ -2103,24 +2137,21 @@
                 curCalEl.classList.add('over-limit');
                 calBar.classList.add('over-limit');
             } else if (calPct >= 90 && calPct <= 100) {
-                // 合格時は緑にせず通常の黒（テキストメインカラー）にし、バーはテーマカラー
                 calBar.style.backgroundColor = 'var(--theme-color)';
             }
 
-            // 2. たんぱく質 (P) 判定 (90% 以上)
-            const curPEl = document.getElementById('val-cur-p');
             const pBar = document.getElementById('p-progress-bar');
-            curPEl.textContent = totalP.toFixed(1);
+            document.getElementById('val-cur-p').textContent = totalP.toFixed(1);
             document.getElementById('val-tgt-p').textContent = maxP;
             pBar.style.width = `${Math.min(pPct, 100)}%`;
-            curPEl.className = "val-current"; // 緑文字（success-text）は廃止し普通の黒に
+            curPEl = document.getElementById('val-cur-p');
+            curPEl.className = "val-current";
             if (pPct >= 90) {
                 pBar.style.backgroundColor = 'var(--pfc-p-bar)';
             } else {
                 pBar.style.backgroundColor = 'var(--cal-bar-color)';
             }
 
-            // 3. 脂質 (F) 判定 (〜100%以内)
             const curFEl = document.getElementById('val-cur-f');
             const fBar = document.getElementById('f-progress-bar');
             curFEl.textContent = totalF.toFixed(1);
@@ -2134,7 +2165,6 @@
                 fBar.style.backgroundColor = 'var(--pfc-f-bar)';
             }
 
-            // 4. 炭水化物 (C) 判定 (90% 〜 110%)
             const curCEl = document.getElementById('val-cur-c');
             const cBar = document.getElementById('c-progress-bar');
             curCEl.textContent = totalC.toFixed(1);
@@ -2224,6 +2254,7 @@
             }
         }
 
+        // --- 最新モデル（gemini-3.6-flash / gemini-3.5-flash-lite）による解析 ---
         async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
             const candidateModels = ["gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-2.5-flash"];
             
@@ -2454,7 +2485,7 @@
             }
         }
 
-        // 赤色（エラー/超過）になるのは「実際に上限をオーバーしたとき（カロリー>100%, 脂質>100%, 炭水化物>110%）」のみ
+        // 実際に上限をオーバーした日のみ赤色にする判定
         function checkDayIsExceeded(dateISO) {
             const dayFoods = window.foodRecords.filter(f => f.date === dateISO);
             if (dayFoods.length === 0) return false;
