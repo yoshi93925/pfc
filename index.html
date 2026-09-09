@@ -855,7 +855,7 @@
         </section>
     </main>
 
-    <!-- 下部入力バー（最初から日本語キーボードを呼び出す属性を指定） -->
+    <!-- 下部入力バー（最初から日本語キーボードを優先起動） -->
     <footer id="footer-bar">
         <div class="record-bar-wrapper">
             <div class="record-bar" id="footer-record-bar">
@@ -1021,7 +1021,7 @@
         </div>
     </div>
 
-    <!-- お気に入り（リスト選択）モーダル（閉じるボタンなし・連続追加対応） -->
+    <!-- お気に入り（リスト選択）モーダル -->
     <div class="modal-overlay" id="favorite-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1197,7 +1197,7 @@
         }
 
         let selectedDateStr = getTodayISO();
-        let weeklyAnchorDateStr = getTodayISO(); /* 週間カレンダーの一番右端になる日付 */
+        let weeklyAnchorDateStr = getTodayISO();
         let calViewingDate = new Date();
         window.geminiApiKey = localStorage.getItem('gemini_api_key') || "";
         let base64Image = null;
@@ -1216,12 +1216,12 @@
 
         // スクリーンショット通りの明るく温かみのあるパステルカラー
         const exercisePartColors = {
-            '腕': '#FDE047',      /* レモンイエロー */
-            '胸': '#FDA4AF',      /* サーモンピンク */
-            '腹': '#C4B5FD',      /* ラベンダー */
-            '背中': '#93C5FD',    /* ライトブルー */
-            '足': '#FDBA74',      /* アプリコットオレンジ */
-            '有酸素': '#6EE7B7'   /* ソフトミントグリーン */
+            '腕': '#FDE047',
+            '胸': '#FDA4AF',
+            '腹': '#C4B5FD',
+            '背中': '#93C5FD',
+            '足': '#FDBA74',
+            '有酸素': '#6EE7B7'
         };
 
         function showToast(message) {
@@ -2208,6 +2208,78 @@
             }
         }
 
+        // --- Gemini API 栄養解析ロジック（複数モデル対応・厳密フォールバック） ---
+        async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
+            const candidateModels = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-1.5-flash"];
+            
+            let prompt = "";
+            if (imageBase64) {
+                prompt = `あなたは厳密な栄養管理士です。この写真の料理を分析し、「文部科学省 日本食品標準成分表」または信頼できる公式メーカーの標準的な1食あたりの数値（カロリー、たんぱく質P、脂質F、炭水化物C）を正確に算出してJSONで返してください。不確かな場合は推測せず標準的な平均値を求めてください。出力は次のJSON形式のみとし、余計な文章やマークダウンは一切含めないでください。{"name": "品名", "cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
+            } else {
+                prompt = `あなたは厳密な栄養管理士です。「${foodText}」について、「文部科学省 日本食品標準成分表」または信頼できるメーカーの公式栄養成分データに基づいた1食あたりの正確な数値（カロリー、たんぱく質P、脂質F、炭水化物C）を算出してJSONで返してください。出力は次のJSON形式のみとし、余計な文章やマークダウンは一切含めないでください。{"name": "${foodText}", "cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
+            }
+
+            let lastError = null;
+
+            for (const model of candidateModels) {
+                try {
+                    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                    
+                    let parts = [{ text: prompt }];
+                    if (imageBase64) {
+                        parts.push({
+                            inlineData: {
+                                mimeType: "image/jpeg",
+                                data: imageBase64
+                            }
+                        });
+                    }
+
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: parts }]
+                        })
+                    });
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        throw new Error(data.error.message || `[${model}] APIエラー`);
+                    }
+                    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+                        throw new Error(`[${model}] AI応答が空です`);
+                    }
+                    
+                    const contentParts = data.candidates[0].content.parts;
+                    let rawText = "";
+                    for (const p of contentParts) {
+                        if (p.text) rawText += p.text;
+                    }
+
+                    const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+                    const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
+                    
+                    if (jsonMatch) {
+                        const parsed = JSON.parse(jsonMatch[0]);
+                        return {
+                            name: parsed.name || foodText,
+                            cal: Number(parsed.cal !== undefined ? parsed.cal : (parsed.calories || 0)),
+                            p: Number(parsed.p !== undefined ? parsed.p : (parsed.protein || 0)),
+                            f: Number(parsed.f !== undefined ? parsed.f : (parsed.fat || 0)),
+                            c: Number(parsed.c !== undefined ? parsed.c : (parsed.carbs || 0))
+                        };
+                    }
+                    throw new Error("JSONパースに失敗しました");
+                } catch (err) {
+                    lastError = err;
+                    console.warn(`Model ${model} failed, trying next...`, err);
+                }
+            }
+            
+            throw lastError || new Error("すべてのAIモデルでの解析に失敗しました。");
+        }
+
         async function submitRecord(isPhoto = false) {
             const input = document.getElementById('record-input');
             const text = isPhoto ? "写真解析" : input.value.trim();
@@ -2223,53 +2295,51 @@
 
             const apiKey = window.geminiApiKey || localStorage.getItem('gemini_api_key');
             if (!apiKey) {
-                alert("Gemini APIキーを設定してください。");
+                alert("Gemini APIキーが設定されていません。右上の歯車アイコン（設定画面）からキーを入力してください。");
                 hideLoading();
                 return;
             }
 
             try {
                 showLoading("AIが栄養素を計算中...");
-                const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-                const prompt = `あなたは厳密な栄養管理士です。「${text}」の1食あたりの栄養成分を算出してJSONのみで返してください。{"name":"品名","cal":数値,"p":数値,"f":数値,"c":数値}`;
+                const result = await fetchGeminiNutrients(text, apiKey, base64Image);
                 
-                const parts = [{ text: prompt }];
-                if (base64Image) parts.push({ inlineData: { mimeType: "image/jpeg", data: base64Image } });
-
-                const res = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: parts }] })
-                });
-                const data = await res.json();
-                const raw = data.candidates[0].content.parts[0].text;
-                const match = raw.match(/\{[\s\S]*\}/);
-                if (match) {
-                    const parsed = JSON.parse(match[0]);
-                    window.foodRecords.push({
-                        id: 'f_' + Date.now(),
-                        date: selectedDateStr,
-                        name: parsed.name || text,
-                        cal: parsed.cal || 0,
-                        p: parsed.p || 0,
-                        f: parsed.f || 0,
-                        c: parsed.c || 0,
-                        timestamp: Date.now()
-                    });
-                    localStorage.setItem('pfc_food_records', JSON.stringify(window.foodRecords));
-                    if (window.syncDataToCloud) window.syncDataToCloud();
-                    renderFoodList();
-                    renderWeeklyCalendar();
-                    showToast('記録しました');
+                if (!result || !result.name || result.name === "不明" || result.name.includes("該当なし") || result.name.includes("解析できません")) {
+                    hideLoading();
+                    base64Image = null;
+                    alert("解析できませんでした。別の表現で入力してみてください。");
+                    return;
                 }
-            } catch (e) {
-                alert("解析に失敗しました");
-            } finally {
+
+                window.foodRecords.push({
+                    id: 'f_' + Date.now(),
+                    date: selectedDateStr,
+                    name: result.name,
+                    cal: result.cal || 0,
+                    p: result.p || 0,
+                    f: result.f || 0,
+                    c: result.c || 0,
+                    timestamp: Date.now()
+                });
+                
+                localStorage.setItem('pfc_food_records', JSON.stringify(window.foodRecords));
+                if (window.syncDataToCloud) window.syncDataToCloud();
+                
+                base64Image = null;
+                hideLoading();
+                
+                renderWeeklyCalendar();
+                renderFoodList();
+                showToast('記録しました');
+            } catch (err) {
+                console.error("Gemini API Error:", err);
                 hideLoading();
                 base64Image = null;
-                input.value = '';
-                handleInputChange();
+                alert("解析に失敗しました: " + (err.message || "ネットワークまたはAPIキーを確認してください"));
             }
+
+            input.value = '';
+            handleInputChange();
         }
 
         window.confirmExerciseCategory = function(part) {
@@ -2334,7 +2404,7 @@
             if (e.key === 'Enter') submitRecord(false);
         });
 
-        // 複数カテゴリ円形グラデーション（スクショ通りのカラー）
+        // 複数カテゴリ円形グラデーション
         function getExerciseBadgeStyleForDay(dateISO) {
             const dayExercises = window.exerciseRecords.filter(e => e.date === dateISO);
             if (dayExercises.length === 0) return null;
@@ -2389,14 +2459,13 @@
             return (calRatio > 105 || fatRatio > 105 || carbRatio > 105);
         }
 
-        // 週間カレンダー（タップされた日付が一番右端に来るよう動的計算）
+        // 週間カレンダー
         function renderWeeklyCalendar() {
             const calendarEl = document.getElementById('weekly-calendar');
             calendarEl.innerHTML = '';
             const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
             const todayISO = getTodayISO();
             
-            // weeklyAnchorDateStr が右端（7番目）になるようにする
             const anchorDate = new Date(weeklyAnchorDateStr + 'T00:00:00');
 
             for (let i = 6; i >= 0; i--) {
@@ -2517,7 +2586,6 @@
                     }
                 }
 
-                // 月間カレンダーからタップされた日付を選択し、かつそれを週間カレンダーの一番右端に設定
                 dEl.onclick = () => {
                     selectedDateStr = dateISO;
                     weeklyAnchorDateStr = dateISO;
