@@ -46,6 +46,7 @@
 
             --cal-bar-color: #CBD5E1;
             --over-limit-color: #EF4444;
+            --success-color: #10B981;
         }
 
         body.dark-mode {
@@ -62,6 +63,7 @@
             --send-btn-bg: var(--theme-color);
             --cal-bar-color: #475569;
             --over-limit-color: #F87171;
+            --success-color: #34D399;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -123,7 +125,7 @@
         .header-tab-btn:active { transform: scale(0.92); }
         .header-tab-btn.active { font-weight: bold; }
 
-        .header-btn-group { display: flex; gap: 6px; align-items: center; }
+        .header-btn-group { display: flex; gap: 10px; align-items: center; }
 
         .icon-btn {
             background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -203,13 +205,14 @@
         .summary-cal-header-row { display: flex; justify-content: space-between; align-items: center; }
         .summary-cal-badge { font-size: 0.94rem; font-weight: 600; color: var(--text-main); letter-spacing: 0.02em; }
         .val-current.over-limit { color: var(--over-limit-color) !important; font-weight: 700; }
+        .val-current.success-text { color: var(--success-color) !important; font-weight: 700; }
 
         .progress-bar-bg { width: 100%; height: 5px; background-color: rgba(0, 0, 0, 0.05); border-radius: 6px; overflow: hidden; }
         body.dark-mode .progress-bar-bg { background-color: rgba(255, 255, 255, 0.08); }
         .progress-bar-fill { height: 100%; border-radius: 6px; width: 0%; transition: width 0.3s ease, background-color 0.3s ease; }
         .cal-bar-fill { background-color: var(--cal-bar-color); }
         .cal-bar-fill.over-limit { background-color: var(--over-limit-color) !important; }
-        .cal-bar-fill.success-limit { background-color: var(--theme-color) !important; }
+        .cal-bar-fill.success-limit { background-color: var(--success-color) !important; }
 
         .pfc-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; }
         .pfc-col { padding: 6px 4px; border-radius: 8px; display: flex; flex-direction: column; gap: 3px; border: 1px solid transparent; }
@@ -661,7 +664,6 @@
             </div>
 
             <div class="header-btn-group">
-                <!-- ログアウト状態のときだけ表示する「人型斜線マーク（未連携アイコン）」 -->
                 <button class="icon-btn" id="auth-shortcut-btn" onclick="loginWithGoogle()" title="Googleログイン（未連携）" style="display: none;">
                     <i data-lucide="user-round-x" style="width: 22px; height: 22px; color: #EF4444;"></i>
                 </button>
@@ -859,7 +861,7 @@
         </section>
     </main>
 
-    <!-- 下部入力バー（日本語キーボード優先指定） -->
+    <!-- 下部入力バー -->
     <footer id="footer-bar">
         <div class="record-bar-wrapper">
             <div class="record-bar" id="footer-record-bar">
@@ -1102,7 +1104,6 @@
                 if (statusEl) statusEl.textContent = `連携中 (${user.email || user.displayName || 'Googleアカウント'})`;
                 if (loginBtn) loginBtn.style.display = 'none';
                 if (logoutBtn) logoutBtn.style.display = 'block';
-                // ログイン中のときはショートカットボタンを非表示
                 if (authShortcutBtn) authShortcutBtn.style.display = 'none';
                 subscribeCloudData(user.uid);
             } else {
@@ -1110,7 +1111,6 @@
                 if (statusEl) statusEl.textContent = '未連携';
                 if (loginBtn) loginBtn.style.display = 'block';
                 if (logoutBtn) logoutBtn.style.display = 'none';
-                // ログアウト状態のときだけカレンダーの左に人型斜線マークを表示
                 if (authShortcutBtn) authShortcutBtn.style.display = 'flex';
             }
         });
@@ -2067,7 +2067,7 @@
             });
         }
 
-        // --- 食事・PFCバー表示 ---
+        // --- 食事・PFCバー表示 ＆ 合格ライン判定ロジック適用 ---
         function renderFoodList() {
             const list = document.getElementById('food-list');
             list.innerHTML = '';
@@ -2094,6 +2094,7 @@
             const fPct = maxF > 0 ? (totalF / maxF) * 100 : 0;
             const cPct = maxC > 0 ? (totalC / maxC) * 100 : 0;
 
+            // 1. カロリー判定 (90% 〜 100%)
             const curCalEl = document.getElementById('val-cur-cal');
             const calBar = document.getElementById('cal-progress-bar');
             curCalEl.textContent = Math.round(totalCal);
@@ -2101,45 +2102,60 @@
             document.getElementById('summary-cal-percent').textContent = `${Math.round(calPct)}%`;
             calBar.style.width = `${Math.min(calPct, 100)}%`;
 
-            curCalEl.classList.remove('over-limit');
+            curCalEl.className = "val-current";
             calBar.className = "progress-bar-fill cal-bar-fill";
-            if (calPct > 105) {
+            if (calPct > 100) {
                 curCalEl.classList.add('over-limit');
                 calBar.classList.add('over-limit');
-            } else if (calPct >= 90 && calPct <= 105) {
+            } else if (calPct >= 90 && calPct <= 100) {
+                curCalEl.classList.add('success-text');
                 calBar.classList.add('success-limit');
             }
 
+            // 2. たんぱく質 (P) 判定 (90% 以上)
+            const curPEl = document.getElementById('val-cur-p');
             const pBar = document.getElementById('p-progress-bar');
-            document.getElementById('val-cur-p').textContent = totalP.toFixed(1);
+            curPEl.textContent = totalP.toFixed(1);
             document.getElementById('val-tgt-p').textContent = maxP;
             pBar.style.width = `${Math.min(pPct, 100)}%`;
-            pBar.style.backgroundColor = (pPct >= 90) ? 'var(--pfc-p-bar)' : 'var(--cal-bar-color)';
+            curPEl.className = "val-current";
+            if (pPct >= 90) {
+                curPEl.classList.add('success-text');
+                pBar.style.backgroundColor = 'var(--success-color)';
+            } else {
+                pBar.style.backgroundColor = 'var(--cal-bar-color)';
+            }
 
+            // 3. 脂質 (F) 判定 (〜 100%以内)
             const curFEl = document.getElementById('val-cur-f');
             const fBar = document.getElementById('f-progress-bar');
             curFEl.textContent = totalF.toFixed(1);
             document.getElementById('val-tgt-f').textContent = maxF;
             fBar.style.width = `${Math.min(fPct, 100)}%`;
-            curFEl.classList.remove('over-limit');
-            if (fPct > 105) {
+            curFEl.className = "val-current";
+            if (fPct > 100) {
                 curFEl.classList.add('over-limit');
                 fBar.style.backgroundColor = 'var(--over-limit-color)';
             } else {
-                fBar.style.backgroundColor = 'var(--pfc-f-bar)';
+                curFEl.classList.add('success-text');
+                fBar.style.backgroundColor = 'var(--success-color)';
             }
 
+            // 4. 炭水化物 (C) 判定 (90% 〜 110%)
             const curCEl = document.getElementById('val-cur-c');
             const cBar = document.getElementById('c-progress-bar');
             curCEl.textContent = totalC.toFixed(1);
             document.getElementById('val-tgt-c').textContent = maxC;
             cBar.style.width = `${Math.min(cPct, 100)}%`;
-            curCEl.classList.remove('over-limit');
-            if (cPct > 105) {
+            curCEl.className = "val-current";
+            if (cPct > 110) {
                 curCEl.classList.add('over-limit');
                 cBar.style.backgroundColor = 'var(--over-limit-color)';
+            } else if (cPct >= 90 && cPct <= 110) {
+                curCEl.classList.add('success-text');
+                cBar.style.backgroundColor = 'var(--success-color)';
             } else {
-                cBar.style.backgroundColor = 'var(--pfc-c-bar)';
+                cBar.style.backgroundColor = 'var(--cal-bar-color)';
             }
 
             if (dayFoods.length === 0) {
@@ -2214,78 +2230,6 @@
                 renderWeeklyCalendar();
                 renderFoodList();
             }
-        }
-
-        // --- 最新の指定モデル（gemini-3.6-flash / gemini-3.5-flash-lite）による解析 ---
-        async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
-            const candidateModels = ["gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-2.5-flash"];
-            
-            let prompt = "";
-            if (imageBase64) {
-                prompt = `あなたは厳密な栄養管理士です。この写真の料理を分析し、「文部科学省 日本食品標準成分表」または信頼できる公式メーカーの標準的な1食あたりの数値（カロリー、たんぱく質P、脂質F、炭水化物C）を正確に算出してJSONで返してください。不確かな場合は推測せず標準的な平均値を求めてください。出力は次のJSON形式のみとし、余計な文章やマークダウンは一切含めないでください。{"name": "品名", "cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
-            } else {
-                prompt = `あなたは厳密な栄養管理士です。「${foodText}」について、「文部科学省 日本食品標準成分表」または信頼できるメーカーの公式栄養成分データに基づいた1食あたりの正確な数値（カロリー、たんぱく質P、脂質F、炭水化物C）を算出してJSONで返してください。出力は次のJSON形式のみとし、余計な文章やマークダウンは一切含めないでください。{"name": "${foodText}", "cal": 数値, "p": 数値, "f": 数値, "c": 数値}`;
-            }
-
-            let lastError = null;
-
-            for (const model of candidateModels) {
-                try {
-                    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-                    
-                    let parts = [{ text: prompt }];
-                    if (imageBase64) {
-                        parts.push({
-                            inlineData: {
-                                mimeType: "image/jpeg",
-                                data: imageBase64
-                            }
-                        });
-                    }
-
-                    const response = await fetch(endpoint, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: parts }]
-                        })
-                    });
-                    const data = await response.json();
-                    
-                    if (data.error) {
-                        throw new Error(data.error.message || `[${model}] APIエラー`);
-                    }
-                    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-                        throw new Error(`[${model}] AI応答が空です`);
-                    }
-                    
-                    const contentParts = data.candidates[0].content.parts;
-                    let rawText = "";
-                    for (const p of contentParts) {
-                        if (p.text) rawText += p.text;
-                    }
-
-                    const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-                    const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
-                    
-                    if (jsonMatch) {
-                        const parsed = JSON.parse(jsonMatch[0]);
-                        return {
-                            name: parsed.name || foodText,
-                            cal: Number(parsed.cal !== undefined ? parsed.cal : (parsed.calories || 0)),
-                            p: Number(parsed.p !== undefined ? parsed.p : (parsed.protein || 0)),
-                            f: Number(parsed.f !== undefined ? parsed.f : (parsed.fat || 0)),
-                            c: Number(parsed.c !== undefined ? parsed.c : (parsed.carbs || 0))
-                        };
-                    }
-                    throw new Error("JSONパースに失敗しました");
-                } catch (err) {
-                    lastError = err;
-                    console.warn(`Model ${model} failed, trying next...`, err);
-                }
-            }
-            
-            throw lastError || new Error("解析に失敗しました。時間をおいて再度お試しください。");
         }
 
         async function submitRecord(isPhoto = false) {
@@ -2449,22 +2393,31 @@
 
         function checkDayIsExceeded(dateISO) {
             const dayFoods = window.foodRecords.filter(f => f.date === dateISO);
-            let totalCal = 0, totalF = 0, totalC = 0;
+            let totalCal = 0, totalF = 0, totalC = 0, totalP = 0;
             dayFoods.forEach(f => {
                 totalCal += Number(f.cal !== undefined ? f.cal : (f.calories || 0));
+                totalP += Number(f.p !== undefined ? f.p : (f.protein || 0));
                 totalF += Number(f.f !== undefined ? f.f : (f.fat || 0));
                 totalC += Number(f.c !== undefined ? f.c : (f.carbs || 0));
             });
 
             const maxCal = parseFloat(document.getElementById('target-calories').value) || 2000;
+            const maxP = parseFloat(document.getElementById('target-protein').value) || 100;
             const maxFat = parseFloat(document.getElementById('target-fat').value) || 50;
             const maxCarb = parseFloat(document.getElementById('target-carb').value) || 250;
 
             const calRatio = maxCal > 0 ? (totalCal / maxCal) * 100 : 0;
+            const pRatio = maxP > 0 ? (totalP / maxP) * 100 : 0;
             const fatRatio = maxFat > 0 ? (totalF / maxFat) * 100 : 0;
             const carbRatio = maxCarb > 0 ? (totalC / maxCarb) * 100 : 0;
 
-            return (calRatio > 105 || fatRatio > 105 || carbRatio > 105);
+            // 失敗（赤色表示になる条件）：カロリー > 100%, P < 90%, F > 100%, C > 110% または C < 90%
+            const isCalFail = (calRatio > 100);
+            const isPFail = (pRatio < 90);
+            const isFFail = (fatRatio > 100);
+            const isCFail = (carbRatio > 110 || (totalC > 0 && carbRatio < 90));
+
+            return (isCalFail || isPFail || isFFail || isCFail);
         }
 
         // 週間カレンダー
