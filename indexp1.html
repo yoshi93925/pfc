@@ -243,7 +243,7 @@
 
         .card-list { display: flex; flex-direction: column; gap: 8px; padding-bottom: 10px; width: 100%; }
 
-        /* 2枚目画像のデザインを再現した食事記録カード（テーマカラーの左アクセント線） */
+        /* 食事記録カード（テーマカラーの左アクセント線） */
         .food-item-card {
             border: 1px solid var(--card-border);
             border-left: 4px solid var(--theme-color);
@@ -286,7 +286,7 @@
             padding: 10px 16px;
             font-size: 1.05rem;
             font-weight: 700;
-            color: #FFFFFF;
+            color: #1E293B; /* 明るいパステルのため文字は濃色で見やすく */
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -891,19 +891,19 @@
         </div>
     </div>
 
-    <!-- 運動カテゴリ選択モーダル（元気が出るちょうどいい塩梅のカラー） -->
+    <!-- 運動カテゴリ選択モーダル（スクショの色味） -->
     <div class="modal-overlay" id="exercise-category-modal">
         <div class="modal-box" style="max-width: 320px; text-align: center;">
             <div class="modal-header" style="justify-content: center; margin-bottom: 12px;">
                 <span style="font-size: 1.05rem; font-weight:700;">カテゴリを選択</span>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
-                <button class="modal-btn" style="background-color: #F59E0B; color: #FFFFFF;" onclick="confirmExerciseCategory('腕')">腕</button>
-                <button class="modal-btn" style="background-color: #EF4444; color: #FFFFFF;" onclick="confirmExerciseCategory('胸')">胸</button>
-                <button class="modal-btn" style="background-color: #8B5CF6; color: #FFFFFF;" onclick="confirmExerciseCategory('腹')">腹</button>
-                <button class="modal-btn" style="background-color: #3B82F6; color: #FFFFFF;" onclick="confirmExerciseCategory('背中')">背中</button>
-                <button class="modal-btn" style="background-color: #F97316; color: #FFFFFF;" onclick="confirmExerciseCategory('足')">足</button>
-                <button class="modal-btn" style="background-color: #10B981; color: #FFFFFF;" onclick="confirmExerciseCategory('有酸素')">有酸素</button>
+                <button class="modal-btn" style="background-color: #FDE047; color: #1E293B;" onclick="confirmExerciseCategory('腕')">腕</button>
+                <button class="modal-btn" style="background-color: #FDA4AF; color: #1E293B;" onclick="confirmExerciseCategory('胸')">胸</button>
+                <button class="modal-btn" style="background-color: #C4B5FD; color: #1E293B;" onclick="confirmExerciseCategory('腹')">腹</button>
+                <button class="modal-btn" style="background-color: #93C5FD; color: #1E293B;" onclick="confirmExerciseCategory('背中')">背中</button>
+                <button class="modal-btn" style="background-color: #FDBA74; color: #1E293B;" onclick="confirmExerciseCategory('足')">足</button>
+                <button class="modal-btn" style="background-color: #6EE7B7; color: #1E293B;" onclick="confirmExerciseCategory('有酸素')">有酸素</button>
             </div>
             <button class="modal-btn modal-btn-secondary" style="width: 100%;" onclick="closeModal('exercise-category-modal')">キャンセル</button>
         </div>
@@ -1021,7 +1021,7 @@
         </div>
     </div>
 
-    <!-- お気に入り（リスト選択）モーダル（閉じるボタンなし・連続追加可能） -->
+    <!-- お気に入り（リスト選択）モーダル -->
     <div class="modal-overlay" id="favorite-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1197,6 +1197,7 @@
         }
 
         let selectedDateStr = getTodayISO();
+        let weeklyAnchorDateStr = getTodayISO(); /* 週間カレンダーの一番右端になる基準日 */
         let calViewingDate = new Date();
         window.geminiApiKey = localStorage.getItem('gemini_api_key') || "";
         let base64Image = null;
@@ -1213,14 +1214,14 @@
         let exerciseRecords = JSON.parse(localStorage.getItem('pfc_exercise_records') || '[]');
         window.exerciseRecords = exerciseRecords;
 
-        // 元気が出るちょうどいい塩梅のカラーパレット
+        // スクリーンショット通りの明るく温かみのあるパステルカラー
         const exercisePartColors = {
-            '腕': '#F59E0B',      /* サニーアンバー/イエローゴールド */
-            '胸': '#EF4444',      /* ブライトコーラルレッド */
-            '腹': '#8B5CF6',      /* アメジストパープル */
-            '背中': '#3B82F6',    /* オーシャンブルー */
-            '足': '#F97316',      /* ウォームアプリコットオレンジ */
-            '有酸素': '#10B981'   /* フレッシュエメラルドグリーン */
+            '腕': '#FDE047',      /* レモンイエロー */
+            '胸': '#FDA4AF',      /* サーモンピンク */
+            '腹': '#C4B5FD',      /* ラベンダー */
+            '背中': '#93C5FD',    /* ライトブルー */
+            '足': '#FDBA74',      /* アプリコットオレンジ */
+            '有酸素': '#6EE7B7'   /* ソフトミントグリーン */
         };
 
         function showToast(message) {
@@ -1260,7 +1261,7 @@
             if (metaTheme) metaTheme.setAttribute('content', bgColor);
         };
 
-        // --- お気に入り機能（閉じずに連続追加・閉じるボタンなし） ---
+        // --- お気に入り機能 ---
         window.openFavoriteModal = function() {
             const searchInput = document.getElementById('fav-search-input');
             if (searchInput) searchInput.value = "";
@@ -1302,7 +1303,6 @@
             lucide.createIcons();
         }
 
-        // モーダルを閉じずに連続追加
         window.selectFavoriteItem = function(event, item) {
             if (event) event.stopPropagation();
             window.foodRecords.push({
@@ -1549,7 +1549,7 @@
                 const labelCol2 = isCardio ? '距離' : '回数';
                 const unitCol2 = isCardio ? 'km' : '回';
 
-                const headerColor = exercisePartColors[part] || '#EF4444';
+                const headerColor = exercisePartColors[part] || '#FDA4AF';
                 const sets = normalizeExerciseSets(item.setsList || item.sets);
 
                 const card = document.createElement('div');
@@ -1583,7 +1583,7 @@
                     <div class="workout-card-header" style="background-color: ${headerColor};">
                         <span onclick="openExerciseEditModal(${JSON.stringify(item).replace(/"/g, '&quot;')})">${pureName}</span>
                         <div style="display:flex; align-items:center; gap:4px;" onclick="openExerciseHistory(event, '${pureName.replace(/'/g, "\\'")}', '${part}')">
-                            <span style="font-size:0.75rem; font-weight:500; opacity:0.95;">履歴</span>
+                            <span style="font-size:0.75rem; font-weight:600; opacity:0.95;">履歴</span>
                             <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
                         </div>
                     </div>
@@ -2059,7 +2059,7 @@
             });
         }
 
-        // --- 食事・PFCバー表示 ＆ 2枚目画像UIの適用 ---
+        // --- 食事・PFCバー表示 ---
         function renderFoodList() {
             const list = document.getElementById('food-list');
             list.innerHTML = '';
@@ -2086,7 +2086,6 @@
             const fPct = maxF > 0 ? (totalF / maxF) * 100 : 0;
             const cPct = maxC > 0 ? (totalC / maxC) * 100 : 0;
 
-            // カロリーバー
             const curCalEl = document.getElementById('val-cur-cal');
             const calBar = document.getElementById('cal-progress-bar');
             curCalEl.textContent = Math.round(totalCal);
@@ -2103,14 +2102,12 @@
                 calBar.classList.add('success-limit');
             }
 
-            // たんぱく質 (P)
             const pBar = document.getElementById('p-progress-bar');
             document.getElementById('val-cur-p').textContent = totalP.toFixed(1);
             document.getElementById('val-tgt-p').textContent = maxP;
             pBar.style.width = `${Math.min(pPct, 100)}%`;
             pBar.style.backgroundColor = (pPct >= 90) ? 'var(--pfc-p-bar)' : 'var(--cal-bar-color)';
 
-            // 脂質 (F)
             const curFEl = document.getElementById('val-cur-f');
             const fBar = document.getElementById('f-progress-bar');
             curFEl.textContent = totalF.toFixed(1);
@@ -2124,7 +2121,6 @@
                 fBar.style.backgroundColor = 'var(--pfc-f-bar)';
             }
 
-            // 炭水化物 (C)
             const curCEl = document.getElementById('val-cur-c');
             const cBar = document.getElementById('c-progress-bar');
             curCEl.textContent = totalC.toFixed(1);
@@ -2149,7 +2145,6 @@
                 return;
             }
 
-            // 2枚目画像通りのカードUIを生成
             dayFoods.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'food-item-card';
@@ -2339,7 +2334,7 @@
             if (e.key === 'Enter') submitRecord(false);
         });
 
-        // 複数カテゴリ円形グラデーション（明るい元気カラー）
+        // 複数カテゴリ円形グラデーション（スクショの色味）
         function getExerciseBadgeStyleForDay(dateISO) {
             const dayExercises = window.exerciseRecords.filter(e => e.date === dateISO);
             if (dayExercises.length === 0) return null;
@@ -2360,7 +2355,7 @@
             }
 
             if (uniqueColors.length === 1) {
-                return `background-color: ${uniqueColors[0]} !important; color: #FFFFFF !important; box-shadow: 0 1px 4px ${uniqueColors[0]}66;`;
+                return `background-color: ${uniqueColors[0]} !important; color: #1E293B !important; box-shadow: 0 1px 4px ${uniqueColors[0]}66;`;
             } else {
                 let gradStrs = [];
                 const step = 100 / uniqueColors.length;
@@ -2370,7 +2365,7 @@
                     gradStrs.push(`${color} ${start}% ${end}%`);
                 });
                 const gradStr = `conic-gradient(${gradStrs.join(', ')})`;
-                return `background: ${gradStr} !important; color: #FFFFFF !important; box-shadow: 0 1px 4px rgba(0,0,0,0.15);`;
+                return `background: ${gradStr} !important; color: #1E293B !important; box-shadow: 0 1px 4px rgba(0,0,0,0.15);`;
             }
         }
 
@@ -2394,13 +2389,15 @@
             return (calRatio > 105 || fatRatio > 105 || carbRatio > 105);
         }
 
-        // 週間カレンダー
+        // 週間カレンダー（タップされた日付が一番右端に来るよう動的計算）
         function renderWeeklyCalendar() {
             const calendarEl = document.getElementById('weekly-calendar');
             calendarEl.innerHTML = '';
             const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
             const todayISO = getTodayISO();
-            const anchorDate = new Date(todayISO + 'T00:00:00');
+            
+            // weeklyAnchorDateStr が右端（7番目）になるようにする
+            const anchorDate = new Date(weeklyAnchorDateStr + 'T00:00:00');
 
             for (let i = 6; i >= 0; i--) {
                 const d = new Date(anchorDate);
@@ -2448,7 +2445,14 @@
         function openMonthlyCalendarModal() {
             calViewingDate = new Date(selectedDateStr);
             renderMonthlyCalendarGrid();
+            updateTodayButtonText();
             openModal('monthly-calendar-modal');
+        }
+
+        function updateTodayButtonText() {
+            const now = new Date();
+            const btn = document.getElementById('today-back-btn');
+            if (btn) btn.textContent = `今日 (${now.getMonth() + 1}/${now.getDate()}) に戻る`;
         }
 
         function changeMonth(diff) {
@@ -2513,8 +2517,10 @@
                     }
                 }
 
+                // 月間カレンダーからタップされた日付を選択し、かつそれを週間カレンダーの一番右端に設定
                 dEl.onclick = () => {
                     selectedDateStr = dateISO;
+                    weeklyAnchorDateStr = dateISO;
                     closeModal('monthly-calendar-modal');
                     renderWeeklyCalendar();
                     if (currentCategory === 'food') renderFoodList();
@@ -2527,6 +2533,7 @@
 
         function goToToday() {
             selectedDateStr = getTodayISO();
+            weeklyAnchorDateStr = getTodayISO();
             closeModal('monthly-calendar-modal');
             renderWeeklyCalendar();
             if (currentCategory === 'food') renderFoodList();
