@@ -123,7 +123,7 @@
         .header-tab-btn:active { transform: scale(0.92); }
         .header-tab-btn.active { font-weight: bold; }
 
-        .header-btn-group { display: flex; gap: 10px; align-items: center; }
+        .header-btn-group { display: flex; gap: 6px; align-items: center; }
 
         .icon-btn {
             background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -243,7 +243,7 @@
 
         .card-list { display: flex; flex-direction: column; gap: 8px; padding-bottom: 10px; width: 100%; }
 
-        /* 食事記録カード（テーマカラーの左アクセント線） */
+        /* 食事記録カード */
         .food-item-card {
             border: 1px solid var(--card-border);
             border-left: 4px solid var(--theme-color);
@@ -661,6 +661,10 @@
             </div>
 
             <div class="header-btn-group">
+                <!-- ログアウト状態のときだけ表示する「人型斜線マーク（未連携アイコン）」 -->
+                <button class="icon-btn" id="auth-shortcut-btn" onclick="loginWithGoogle()" title="Googleログイン（未連携）" style="display: none;">
+                    <i data-lucide="user-round-x" style="width: 22px; height: 22px; color: #EF4444;"></i>
+                </button>
                 <button class="icon-btn" onclick="openMonthlyCalendarModal()" title="月間カレンダー">
                     <i data-lucide="calendar" style="width: 22px; height: 22px;"></i>
                 </button>
@@ -1091,18 +1095,23 @@
             const statusEl = document.getElementById('google-auth-status');
             const loginBtn = document.getElementById('google-login-btn');
             const logoutBtn = document.getElementById('google-logout-btn');
+            const authShortcutBtn = document.getElementById('auth-shortcut-btn');
 
             if (user) {
                 currentUser = user;
                 if (statusEl) statusEl.textContent = `連携中 (${user.email || user.displayName || 'Googleアカウント'})`;
                 if (loginBtn) loginBtn.style.display = 'none';
                 if (logoutBtn) logoutBtn.style.display = 'block';
+                // ログイン中のときはショートカットボタンを非表示
+                if (authShortcutBtn) authShortcutBtn.style.display = 'none';
                 subscribeCloudData(user.uid);
             } else {
                 currentUser = null;
                 if (statusEl) statusEl.textContent = '未連携';
                 if (loginBtn) loginBtn.style.display = 'block';
                 if (logoutBtn) logoutBtn.style.display = 'none';
+                // ログアウト状態のときだけカレンダーの左に人型斜線マークを表示
+                if (authShortcutBtn) authShortcutBtn.style.display = 'flex';
             }
         });
 
@@ -1214,7 +1223,6 @@
         let exerciseRecords = JSON.parse(localStorage.getItem('pfc_exercise_records') || '[]');
         window.exerciseRecords = exerciseRecords;
 
-        // スクリーンショット通りの明るく温かみのあるパステルカラー
         const exercisePartColors = {
             '腕': '#FDE047',
             '胸': '#FDA4AF',
@@ -1988,7 +1996,7 @@
             renderWeeklyCalendar();
         }
 
-        // 直線折れ線グラフ
+        // 直線グラフ
         function initOrUpdateWeightChart() {
             const ctx = document.getElementById('weightChart');
             if (!ctx) return;
