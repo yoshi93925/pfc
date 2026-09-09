@@ -152,7 +152,7 @@
         }
         .week-day-cell.is-today .week-day-name { color: #1E40AF !important; font-weight: 700; }
 
-        /* チラ見えを確実に防止するスライドコンテナ設計 */
+        /* スライド＆チラ見え防止コンテナ */
         main { 
             padding: 10px 0 14px 0; 
             max-width: 600px; 
@@ -506,7 +506,7 @@
             text-align: center;
         }
 
-        /* 履歴モーダルカード・テーブル */
+        /* 履歴モーダル */
         .history-card {
             background: var(--input-bg);
             border: 1px solid var(--card-border);
@@ -681,17 +681,17 @@
                                 <div class="pfc-col pfc-col-p">
                                     <span class="pfc-label">たんぱく質 (P)</span>
                                     <span class="pfc-value"><span class="val-current" id="val-cur-p">0</span> / <span id="val-tgt-p">100</span>g</span>
-                                    <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill" id="p-progress-bar"></div></div>
+                                    <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill pfc-bar-p" id="p-progress-bar"></div></div>
                                 </div>
                                 <div class="pfc-col pfc-col-f">
                                     <span class="pfc-label">脂質 (F)</span>
                                     <span class="pfc-value"><span class="val-current" id="val-cur-f">0</span> / <span id="val-tgt-f">50</span>g</span>
-                                    <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill" id="f-progress-bar"></div></div>
+                                    <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill pfc-bar-f" id="f-progress-bar"></div></div>
                                 </div>
                                 <div class="pfc-col pfc-col-c">
                                     <span class="pfc-label">炭水化物 (C)</span>
                                     <span class="pfc-value"><span class="val-current" id="val-cur-c">0</span> / <span id="val-tgt-c">250</span>g</span>
-                                    <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill" id="c-progress-bar"></div></div>
+                                    <div class="progress-bar-bg" style="margin-top:2px;"><div class="progress-bar-fill pfc-bar-c" id="c-progress-bar"></div></div>
                                 </div>
                             </div>
                         </div>
@@ -872,7 +872,7 @@
         </div>
     </div>
 
-    <!-- 運動カテゴリ選択モーダル（くすみカラー適用） -->
+    <!-- 運動カテゴリ選択モーダル（明るいくすみカラー適用） -->
     <div class="modal-overlay" id="exercise-category-modal">
         <div class="modal-box" style="max-width: 320px; text-align: center;">
             <div class="modal-header" style="justify-content: center; margin-bottom: 12px;">
@@ -880,11 +880,11 @@
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
                 <button class="modal-btn" style="background-color: #E6C875; color: #FFFFFF;" onclick="confirmExerciseCategory('腕')">腕</button>
-                <button class="modal-btn" style="background-color: #D97D7D; color: #FFFFFF;" onclick="confirmExerciseCategory('胸')">胸</button>
-                <button class="modal-btn" style="background-color: #A99BC9; color: #FFFFFF;" onclick="confirmExerciseCategory('腹')">腹</button>
-                <button class="modal-btn" style="background-color: #7FA3C7; color: #FFFFFF;" onclick="confirmExerciseCategory('背中')">背中</button>
-                <button class="modal-btn" style="background-color: #D99873; color: #FFFFFF;" onclick="confirmExerciseCategory('足')">足</button>
-                <button class="modal-btn" style="background-color: #7DBA9B; color: #FFFFFF;" onclick="confirmExerciseCategory('有酸素')">有酸素</button>
+                <button class="modal-btn" style="background-color: #E08282; color: #FFFFFF;" onclick="confirmExerciseCategory('胸')">胸</button>
+                <button class="modal-btn" style="background-color: #B5A6DB; color: #FFFFFF;" onclick="confirmExerciseCategory('腹')">腹</button>
+                <button class="modal-btn" style="background-color: #8EB4DC; color: #FFFFFF;" onclick="confirmExerciseCategory('背中')">背中</button>
+                <button class="modal-btn" style="background-color: #E2A27F; color: #FFFFFF;" onclick="confirmExerciseCategory('足')">足</button>
+                <button class="modal-btn" style="background-color: #8CCCA8; color: #FFFFFF;" onclick="confirmExerciseCategory('有酸素')">有酸素</button>
             </div>
             <button class="modal-btn modal-btn-secondary" style="width: 100%;" onclick="closeModal('exercise-category-modal')">キャンセル</button>
         </div>
@@ -955,7 +955,7 @@
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span>食事メニューの編集</span>
                     <button class="icon-btn" id="edit-fav-toggle-btn" onclick="toggleFavoriteFromEdit()" title="お気に入り登録/解除" style="padding: 2px;">
-                        <i data-lucide="star-off" style="width: 18px; height: 18px;"></i>
+                        <i data-lucide="star" style="width: 18px; height: 18px;"></i>
                     </button>
                 </div>
                 <button class="icon-btn" onclick="closeModal('food-edit-modal')"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
@@ -978,7 +978,31 @@
         </div>
     </div>
 
-    <!-- お気に入りモーダル -->
+    <!-- お気に入り詳細・編集モーダル -->
+    <div class="modal-overlay" id="favorite-edit-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span>お気に入りアイテムの編集</span>
+                <button class="icon-btn" onclick="closeFavoriteEditModal()"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
+            </div>
+            <input type="hidden" id="edit-fav-id">
+            <div class="modal-form-group"><label class="modal-label">メニュー名</label><input type="text" class="modal-input" id="edit-fav-name"></div>
+            <div class="modal-grid-2">
+                <div class="modal-form-group"><label class="modal-label">カロリー (kcal)</label><input type="number" class="modal-input" id="edit-fav-cal"></div>
+                <div class="modal-form-group"><label class="modal-label">たんぱく質 P (g)</label><input type="number" step="0.1" class="modal-input" id="edit-fav-p"></div>
+            </div>
+            <div class="modal-grid-2">
+                <div class="modal-form-group"><label class="modal-label">脂質 F (g)</label><input type="number" step="0.1" class="modal-input" id="edit-fav-f"></div>
+                <div class="modal-form-group"><label class="modal-label">炭水化物 C (g)</label><input type="number" step="0.1" class="modal-input" id="edit-fav-c"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-danger" onclick="deleteCurrentFavorite()"><i data-lucide="trash-2" style="width:16px;height:16px;"></i> 削除</button>
+                <button class="modal-btn modal-btn-primary" onclick="saveFavoriteEdit()"><i data-lucide="check" style="width:16px;height:16px;"></i> 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- お気に入り（リスト選択）モーダル -->
     <div class="modal-overlay" id="favorite-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1171,14 +1195,14 @@
         let exerciseRecords = JSON.parse(localStorage.getItem('pfc_exercise_records') || '[]');
         window.exerciseRecords = exerciseRecords;
 
-        // テーマに馴染む落ち着いたくすみカラー
+        // 明るく見やすいパステル調くすみカラー
         const exercisePartColors = {
-            '腕': '#E6C875',      /* くすみイエロー */
-            '胸': '#D97D7D',      /* くすみローズ */
-            '腹': '#A99BC9',      /* くすみラベンダー */
-            '背中': '#7FA3C7',    /* スモーキーブルー */
-            '足': '#D99873',      /* くすみアプリコット/テラコッタ */
-            '有酸素': '#7DBA9B'   /* セージグリーン/くすみミント */
+            '腕': '#E6C875',      /* ライトマスタード */
+            '胸': '#E08282',      /* コーラルピンク/テラコッタ */
+            '腹': '#B5A6DB',      /* ライトラベンダー */
+            '背中': '#8EB4DC',    /* サックスブルー */
+            '足': '#E2A27F',      /* アプリコット */
+            '有酸素': '#8CCCA8'   /* ミントグリーン */
         };
 
         function showToast(message) {
@@ -1216,6 +1240,165 @@
             document.documentElement.style.setProperty('--theme-text', textColor);
             const metaTheme = document.getElementById('metaThemeColor');
             if (metaTheme) metaTheme.setAttribute('content', bgColor);
+        };
+
+        // --- お気に入り機能の実装 ---
+        window.openFavoriteModal = function() {
+            const searchInput = document.getElementById('fav-search-input');
+            if (searchInput) searchInput.value = "";
+            renderFavoriteList();
+            openModal('favorite-modal');
+        };
+
+        function renderFavoriteList() {
+            const container = document.getElementById('favorite-list-container');
+            if (!container) return;
+            container.innerHTML = "";
+
+            const query = (document.getElementById('fav-search-input').value || "").toLowerCase().trim();
+            const list = (window.favoritesList || []).filter(item => 
+                !query || (item.name || "").toLowerCase().includes(query)
+            );
+
+            if (list.length === 0) {
+                container.innerHTML = `<div style="text-align: center; color: var(--text-sub); padding: 20px; font-size: 0.85rem;">登録されているアイテムがありません</div>`;
+                return;
+            }
+
+            list.forEach(item => {
+                const card = document.createElement('div');
+                card.style.cssText = "background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;";
+                card.onclick = () => {
+                    closeModal('favorite-modal');
+                    openFavoriteEditModal(item);
+                };
+                card.innerHTML = `
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">${item.name}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-sub); margin-top: 2px;">P: ${item.p}g / F: ${item.f}g / C: ${item.c}g (${item.cal} kcal)</div>
+                    </div>
+                    <button style="background: var(--theme-color); color: var(--theme-text); border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; cursor: pointer;" onclick="selectFavoriteItem(event, ${JSON.stringify(item).replace(/"/g, '&quot;')})">追加</button>
+                `;
+                container.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        window.selectFavoriteItem = function(event, item) {
+            if (event) event.stopPropagation();
+            window.foodRecords.push({
+                id: 'f_' + Date.now(),
+                date: selectedDateStr,
+                name: item.name,
+                cal: item.cal || 0,
+                p: item.p || 0,
+                f: item.f || 0,
+                c: item.c || 0,
+                timestamp: Date.now()
+            });
+
+            localStorage.setItem('pfc_food_records', JSON.stringify(window.foodRecords));
+            if (window.syncDataToCloud) window.syncDataToCloud();
+            closeModal('favorite-modal');
+            renderWeeklyCalendar();
+            renderFoodList();
+            showToast('記録しました');
+        };
+
+        function openFavoriteEditModal(item) {
+            document.getElementById('edit-fav-id').value = item.id;
+            document.getElementById('edit-fav-name').value = item.name;
+            document.getElementById('edit-fav-cal').value = item.cal || 0;
+            document.getElementById('edit-fav-p').value = item.p || 0;
+            document.getElementById('edit-fav-f').value = item.f || 0;
+            document.getElementById('edit-fav-c').value = item.c || 0;
+            openModal('favorite-edit-modal');
+        }
+
+        window.saveFavoriteEdit = function() {
+            const id = document.getElementById('edit-fav-id').value;
+            const name = document.getElementById('edit-fav-name').value.trim();
+            const cal = parseFloat(document.getElementById('edit-fav-cal').value) || 0;
+            const p = parseFloat(document.getElementById('edit-fav-p').value) || 0;
+            const f = parseFloat(document.getElementById('edit-fav-f').value) || 0;
+            const c = parseFloat(document.getElementById('edit-fav-c').value) || 0;
+
+            if (!name) { alert("メニュー名を入力してください"); return; }
+
+            window.favoritesList = window.favoritesList.map(item => {
+                if (String(item.id) === String(id)) {
+                    return { ...item, name, cal, p, f, c };
+                }
+                return item;
+            });
+
+            localStorage.setItem('pfc_favorites_list', JSON.stringify(window.favoritesList));
+            if (window.syncDataToCloud) window.syncDataToCloud();
+            closeModal('favorite-edit-modal');
+            openFavoriteModal();
+            showToast('記録しました');
+        };
+
+        window.closeFavoriteEditModal = function() {
+            closeModal('favorite-edit-modal');
+            openFavoriteModal();
+        };
+
+        window.deleteCurrentFavorite = function() {
+            const id = document.getElementById('edit-fav-id').value;
+            if (confirm("このお気に入りアイテムを削除しますか？")) {
+                window.favoritesList = window.favoritesList.filter(item => String(item.id) !== String(id));
+                localStorage.setItem('pfc_favorites_list', JSON.stringify(window.favoritesList));
+                if (window.syncDataToCloud) window.syncDataToCloud();
+                closeModal('favorite-edit-modal');
+                openFavoriteModal();
+                showToast('記録しました');
+            }
+        };
+
+        function updateEditFavoriteIconState() {
+            const nameVal = (document.getElementById('edit-food-name').value || "").trim();
+            const btn = document.getElementById('edit-fav-toggle-btn');
+            if (!btn) return;
+
+            const isFav = (window.favoritesList || []).some(f => f.name === nameVal);
+            btn.innerHTML = isFav 
+                ? `<i data-lucide="star" style="width: 18px; height: 18px; fill: currentColor;"></i>`
+                : `<i data-lucide="star" style="width: 18px; height: 18px;"></i>`;
+            lucide.createIcons();
+        }
+
+        window.toggleFavoriteFromEdit = function() {
+            const nameVal = (document.getElementById('edit-food-name').value || "").trim();
+            if (!nameVal) {
+                alert("品名を入力してください");
+                return;
+            }
+
+            const calVal = parseFloat(document.getElementById('edit-food-cal').value) || 0;
+            const pVal = parseFloat(document.getElementById('edit-food-p').value) || 0;
+            const fVal = parseFloat(document.getElementById('edit-food-f').value) || 0;
+            const cVal = parseFloat(document.getElementById('edit-food-c').value) || 0;
+
+            const index = window.favoritesList.findIndex(f => f.name === nameVal);
+            if (index >= 0) {
+                window.favoritesList.splice(index, 1);
+                showToast('お気に入りを解除しました');
+            } else {
+                window.favoritesList.push({
+                    id: 'fav_' + Date.now(),
+                    name: nameVal,
+                    cal: calVal,
+                    p: pVal,
+                    f: fVal,
+                    c: cVal
+                });
+                showToast('お気に入りに登録しました');
+            }
+
+            localStorage.setItem('pfc_favorites_list', JSON.stringify(window.favoritesList));
+            if (window.syncDataToCloud) window.syncDataToCloud();
+            updateEditFavoriteIconState();
         };
 
         // --- タブ切り替え ＆ スライダー制御 ---
@@ -1294,7 +1477,7 @@
             else switchView('settings');
         }
 
-        // --- 運動記録ロジック（有酸素は時間・距離の順） ---
+        // --- 運動記録ロジック ---
         function normalizeExerciseSets(setsData) {
             if (Array.isArray(setsData)) return setsData;
             if (!setsData || typeof setsData !== 'string') return [];
@@ -1343,13 +1526,12 @@
                 }
 
                 const isCardio = (part === '有酸素');
-                // 有酸素時は 時間（分） / 距離（km） に設定
                 const labelCol1 = isCardio ? '時間' : '重さ';
                 const unitCol1 = isCardio ? '分' : 'kg';
                 const labelCol2 = isCardio ? '距離' : '回数';
                 const unitCol2 = isCardio ? 'km' : '回';
 
-                const headerColor = exercisePartColors[part] || '#D97D7D';
+                const headerColor = exercisePartColors[part] || '#E08282';
                 const sets = normalizeExerciseSets(item.setsList || item.sets);
 
                 const card = document.createElement('div');
@@ -1822,7 +2004,7 @@
                             borderWidth: 2.5,
                             pointBackgroundColor: '#2B5C8F',
                             pointRadius: 4,
-                            tension: 0, /* なだらかな曲線を廃止し、完全な直線に */
+                            tension: 0,
                             yAxisID: 'yWeight',
                             fill: false
                         },
@@ -1834,7 +2016,7 @@
                             borderWidth: 2,
                             pointBackgroundColor: '#F59E0B',
                             pointRadius: 4,
-                            tension: 0, /* なだらかな曲線を廃止し、完全な直線に */
+                            tension: 0,
                             yAxisID: 'yFat',
                             fill: false
                         }
@@ -1859,7 +2041,7 @@
             });
         }
 
-        // --- 食事・共通機能 ---
+        // --- 食事・PFCバー表示 ---
         function renderFoodList() {
             const list = document.getElementById('food-list');
             list.innerHTML = '';
@@ -1882,22 +2064,61 @@
             });
 
             const calPct = maxCal > 0 ? (totalCal / maxCal) * 100 : 0;
-            document.getElementById('val-cur-cal').textContent = Math.round(totalCal);
+            const pPct = maxP > 0 ? (totalP / maxP) * 100 : 0;
+            const fPct = maxF > 0 ? (totalF / maxF) * 100 : 0;
+            const cPct = maxC > 0 ? (totalC / maxC) * 100 : 0;
+
+            // カロリーバー
+            const curCalEl = document.getElementById('val-cur-cal');
+            const calBar = document.getElementById('cal-progress-bar');
+            curCalEl.textContent = Math.round(totalCal);
             document.getElementById('val-tgt-cal').textContent = maxCal;
             document.getElementById('summary-cal-percent').textContent = `${Math.round(calPct)}%`;
-            document.getElementById('cal-progress-bar').style.width = `${Math.min(calPct, 100)}%`;
+            calBar.style.width = `${Math.min(calPct, 100)}%`;
 
+            curCalEl.classList.remove('over-limit');
+            calBar.className = "progress-bar-fill cal-bar-fill";
+            if (calPct > 105) {
+                curCalEl.classList.add('over-limit');
+                calBar.classList.add('over-limit');
+            } else if (calPct >= 90 && calPct <= 105) {
+                calBar.classList.add('success-limit');
+            }
+
+            // たんぱく質 (P)
+            const pBar = document.getElementById('p-progress-bar');
             document.getElementById('val-cur-p').textContent = totalP.toFixed(1);
             document.getElementById('val-tgt-p').textContent = maxP;
-            document.getElementById('p-progress-bar').style.width = `${Math.min((totalP / maxP) * 100, 100)}%`;
+            pBar.style.width = `${Math.min(pPct, 100)}%`;
+            pBar.style.backgroundColor = (pPct >= 90) ? 'var(--pfc-p-bar)' : 'var(--cal-bar-color)';
 
-            document.getElementById('val-cur-f').textContent = totalF.toFixed(1);
+            // 脂質 (F)
+            const curFEl = document.getElementById('val-cur-f');
+            const fBar = document.getElementById('f-progress-bar');
+            curFEl.textContent = totalF.toFixed(1);
             document.getElementById('val-tgt-f').textContent = maxF;
-            document.getElementById('f-progress-bar').style.width = `${Math.min((totalF / maxF) * 100, 100)}%`;
+            fBar.style.width = `${Math.min(fPct, 100)}%`;
+            curFEl.classList.remove('over-limit');
+            if (fPct > 105) {
+                curFEl.classList.add('over-limit');
+                fBar.style.backgroundColor = 'var(--over-limit-color)';
+            } else {
+                fBar.style.backgroundColor = 'var(--pfc-f-bar)';
+            }
 
-            document.getElementById('val-cur-c').textContent = totalC.toFixed(1);
+            // 炭水化物 (C)
+            const curCEl = document.getElementById('val-cur-c');
+            const cBar = document.getElementById('c-progress-bar');
+            curCEl.textContent = totalC.toFixed(1);
             document.getElementById('val-tgt-c').textContent = maxC;
-            document.getElementById('c-progress-bar').style.width = `${Math.min((totalC / maxC) * 100, 100)}%`;
+            cBar.style.width = `${Math.min(cPct, 100)}%`;
+            curCEl.classList.remove('over-limit');
+            if (cPct > 105) {
+                curCEl.classList.add('over-limit');
+                cBar.style.backgroundColor = 'var(--over-limit-color)';
+            } else {
+                cBar.style.backgroundColor = 'var(--pfc-c-bar)';
+            }
 
             if (dayFoods.length === 0) {
                 list.innerHTML = `
@@ -1940,6 +2161,7 @@
             document.getElementById('edit-food-p').value = item.p || 0;
             document.getElementById('edit-food-f').value = item.f || 0;
             document.getElementById('edit-food-c').value = item.c || 0;
+            updateEditFavoriteIconState();
             openModal('food-edit-modal');
         }
 
@@ -1974,7 +2196,6 @@
             }
         }
 
-        // 送信＆AI解析処理（キーボード自動格納）
         async function submitRecord(isPhoto = false) {
             const input = document.getElementById('record-input');
             const text = isPhoto ? "写真解析" : input.value.trim();
@@ -2046,7 +2267,6 @@
             const now = new Date();
             const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
             const isCardio = (part === '有酸素');
-            // 有酸素は 時間（分） / 距離（km）
             const defaultSets = [{ weight: isCardio ? 30 : 60.0, reps: isCardio ? 5.0 : 10 }];
 
             window.exerciseRecords.push({
@@ -2102,7 +2322,7 @@
             if (e.key === 'Enter') submitRecord(false);
         });
 
-        // 複数カテゴリ対応のカレンダーバッジスタイル生成（円形グラデーション・くすみカラー）
+        // 複数カテゴリ円形グラデーション（明るいくすみカラー）
         function getExerciseBadgeStyleForDay(dateISO) {
             const dayExercises = window.exerciseRecords.filter(e => e.date === dateISO);
             if (dayExercises.length === 0) return null;
