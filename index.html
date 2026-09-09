@@ -34,15 +34,15 @@
 
             --pfc-p-bg: rgba(147, 197, 253, 0.045);
             --pfc-p-border: rgba(147, 197, 253, 0.25);
-            --pfc-p-bar: #60A5FA; /* 画像の爽やかなブルー */
+            --pfc-p-bar: #60A5FA;
 
             --pfc-f-bg: rgba(253, 230, 138, 0.045);
             --pfc-f-border: rgba(253, 230, 138, 0.28);
-            --pfc-f-bar: #FCD34D; /* 画像の爽やかなイエロー */
+            --pfc-f-bar: #FCD34D;
 
             --pfc-c-bg: rgba(167, 243, 208, 0.045);
             --pfc-c-border: rgba(167, 243, 208, 0.28);
-            --pfc-c-bar: #34D399; /* 画像の爽やかなグリーン */
+            --pfc-c-bar: #34D399;
 
             --cal-bar-color: #CBD5E1;
             --over-limit-color: #EF4444;
@@ -205,14 +205,13 @@
         .summary-cal-header-row { display: flex; justify-content: space-between; align-items: center; }
         .summary-cal-badge { font-size: 0.94rem; font-weight: 600; color: var(--text-main); letter-spacing: 0.02em; }
         .val-current.over-limit { color: var(--over-limit-color) !important; font-weight: 700; }
-        .val-current.success-text { color: var(--success-color) !important; font-weight: 700; }
 
         .progress-bar-bg { width: 100%; height: 5px; background-color: rgba(0, 0, 0, 0.05); border-radius: 6px; overflow: hidden; }
         body.dark-mode .progress-bar-bg { background-color: rgba(255, 255, 255, 0.08); }
         .progress-bar-fill { height: 100%; border-radius: 6px; width: 0%; transition: width 0.3s ease, background-color 0.3s ease; }
         .cal-bar-fill { background-color: var(--cal-bar-color); }
         .cal-bar-fill.over-limit { background-color: var(--over-limit-color) !important; }
-        .cal-bar-fill.success-limit { background-color: var(--theme-color) !important; } /* カロリー合格時はテーマカラー */
+        .cal-bar-fill.success-limit { background-color: var(--theme-color) !important; }
 
         .pfc-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; }
         .pfc-col { padding: 6px 4px; border-radius: 8px; display: flex; flex-direction: column; gap: 3px; border: 1px solid transparent; }
@@ -2090,7 +2089,7 @@
             const fPct = maxF > 0 ? (totalF / maxF) * 100 : 0;
             const cPct = maxC > 0 ? (totalC / maxC) * 100 : 0;
 
-            // 1. カロリー判定 (90% 〜 100%でテーマカラー、>100%で赤)
+            // 1. カロリー判定 (90% 〜 100%)
             const curCalEl = document.getElementById('val-cur-cal');
             const calBar = document.getElementById('cal-progress-bar');
             curCalEl.textContent = Math.round(totalCal);
@@ -2104,19 +2103,18 @@
                 curCalEl.classList.add('over-limit');
                 calBar.classList.add('over-limit');
             } else if (calPct >= 90 && calPct <= 100) {
-                curCalEl.classList.add('success-text');
-                calBar.style.backgroundColor = 'var(--theme-color)'; // カロリー合格時はテーマカラー
+                // 合格時は緑にせず通常の黒（テキストメインカラー）にし、バーはテーマカラー
+                calBar.style.backgroundColor = 'var(--theme-color)';
             }
 
-            // 2. たんぱく質 (P) 判定 (90% 以上で合格)
+            // 2. たんぱく質 (P) 判定 (90% 以上)
             const curPEl = document.getElementById('val-cur-p');
             const pBar = document.getElementById('p-progress-bar');
             curPEl.textContent = totalP.toFixed(1);
             document.getElementById('val-tgt-p').textContent = maxP;
             pBar.style.width = `${Math.min(pPct, 100)}%`;
-            curPEl.className = "val-current";
+            curPEl.className = "val-current"; // 緑文字（success-text）は廃止し普通の黒に
             if (pPct >= 90) {
-                curPEl.classList.add('success-text');
                 pBar.style.backgroundColor = 'var(--pfc-p-bar)';
             } else {
                 pBar.style.backgroundColor = 'var(--cal-bar-color)';
@@ -2133,7 +2131,6 @@
                 curFEl.classList.add('over-limit');
                 fBar.style.backgroundColor = 'var(--over-limit-color)';
             } else {
-                curFEl.classList.add('success-text');
                 fBar.style.backgroundColor = 'var(--pfc-f-bar)';
             }
 
@@ -2148,7 +2145,6 @@
                 curCEl.classList.add('over-limit');
                 cBar.style.backgroundColor = 'var(--over-limit-color)';
             } else if (cPct >= 90 && cPct <= 110) {
-                curCEl.classList.add('success-text');
                 cBar.style.backgroundColor = 'var(--pfc-c-bar)';
             } else {
                 cBar.style.backgroundColor = 'var(--cal-bar-color)';
@@ -2423,7 +2419,7 @@
             if (e.key === 'Enter') submitRecord(false);
         });
 
-        // 運動バッジスタイル
+        // 複数カテゴリ円形グラデーション
         function getExerciseBadgeStyleForDay(dateISO) {
             const dayExercises = window.exerciseRecords.filter(e => e.date === dateISO);
             if (dayExercises.length === 0) return null;
@@ -2458,35 +2454,31 @@
             }
         }
 
-        // 栄養素やカロリーが1つでもオーバーまたは合格ライン未満（P<90%, C外れ）の場合にtrue（赤色にする）を返す
+        // 赤色（エラー/超過）になるのは「実際に上限をオーバーしたとき（カロリー>100%, 脂質>100%, 炭水化物>110%）」のみ
         function checkDayIsExceeded(dateISO) {
             const dayFoods = window.foodRecords.filter(f => f.date === dateISO);
             if (dayFoods.length === 0) return false;
 
-            let totalCal = 0, totalP = 0, totalF = 0, totalC = 0;
+            let totalCal = 0, totalF = 0, totalC = 0;
             dayFoods.forEach(f => {
                 totalCal += Number(f.cal !== undefined ? f.cal : (f.calories || 0));
-                totalP += Number(f.p !== undefined ? f.p : (f.protein || 0));
                 totalF += Number(f.f !== undefined ? f.f : (f.fat || 0));
                 totalC += Number(f.c !== undefined ? f.c : (f.carbs || 0));
             });
 
             const maxCal = parseFloat(document.getElementById('target-calories').value) || 2000;
-            const maxP = parseFloat(document.getElementById('target-protein').value) || 100;
             const maxFat = parseFloat(document.getElementById('target-fat').value) || 50;
             const maxCarb = parseFloat(document.getElementById('target-carb').value) || 250;
 
             const calRatio = maxCal > 0 ? (totalCal / maxCal) * 100 : 0;
-            const pRatio = maxP > 0 ? (totalP / maxP) * 100 : 0;
             const fatRatio = maxFat > 0 ? (totalF / maxFat) * 100 : 0;
             const carbRatio = maxCarb > 0 ? (totalC / maxCarb) * 100 : 0;
 
-            const isCalFail = (calRatio > 100 || calRatio < 90);
-            const isPFail = (pRatio < 90);
-            const isFFail = (fatRatio > 100);
-            const isCFail = (carbRatio > 110 || carbRatio < 90);
+            const isCalOver = (calRatio > 100);
+            const isFatOver = (fatRatio > 100);
+            const isCarbOver = (carbRatio > 110);
 
-            return (isCalFail || isPFail || isFFail || isCFail);
+            return (isCalOver || isFatOver || isCarbOver);
         }
 
         // 週間カレンダー
@@ -2523,7 +2515,6 @@
                         badgeStyle = `background-color: #EF4444 !important; color: #FFFFFF !important; box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4);`;
                     }
                 } else if (currentCategory === 'weight') {
-                    // 体重管理画面のときは体重記録がある日にドットマークをつける
                     const hasWeight = (window.weightDataHistory || []).some(w => (w.isoDate || "") === dateKey && w.weight);
                     if (hasWeight) {
                         cell.classList.add('has-record');
@@ -2622,7 +2613,6 @@
                         dEl.style.color = '#FFFFFF';
                     }
                 } else if (currentCategory === 'weight') {
-                    // 体重管理画面の月間カレンダーにも体重記録がある日小さくドットマークを表示
                     const hasWeight = (window.weightDataHistory || []).some(w => (w.isoDate || "") === dateISO && w.weight);
                     if (hasWeight) {
                         const dot = document.createElement('span');
