@@ -855,7 +855,7 @@
         </section>
     </main>
 
-    <!-- 下部入力バー（最初から日本語キーボードを優先起動） -->
+    <!-- 下部入力バー（日本語キーボード優先指定） -->
     <footer id="footer-bar">
         <div class="record-bar-wrapper">
             <div class="record-bar" id="footer-record-bar">
@@ -891,7 +891,7 @@
         </div>
     </div>
 
-    <!-- 運動カテゴリ選択モーダル（スクショに合わせた元気なパステルカラー） -->
+    <!-- 運動カテゴリ選択モーダル -->
     <div class="modal-overlay" id="exercise-category-modal">
         <div class="modal-box" style="max-width: 320px; text-align: center;">
             <div class="modal-header" style="justify-content: center; margin-bottom: 12px;">
@@ -2208,10 +2208,9 @@
             }
         }
 
-        // --- ご指定の最新関数に差し替え ---
+        // --- 最新の指定モデル（gemini-3.6-flash / gemini-3.5-flash-lite）による解析 ---
         async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
-            // 現在v1betaで確実に動作するモデルのみを指定
-            const candidateModels = ["gemini-2.5-flash", "gemini-2.0-flash"];
+            const candidateModels = ["gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-2.5-flash"];
             
             let prompt = "";
             if (imageBase64) {
