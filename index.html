@@ -2282,8 +2282,13 @@
         }
 
         // --- 高速・軽量モデル指定 ---
-        async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
-            const candidateModels = ["gemini-3.8-flash"];
+async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
+    // 現在利用可能な現行モデルを候補として順番に指定
+    const candidateModels = [
+        "gemini-3.8-flash",
+        "gemini-3.5-flash",
+        "gemini-3.5-flash-lite"
+    ];
             
             let prompt = "";
             if (imageBase64) {
