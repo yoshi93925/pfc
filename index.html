@@ -293,7 +293,7 @@
             letter-spacing: 0.01em;
         }
 
-        /* トレーニング記録カード（文字色を食事ページと同じ var(--text-main) に統一） */
+        /* トレーニング記録カード */
         .workout-card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -525,7 +525,7 @@
         /* 編集モーダル */
         .set-editor-row {
             display: grid;
-            grid-template-columns: 46px 1fr auto 1fr auto 28px;
+            grid-template-columns: 54px 1fr auto 1fr auto 28px;
             align-items: center;
             gap: 4px;
             margin-bottom: 6px;
@@ -674,7 +674,7 @@
         .send-btn { display: none; width: 40px; height: 40px; border-radius: 50%; background-color: var(--send-btn-bg); border: none; color: #ffffff; cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0; }
         #gallery-input, #camera-input { display: none; }
 
-        /* 運動画面専用：開閉トグルボタン（︾ / ︽）＋ 1:1四角密着カテゴリバー（文字色・フォントを食事記録ページに完全統一） */
+        /* 運動画面専用：開閉トグルボタン（︾ / ︽）＋ 1:1四角密着カテゴリバー */
         .exercise-footer-container {
             display: none;
             flex-direction: column;
@@ -731,15 +731,15 @@
             filter: brightness(0.92);
         }
 
-        /* 種目リスト選択アイテム */
+        /* 種目リスト選択アイテム（下部にカテゴリカラーのラインを表示） */
         .preset-item-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
             background: var(--input-bg);
             border: 1px solid var(--card-border);
-            border-radius: 10px;
-            padding: 11px 14px;
+            border-radius: 8px;
+            padding: 10px 14px;
             cursor: pointer;
             transition: transform 0.1s, background-color 0.15s;
         }
@@ -1015,7 +1015,6 @@
                 </div>
 
                 <div class="setting-section">
-                    <div class="setting-section-title">クラウド同期 ＆ AI設定</div>
                     <div style="margin-bottom: 6px;">
                         <div class="setting-label">クラウド同期ログイン</div>
                         <div class="setting-sublabel" id="google-auth-status" style="font-size: 0.75rem; color: var(--text-sub);">未連携</div>
@@ -1072,12 +1071,12 @@
         </div>
     </div>
 
-    <!-- 運動種目選択＆登録モーダル（バッジの文字色も var(--text-main) に統一） -->
+    <!-- 運動種目選択＆登録モーダル（各種目の下にカテゴリカラーのラインを表示） -->
     <div class="modal-overlay" id="exercise-preset-modal" onclick="if(event.target === this) closeModal('exercise-preset-modal')">
         <div class="modal-box">
             <div class="modal-header">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <span id="preset-modal-cat-badge" style="padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; color: var(--text-main);">胸</span>
+                    <span id="preset-modal-cat-badge" style="font-size: 1.02rem; font-weight: 700; color: var(--text-main);">胸</span>
                 </div>
                 <button class="icon-btn" onclick="closeModal('exercise-preset-modal')"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
             </div>
@@ -1117,9 +1116,8 @@
             <div class="modal-form-group"><label class="modal-label">メニュー名</label><input type="text" class="modal-input" id="edit-exercise-name"></div>
             
             <div class="modal-form-group">
-                <label class="modal-label" id="edit-exercise-sets-label">セット内容</label>
                 <div id="exercise-sets-editor-container" style="display:flex; flex-direction:column; gap:6px; margin-bottom:8px; width: 100%;"></div>
-                <button type="button" class="modal-btn modal-btn-secondary" style="padding: 6px; font-size: 0.8rem;" onclick="addEditorSetRow()">追加</button>
+                <button type="button" class="modal-btn modal-btn-secondary" style="padding: 6px; font-size: 0.8rem;" onclick="addEditorSetRow()">+ セットを追加</button>
             </div>
 
             <div class="modal-actions">
@@ -1845,7 +1843,7 @@
             selectedPresetCategory = part;
             const badge = document.getElementById('preset-modal-cat-badge');
             badge.textContent = part;
-            badge.style.backgroundColor = window.getCategoryColor(part);
+            badge.style.backgroundColor = 'transparent';
             document.getElementById('new-preset-name-input').value = '';
             renderExercisePresetList();
             openModal('exercise-preset-modal');
@@ -1876,6 +1874,7 @@
             container.innerHTML = '';
             const part = selectedPresetCategory;
             const items = getCombinedPresetsForPart(part);
+            const catColor = window.getCategoryColor(part);
 
             if (items.length === 0) {
                 container.innerHTML = `<div style="text-align: center; color: var(--text-sub); padding: 18px; font-size: 0.85rem;">種目が未登録です</div>`;
@@ -1885,6 +1884,7 @@
             items.forEach(exerciseName => {
                 const row = document.createElement('div');
                 row.className = 'preset-item-row';
+                row.style.borderBottom = `3px solid ${catColor}`;
                 row.onclick = () => recordExerciseByPreset(part, exerciseName);
                 row.innerHTML = `
                     <span class="preset-item-name">${exerciseName}</span>
@@ -1911,7 +1911,8 @@
             if (pastMatches.length > 0) {
                 const lastSets = normalizeExerciseSets(pastMatches[0].setsList || pastMatches[0].sets);
                 if (lastSets.length > 0) {
-                    initialSets = lastSets.map(s => ({ weight: s.weight, reps: s.reps }));
+                    // 前回の1セット目の記録のみを自動入力
+                    initialSets = [{ weight: lastSets[0].weight, reps: lastSets[0].reps }];
                 }
             }
 
@@ -2076,7 +2077,7 @@
                         <tbody>${rowsHtml}</tbody>
                     </table>
                     <div class="workout-add-footer">
-                        <button class="workout-add-btn" onclick="quickAddExerciseSet(event, '${item.id}')" title="追加">
+                        <button class="workout-add-btn" onclick="quickAddExerciseSet(event, '${item.id}')" title="セットを追加">
                             <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
                         </button>
                     </div>
@@ -2143,7 +2144,7 @@
             localStorage.setItem('pfc_exercise_records', JSON.stringify(window.exerciseRecords));
             if (window.syncDataToCloud) window.syncDataToCloud();
             renderExerciseList();
-            showToast('追加しました');
+            showToast('セットを追加しました');
         };
 
         function openExerciseEditModal(item) {
@@ -2916,7 +2917,7 @@
             if (e.key === 'Enter') submitRecord(false);
         });
 
-        // 複数カテゴリ円形グラデーション（文字色を var(--text-main) に統一）
+        // 複数カテゴリ円形グラデーション
         function getExerciseBadgeStyleForDay(dateISO) {
             const dayExercises = window.exerciseRecords.filter(e => e.date === dateISO);
             if (dayExercises.length === 0) return null;
