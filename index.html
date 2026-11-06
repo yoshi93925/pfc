@@ -767,6 +767,69 @@
             color: #EF4444;
         }
 
+        /* 月間カレンダー：上部固定＆年月縦スクロールピッカー */
+        #monthly-calendar-modal {
+            align-items: flex-start;
+            padding-top: 108px;
+        }
+        .cal-title-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            position: relative;
+        }
+        .cal-picker-trigger {
+            background: transparent;
+            border: none;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-main);
+            padding: 4px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        .cal-picker-trigger:hover, .cal-picker-trigger.active {
+            background-color: var(--input-bg);
+        }
+        .cal-picker-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.16);
+            max-height: 210px;
+            overflow-y: auto;
+            z-index: 60;
+            min-width: 76px;
+            padding: 4px 0;
+            -webkit-overflow-scrolling: touch;
+        }
+        .cal-picker-dropdown.open {
+            display: block;
+        }
+        .cal-picker-item {
+            padding: 8px 14px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-main);
+            text-align: center;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .cal-picker-item:active {
+            background-color: var(--input-bg);
+        }
+        .cal-picker-item.selected {
+            background-color: var(--theme-color);
+            color: var(--theme-text);
+            font-weight: 700;
+        }
+
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5);
             z-index: 300; display: none; align-items: center; justify-content: center; padding: 16px; opacity: 0; transition: opacity 0.25s ease;
@@ -1056,12 +1119,21 @@
         </div>
     </footer>
 
-    <!-- 月間カレンダーモーダル -->
-    <div class="modal-overlay" id="monthly-calendar-modal" onclick="if(event.target === this) closeModal('monthly-calendar-modal')">
-        <div class="modal-box">
-            <div class="month-cal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+    <!-- 月間カレンダーモーダル（上端固定で＜＞がズレず、年月タップで縦リスト選択可能） -->
+    <div class="modal-overlay" id="monthly-calendar-modal" onclick="if(event.target === this) { closeCalPickers(); closeModal('monthly-calendar-modal'); }">
+        <div class="modal-box" onclick="closeCalPickers()">
+            <div class="month-cal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; position:relative;">
                 <button class="icon-btn" onclick="changeMonth(-1)"><i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i></button>
-                <div style="font-weight: 700; font-size: 1.05rem;" id="month-cal-title">2026年 9月</div>
+                <div class="cal-title-group">
+                    <div style="position: relative;">
+                        <button type="button" class="cal-picker-trigger" id="cal-year-btn" onclick="toggleCalPicker(event, 'year')">2026年</button>
+                        <div class="cal-picker-dropdown" id="cal-year-dropdown" onclick="event.stopPropagation()"></div>
+                    </div>
+                    <div style="position: relative;">
+                        <button type="button" class="cal-picker-trigger" id="cal-month-btn" onclick="toggleCalPicker(event, 'month')">9月</button>
+                        <div class="cal-picker-dropdown" id="cal-month-dropdown" onclick="event.stopPropagation()"></div>
+                    </div>
+                </div>
                 <button class="icon-btn" onclick="changeMonth(1)"><i data-lucide="chevron-right" style="width: 20px; height: 20px;"></i></button>
             </div>
             <div class="month-cal-grid" id="month-cal-grid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:5px; text-align:center;"></div>
@@ -3035,9 +3107,10 @@
             }
         }
 
-        // 月間カレンダー
+        // --- 月間カレンダー ＆ 年・月縦スクロールピッカー ---
         function openMonthlyCalendarModal() {
-            calViewingDate = new Date(selectedDateStr);
+            calViewingDate = new Date(selectedDateStr + 'T00:00:00');
+            closeCalPickers();
             renderMonthlyCalendarGrid();
             updateTodayButtonText();
             openModal('monthly-calendar-modal');
@@ -3050,14 +3123,109 @@
         }
 
         function changeMonth(diff) {
+            closeCalPickers();
+            calViewingDate.setDate(1);
             calViewingDate.setMonth(calViewingDate.getMonth() + diff);
             renderMonthlyCalendarGrid();
+        }
+
+        window.closeCalPickers = function() {
+            const yDrop = document.getElementById('cal-year-dropdown');
+            const mDrop = document.getElementById('cal-month-dropdown');
+            const yBtn = document.getElementById('cal-year-btn');
+            const mBtn = document.getElementById('cal-month-btn');
+            if (yDrop) yDrop.classList.remove('open');
+            if (mDrop) mDrop.classList.remove('open');
+            if (yBtn) yBtn.classList.remove('active');
+            if (mBtn) mBtn.classList.remove('active');
+        };
+
+        window.toggleCalPicker = function(event, type) {
+            event.stopPropagation();
+            const yDrop = document.getElementById('cal-year-dropdown');
+            const mDrop = document.getElementById('cal-month-dropdown');
+            const yBtn = document.getElementById('cal-year-btn');
+            const mBtn = document.getElementById('cal-month-btn');
+
+            if (type === 'year') {
+                const isOpen = yDrop.classList.contains('open');
+                closeCalPickers();
+                if (!isOpen) {
+                    buildYearPickerList();
+                    yDrop.classList.add('open');
+                    yBtn.classList.add('active');
+                    const sel = yDrop.querySelector('.cal-picker-item.selected');
+                    if (sel) {
+                        yDrop.scrollTop = sel.offsetTop - yDrop.clientHeight / 2 + sel.clientHeight / 2;
+                    }
+                }
+            } else if (type === 'month') {
+                const isOpen = mDrop.classList.contains('open');
+                closeCalPickers();
+                if (!isOpen) {
+                    buildMonthPickerList();
+                    mDrop.classList.add('open');
+                    mBtn.classList.add('active');
+                    const sel = mDrop.querySelector('.cal-picker-item.selected');
+                    if (sel) {
+                        mDrop.scrollTop = sel.offsetTop - mDrop.clientHeight / 2 + sel.clientHeight / 2;
+                    }
+                }
+            }
+        };
+
+        function buildYearPickerList() {
+            const yDrop = document.getElementById('cal-year-dropdown');
+            yDrop.innerHTML = '';
+            const currentYear = new Date().getFullYear();
+            const viewingYear = calViewingDate.getFullYear();
+            // 現在の年をベースに過去15年〜未来5年まで縦スクロール表示
+            const startYear = Math.min(currentYear - 15, viewingYear - 5);
+            const endYear = Math.max(currentYear + 5, viewingYear + 5);
+
+            for (let y = startYear; y <= endYear; y++) {
+                const item = document.createElement('div');
+                item.className = `cal-picker-item ${y === viewingYear ? 'selected' : ''}`;
+                item.textContent = `${y}`;
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    calViewingDate.setDate(1);
+                    calViewingDate.setFullYear(y);
+                    closeCalPickers();
+                    renderMonthlyCalendarGrid();
+                };
+                yDrop.appendChild(item);
+            }
+        }
+
+        function buildMonthPickerList() {
+            const mDrop = document.getElementById('cal-month-dropdown');
+            mDrop.innerHTML = '';
+            const viewingMonth = calViewingDate.getMonth() + 1;
+
+            for (let m = 1; m <= 12; m++) {
+                const item = document.createElement('div');
+                item.className = `cal-picker-item ${m === viewingMonth ? 'selected' : ''}`;
+                item.textContent = `${m}`;
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    calViewingDate.setDate(1);
+                    calViewingDate.setMonth(m - 1);
+                    closeCalPickers();
+                    renderMonthlyCalendarGrid();
+                };
+                mDrop.appendChild(item);
+            }
         }
 
         function renderMonthlyCalendarGrid() {
             const year = calViewingDate.getFullYear();
             const month = calViewingDate.getMonth();
-            document.getElementById('month-cal-title').textContent = `${year}年 ${month + 1}月`;
+            const yBtn = document.getElementById('cal-year-btn');
+            const mBtn = document.getElementById('cal-month-btn');
+            if (yBtn) yBtn.textContent = `${year}年`;
+            if (mBtn) mBtn.textContent = `${month + 1}月`;
+
             const grid = document.getElementById('month-cal-grid');
             grid.innerHTML = '';
 
@@ -3120,6 +3288,7 @@
                 dEl.onclick = () => {
                     selectedDateStr = dateISO;
                     weeklyAnchorDateStr = dateISO;
+                    closeCalPickers();
                     closeModal('monthly-calendar-modal');
                     renderWeeklyCalendar();
                     if (currentCategory === 'food') renderFoodList();
@@ -3133,6 +3302,7 @@
         function goToToday() {
             selectedDateStr = getTodayISO();
             weeklyAnchorDateStr = getTodayISO();
+            closeCalPickers();
             closeModal('monthly-calendar-modal');
             renderWeeklyCalendar();
             if (currentCategory === 'food') renderFoodList();
