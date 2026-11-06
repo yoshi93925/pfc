@@ -66,7 +66,7 @@
             --success-color: #34D399;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; font-family: inherit; }
         html { scroll-behavior: smooth; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -74,6 +74,14 @@
             padding-top: var(--header-top-height); padding-bottom: var(--footer-height); min-height: 100vh;
             overflow-x: hidden;
             transition: background-color 0.25s ease, color 0.25s ease;
+        }
+
+        /* 運動画面時は1:1四角2段＋開閉トグルバーに合わせて下部余白を確保 */
+        body.is-exercise-mode {
+            --footer-height: calc(min(50vw, 300px) + 32px);
+        }
+        body.is-exercise-mode.cat-collapsed {
+            --footer-height: 40px;
         }
 
         body.is-settings-mode {
@@ -227,7 +235,7 @@
         .sticky-chart-wrap { position: sticky; top: 0; z-index: 50; background-color: var(--bg-color); padding: 4px 0 4px 0; margin-bottom: 6px; }
         .chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
         
-        /* 体重グラフヘッダー（左にボタン、右に凡例を同一行に配置） */
+        /* 体重グラフヘッダー */
         .chart-header-row {
             display: flex;
             justify-content: space-between;
@@ -285,7 +293,7 @@
             letter-spacing: 0.01em;
         }
 
-        /* トレーニング記録カード */
+        /* トレーニング記録カード（文字色を食事ページと同じ var(--text-main) に統一） */
         .workout-card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -297,9 +305,9 @@
         }
         .workout-card-header {
             padding: 10px 16px;
-            font-size: 1.05rem;
+            font-size: 0.95rem;
             font-weight: 700;
-            color: #1E293B;
+            color: var(--text-main);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -458,7 +466,7 @@
             height: 0;
             border-left: 8px solid transparent;
             border-right: 8px solid transparent;
-            border-top: 10px solid #1E293B;
+            border-top: 10px solid var(--text-main);
             position: absolute;
             top: 6px;
             left: 50%;
@@ -576,7 +584,7 @@
         /* 設定画面 */
         .settings-container { display: flex; flex-direction: column; gap: 10px; padding-top: 2px; padding-bottom: 15px; }
         .setting-section { background: transparent; border-bottom: 1px solid var(--card-border); padding: 6px 0 10px 0; }
-        .setting-section-title { font-size: 0.85rem; font-weight: 700; color: var(--text-sub); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.03em; }
+        .setting-section-title { font-size: 0.85rem; font-weight: 700; color: var(--text-sub); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; gap: 6px; text-transform: uppercase; letter-spacing: 0.03em; }
         .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; }
         .setting-label { font-size: 0.85rem; color: var(--text-main); }
         .setting-input-wrap { display: flex; align-items: center; gap: 4px; }
@@ -588,17 +596,73 @@
         .theme-picker { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; align-items: center; margin-top: 4px; width: 100%; }
         .theme-color-circle { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s; justify-self: center; }
         .theme-color-circle:active { transform: scale(0.9); }
-        .theme-color-circle.selected { border-color: #334155; transform: scale(1.15); box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+        .theme-color-circle.selected { border-color: var(--text-main); transform: scale(1.15); box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
 
         .setting-save-btn {
             width: 100%; background-color: var(--theme-color); color: var(--theme-text); border: none; border-radius: 8px;
             padding: 10px; font-size: 0.9rem; font-weight: 700; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: opacity 0.2s; margin-top: 4px;
         }
 
+        /* 設定画面の運動カテゴリリスト */
+        .setting-cat-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .setting-cat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 4px 8px;
+        }
+        .setting-cat-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .setting-cat-input {
+            width: 100%;
+            min-width: 0;
+            border: none;
+            background: transparent;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-main);
+            outline: none;
+        }
+        .setting-cat-del {
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px;
+            flex-shrink: 0;
+        }
+        .setting-cat-del:hover {
+            color: #EF4444;
+        }
+
         /* フッター */
         footer {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: var(--footer-height);
-            background-color: var(--footer-bg); border-top: 1px solid var(--footer-border); display: flex; align-items: center; padding: 0 16px; z-index: 100;
+            position: fixed; bottom: 0; left: 0; width: 100%; min-height: var(--footer-height);
+            background-color: var(--footer-bg); border-top: 1px solid var(--footer-border); display: flex; align-items: center; padding: 0 12px; z-index: 100;
+            transition: min-height 0.2s ease;
+        }
+        /* 運動モード時のフッターは左右余白ゼロでピタッと配置 */
+        body.is-exercise-mode footer {
+            height: auto;
+            min-height: 0;
+            padding: 0 0 env(safe-area-inset-bottom) 0;
+            background-color: transparent;
+            border-top: none;
         }
         .record-bar-wrapper { width: 100%; max-width: 600px; margin: 0 auto; }
         .record-bar { display: flex; align-items: center; gap: 10px; }
@@ -609,6 +673,99 @@
         .footer-btn { background: none; border: none; color: var(--text-sub); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 6px; }
         .send-btn { display: none; width: 40px; height: 40px; border-radius: 50%; background-color: var(--send-btn-bg); border: none; color: #ffffff; cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0; }
         #gallery-input, #camera-input { display: none; }
+
+        /* 運動画面専用：開閉トグルボタン（︾ / ︽）＋ 1:1四角密着カテゴリバー（文字色・フォントを食事記録ページに完全統一） */
+        .exercise-footer-container {
+            display: none;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+        }
+        .cat-toggle-btn {
+            font-family: inherit;
+            background-color: var(--footer-bg);
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            border-bottom: none;
+            border-left: none;
+            padding: 5px 16px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.04);
+            z-index: 2;
+        }
+        .cat-toggle-btn:active {
+            opacity: 0.7;
+        }
+        .exercise-category-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+            width: 100%;
+            border-top: 1px solid var(--card-border);
+        }
+        .cat-bar-btn {
+            font-family: inherit;
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            border: none;
+            border-radius: 0;
+            margin: 0;
+            padding: 4px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.25;
+            word-break: keep-all;
+            overflow-wrap: break-word;
+            transition: filter 0.1s;
+        }
+        .cat-bar-btn:active {
+            filter: brightness(0.92);
+        }
+
+        /* 種目リスト選択アイテム */
+        .preset-item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 11px 14px;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.15s;
+        }
+        .preset-item-row:active {
+            transform: scale(0.98);
+        }
+        .preset-item-name {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+            flex: 1;
+        }
+        .preset-delete-btn {
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            padding: 4px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .preset-delete-btn:hover {
+            color: #EF4444;
+        }
 
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5);
@@ -833,6 +990,18 @@
                     </div>
                 </div>
 
+                <!-- 運動カテゴリの追加・編集セクション -->
+                <div class="setting-section">
+                    <div class="setting-section-title">
+                        <span>運動カテゴリ</span>
+                    </div>
+                    <div class="setting-cat-list" id="settings-category-list"></div>
+                    <div style="display: flex; gap: 6px; margin-top: 6px;">
+                        <input type="text" class="setting-input-full" id="new-category-input" placeholder="新しいカテゴリ名" style="margin-top: 0; flex: 1;">
+                        <button type="button" class="modal-btn modal-btn-primary" style="flex: 0 0 auto; width: auto; padding: 6px 14px; font-size: 0.8rem;" onclick="addExerciseCategoryFromSettings()">追加</button>
+                    </div>
+                </div>
+
                 <div class="setting-section">
                     <div class="setting-section-title">テーマカラー設定</div>
                     <div class="theme-picker">
@@ -864,9 +1033,10 @@
         </section>
     </main>
 
-    <!-- 下部入力バー -->
+    <!-- 下部バー（食事用入力バー ＆ 運動用1:1四角密着2段カテゴリバー） -->
     <footer id="footer-bar">
         <div class="record-bar-wrapper">
+            <!-- 食事画面用：テキスト・写真入力バー -->
             <div class="record-bar" id="footer-record-bar">
                 <div class="input-bubble" id="input-bubble-wrap">
                     <input type="text" id="record-input" placeholder="食事内容を記録" oninput="handleInputChange()" lang="ja" inputmode="text" autocomplete="off">
@@ -877,6 +1047,12 @@
                     <label class="footer-btn" id="camera-btn" title="カメラ起動" style="cursor: pointer;"><i data-lucide="camera" style="width: 20px; height: 20px;"></i><input type="file" id="camera-input" accept="image/*" capture="environment" onchange="handleImageSelection(event)"></label>
                 </div>
                 <button class="send-btn" id="send-btn" title="送信" onclick="submitRecord()"><i data-lucide="send" style="width: 18px; height: 18px; transform: translateX(-1px) translateY(1px);"></i></button>
+            </div>
+
+            <!-- 運動画面用：左上の開閉ボタン（︾ / ︽）＋ 1:1四角密着カテゴリメニュー -->
+            <div class="exercise-footer-container" id="footer-exercise-container">
+                <button type="button" class="cat-toggle-btn" id="cat-toggle-btn" onclick="toggleExerciseCategoryBar()">︾</button>
+                <div class="exercise-category-bar" id="footer-exercise-bar"></div>
             </div>
         </div>
     </footer>
@@ -896,21 +1072,26 @@
         </div>
     </div>
 
-    <!-- 運動カテゴリ選択モーダル -->
-    <div class="modal-overlay" id="exercise-category-modal" onclick="if(event.target === this) closeModal('exercise-category-modal')">
-        <div class="modal-box" style="max-width: 320px; text-align: center;">
-            <div class="modal-header" style="justify-content: center; margin-bottom: 12px;">
-                <span style="font-size: 1.05rem; font-weight:700;">カテゴリを選択</span>
+    <!-- 運動種目選択＆登録モーダル（バッジの文字色も var(--text-main) に統一） -->
+    <div class="modal-overlay" id="exercise-preset-modal" onclick="if(event.target === this) closeModal('exercise-preset-modal')">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span id="preset-modal-cat-badge" style="padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; color: var(--text-main);">胸</span>
+                </div>
+                <button class="icon-btn" onclick="closeModal('exercise-preset-modal')"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
-                <button class="modal-btn" style="background-color: #FDE047; color: #1E293B;" onclick="confirmExerciseCategory('腕')">腕</button>
-                <button class="modal-btn" style="background-color: #FDA4AF; color: #1E293B;" onclick="confirmExerciseCategory('胸')">胸</button>
-                <button class="modal-btn" style="background-color: #C4B5FD; color: #1E293B;" onclick="confirmExerciseCategory('腹')">腹</button>
-                <button class="modal-btn" style="background-color: #93C5FD; color: #1E293B;" onclick="confirmExerciseCategory('背中')">背中</button>
-                <button class="modal-btn" style="background-color: #FDBA74; color: #1E293B;" onclick="confirmExerciseCategory('足')">足</button>
-                <button class="modal-btn" style="background-color: #6EE7B7; color: #1E293B;" onclick="confirmExerciseCategory('有酸素')">有酸素</button>
+
+            <!-- 登録されている種目一覧 -->
+            <div id="exercise-preset-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 50vh; overflow-y: auto; margin-bottom: 14px; padding-right: 2px;"></div>
+
+            <!-- 新規種目の追加フォーム -->
+            <div style="border-top: 1px solid var(--card-border); padding-top: 12px;">
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" class="modal-input" id="new-preset-name-input" placeholder="" style="flex: 1;">
+                    <button class="modal-btn modal-btn-primary" style="flex: 0 0 auto; width: auto; padding: 0 16px;" onclick="addAndSelectNewPreset()">追加</button>
+                </div>
             </div>
-            <button class="modal-btn modal-btn-secondary" style="width: 100%;" onclick="closeModal('exercise-category-modal')">キャンセル</button>
         </div>
     </div>
 
@@ -921,14 +1102,7 @@
                 <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                     <span>運動メニューの編集</span>
                     <div class="custom-select-wrap">
-                        <select id="edit-exercise-part" class="custom-select" style="padding: 2px 24px 2px 8px; font-size: 0.8rem;" onchange="updateEditorLabelsForPart()">
-                            <option value="腕">腕</option>
-                            <option value="胸">胸</option>
-                            <option value="腹">腹</option>
-                            <option value="背中">背中</option>
-                            <option value="足">足</option>
-                            <option value="有酸素">有酸素</option>
-                        </select>
+                        <select id="edit-exercise-part" class="custom-select" style="padding: 2px 24px 2px 8px; font-size: 0.8rem;" onchange="updateEditorLabelsForPart()"></select>
                     </div>
                 </div>
                 <button class="icon-btn" onclick="closeModal('exercise-edit-modal')" style="margin-left: 8px;"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
@@ -945,7 +1119,7 @@
             <div class="modal-form-group">
                 <label class="modal-label" id="edit-exercise-sets-label">セット内容</label>
                 <div id="exercise-sets-editor-container" style="display:flex; flex-direction:column; gap:6px; margin-bottom:8px; width: 100%;"></div>
-                <button type="button" class="modal-btn modal-btn-secondary" style="padding: 6px; font-size: 0.8rem;" onclick="addEditorSetRow()">+ セットを追加</button>
+                <button type="button" class="modal-btn modal-btn-secondary" style="padding: 6px; font-size: 0.8rem;" onclick="addEditorSetRow()">追加</button>
             </div>
 
             <div class="modal-actions">
@@ -1135,6 +1309,14 @@
                     }
                     if (data.weightLogs) window.weightDataHistory = data.weightLogs;
                     if (data.exerciseLogs) window.exerciseRecords = data.exerciseLogs;
+                    if (data.exerciseCategories && Array.isArray(data.exerciseCategories) && data.exerciseCategories.length > 0) {
+                        window.exerciseCategories = data.exerciseCategories;
+                        localStorage.setItem('pfc_exercise_categories', JSON.stringify(window.exerciseCategories));
+                    }
+                    if (data.exercisePresets) {
+                        window.exercisePresets = data.exercisePresets;
+                        localStorage.setItem('pfc_exercise_custom_presets', JSON.stringify(window.exercisePresets));
+                    }
                     if (data.favoritesList) {
                         window.favoritesList = data.favoritesList;
                         localStorage.setItem('pfc_favorites_list', JSON.stringify(window.favoritesList));
@@ -1152,6 +1334,8 @@
                         document.getElementById('gemini-api-key').value = data.geminiApiKey;
                         localStorage.setItem('gemini_api_key', data.geminiApiKey);
                     }
+                    window.renderExerciseCategoryFooter();
+                    window.renderSettingsCategoryList();
                     renderWeeklyCalendar();
                     if (window.currentCategory === 'food') renderFoodList();
                     if (window.currentCategory === 'weight') updateBodyMetricsDisplay();
@@ -1178,6 +1362,8 @@
                     foodLogs: window.foodRecords || [],
                     weightLogs: window.weightDataHistory || [],
                     exerciseLogs: window.exerciseRecords || [],
+                    exerciseCategories: window.exerciseCategories || [],
+                    exercisePresets: window.exercisePresets || {},
                     favoritesList: window.favoritesList || [],
                     userSettings: { calories: cal, protein: p, fat: f, carb: c, themeColor: currentTheme, themeText: currentThemeText },
                     geminiApiKey: apiKey,
@@ -1195,9 +1381,10 @@
 
         let currentCategory = 'food';
         let weightChartInstance = null;
-        let pendingExerciseText = ""; 
+        let selectedPresetCategory = '胸';
         let activeHistoryExerciseName = "";
         let activeHistoryExercisePart = "";
+        let isExerciseCatOpen = true; // 初期状態はカテゴリメニューが表示されている状態
         
         function getTodayISO() {
             const now = new Date();
@@ -1225,13 +1412,161 @@
         let exerciseRecords = JSON.parse(localStorage.getItem('pfc_exercise_records') || '[]');
         window.exerciseRecords = exerciseRecords;
 
-        const exercisePartColors = {
-            '腕': '#FDE047',
-            '胸': '#FDA4AF',
-            '腹': '#C4B5FD',
-            '背中': '#93C5FD',
-            '足': '#FDBA74',
-            '有酸素': '#6EE7B7'
+        // 8つの運動カテゴリ（ダミーデータなし）
+        const defaultExerciseCategories = ['胸', '背中', '肩', '腕', '脚', '腹筋・体幹', '臀部', '有酸素'];
+
+        let exerciseCategories = JSON.parse(localStorage.getItem('pfc_exercise_categories') || 'null');
+        if (!exerciseCategories || !Array.isArray(exerciseCategories) || exerciseCategories.length === 0) {
+            exerciseCategories = [...defaultExerciseCategories];
+            localStorage.setItem('pfc_exercise_categories', JSON.stringify(exerciseCategories));
+        }
+        window.exerciseCategories = exerciseCategories;
+
+        let exercisePresets = JSON.parse(localStorage.getItem('pfc_exercise_custom_presets') || '{}');
+        window.exercisePresets = exercisePresets;
+
+        // 左から右へ滑らかに変化する虹色カラー計算関数
+        window.getCategoryColor = function(part) {
+            const cats = window.exerciseCategories || defaultExerciseCategories;
+            let idx = cats.indexOf(part);
+            if (idx === -1) {
+                if (part === '足') idx = cats.indexOf('脚');
+                else if (part === '腹') idx = cats.indexOf('腹筋・体幹');
+            }
+            if (idx === -1) {
+                let hash = 0;
+                for (let i = 0; i < (part || '').length; i++) hash = part.charCodeAt(i) + ((hash << 5) - hash);
+                const hue = Math.abs(hash) % 360;
+                return `hsl(${hue}, 82%, 82%)`;
+            }
+            const total = Math.max(cats.length, 1);
+            const hue = total === 1 ? 0 : Math.round((idx / (total - 1)) * 285);
+            return `hsl(${hue}, 85%, 82%)`;
+        };
+
+        // カテゴリメニューの表示・非表示切り替え（︾ / ︽）
+        window.toggleExerciseCategoryBar = function() {
+            isExerciseCatOpen = !isExerciseCatOpen;
+            const bar = document.getElementById('footer-exercise-bar');
+            const toggleBtn = document.getElementById('cat-toggle-btn');
+            if (isExerciseCatOpen) {
+                bar.style.display = 'grid';
+                toggleBtn.textContent = '︾';
+                document.body.classList.remove('cat-collapsed');
+            } else {
+                bar.style.display = 'none';
+                toggleBtn.textContent = '︽';
+                document.body.classList.add('cat-collapsed');
+            }
+        };
+
+        // フッターの1:1四角・2段カテゴリバー描画
+        window.renderExerciseCategoryFooter = function() {
+            const bar = document.getElementById('footer-exercise-bar');
+            const toggleBtn = document.getElementById('cat-toggle-btn');
+            if (!bar) return;
+            bar.innerHTML = '';
+            const cats = window.exerciseCategories || defaultExerciseCategories;
+            cats.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'cat-bar-btn';
+                btn.style.backgroundColor = window.getCategoryColor(cat);
+                btn.textContent = cat;
+                btn.onclick = () => openExercisePresetModal(cat);
+                bar.appendChild(btn);
+            });
+            bar.style.display = isExerciseCatOpen ? 'grid' : 'none';
+            if (toggleBtn) toggleBtn.textContent = isExerciseCatOpen ? '︾' : '︽';
+        };
+
+        // 設定画面のカテゴリ編集リスト描画
+        window.renderSettingsCategoryList = function() {
+            const container = document.getElementById('settings-category-list');
+            if (!container) return;
+            container.innerHTML = '';
+            const cats = window.exerciseCategories || defaultExerciseCategories;
+            cats.forEach((cat, idx) => {
+                const item = document.createElement('div');
+                item.className = 'setting-cat-item';
+                const color = window.getCategoryColor(cat);
+                item.innerHTML = `
+                    <span class="setting-cat-dot" style="background-color: ${color};"></span>
+                    <input type="text" class="setting-cat-input" value="${cat}" onchange="renameExerciseCategory(${idx}, this.value)">
+                    <button type="button" class="setting-cat-del" title="削除" onclick="deleteExerciseCategory(${idx})">
+                        <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+            lucide.createIcons();
+        };
+
+        window.renameExerciseCategory = function(idx, newVal) {
+            const trimmed = (newVal || '').trim();
+            if (!trimmed) {
+                renderSettingsCategoryList();
+                return;
+            }
+            const oldName = window.exerciseCategories[idx];
+            if (oldName === trimmed) return;
+            if (window.exerciseCategories.includes(trimmed)) {
+                alert('同じ名前のカテゴリが既に存在します');
+                renderSettingsCategoryList();
+                return;
+            }
+            window.exerciseCategories[idx] = trimmed;
+            if (window.exercisePresets[oldName] && !window.exercisePresets[trimmed]) {
+                window.exercisePresets[trimmed] = window.exercisePresets[oldName];
+            }
+            (window.exerciseRecords || []).forEach(ex => {
+                if (ex.part === oldName) ex.part = trimmed;
+            });
+
+            localStorage.setItem('pfc_exercise_categories', JSON.stringify(window.exerciseCategories));
+            localStorage.setItem('pfc_exercise_custom_presets', JSON.stringify(window.exercisePresets));
+            localStorage.setItem('pfc_exercise_records', JSON.stringify(window.exerciseRecords));
+            if (window.syncDataToCloud) window.syncDataToCloud();
+
+            renderExerciseCategoryFooter();
+            renderSettingsCategoryList();
+            showToast('カテゴリ名を更新しました');
+        };
+
+        window.addExerciseCategoryFromSettings = function() {
+            const input = document.getElementById('new-category-input');
+            const name = (input.value || '').trim();
+            if (!name) return;
+            if (window.exerciseCategories.includes(name)) {
+                alert('既に登録されているカテゴリです');
+                return;
+            }
+            window.exerciseCategories.push(name);
+            if (!window.exercisePresets[name]) {
+                window.exercisePresets[name] = [];
+            }
+            localStorage.setItem('pfc_exercise_categories', JSON.stringify(window.exerciseCategories));
+            localStorage.setItem('pfc_exercise_custom_presets', JSON.stringify(window.exercisePresets));
+            if (window.syncDataToCloud) window.syncDataToCloud();
+
+            input.value = '';
+            renderExerciseCategoryFooter();
+            renderSettingsCategoryList();
+            showToast(`「${name}」を追加しました`);
+        };
+
+        window.deleteExerciseCategory = function(idx) {
+            if (window.exerciseCategories.length <= 1) {
+                alert('最低1つのカテゴリが必要です');
+                return;
+            }
+            const cat = window.exerciseCategories[idx];
+            if (!confirm(`カテゴリ「${cat}」を削除しますか？`)) return;
+            window.exerciseCategories.splice(idx, 1);
+            localStorage.setItem('pfc_exercise_categories', JSON.stringify(window.exerciseCategories));
+            if (window.syncDataToCloud) window.syncDataToCloud();
+
+            renderExerciseCategoryFooter();
+            renderSettingsCategoryList();
         };
 
         function showToast(message) {
@@ -1436,13 +1771,11 @@
             const settingsBtn = document.getElementById('settings-toggle-btn');
             const weeklyCalEl = document.getElementById('weekly-calendar');
             const footerBarEl = document.getElementById('footer-bar');
+            const foodRecordBar = document.getElementById('footer-record-bar');
+            const exerciseCatContainer = document.getElementById('footer-exercise-container');
             const slider = document.getElementById('views-slider');
             const settingsView = document.getElementById('view-settings');
             const indicator = document.getElementById('tab-indicator');
-            const inputEl = document.getElementById('record-input');
-            const favBtn = document.getElementById('fav-btn');
-            const galleryBtn = document.getElementById('gallery-btn');
-            const cameraBtn = document.getElementById('camera-btn');
 
             if (settingsBtn) settingsBtn.classList.remove('active-settings');
 
@@ -1452,9 +1785,10 @@
                 settingsView.style.display = 'block';
                 if (settingsBtn) settingsBtn.classList.add('active-settings');
                 document.body.classList.add('is-settings-mode');
-                document.body.classList.remove('no-footer');
+                document.body.classList.remove('no-footer', 'is-exercise-mode', 'cat-collapsed');
                 if (weeklyCalEl) weeklyCalEl.style.display = 'none';
                 if (footerBarEl) footerBarEl.style.display = 'none';
+                renderSettingsCategoryList();
             } else {
                 settingsView.style.display = 'none';
                 slider.style.display = 'flex';
@@ -1466,27 +1800,28 @@
                     currentCategory = 'exercise';
                     targetIndex = 0;
                     document.body.classList.remove('no-footer');
+                    document.body.classList.add('is-exercise-mode');
+                    if (!isExerciseCatOpen) document.body.classList.add('cat-collapsed');
+                    else document.body.classList.remove('cat-collapsed');
                     if (footerBarEl) footerBarEl.style.display = 'flex';
+                    if (foodRecordBar) foodRecordBar.style.display = 'none';
+                    if (exerciseCatContainer) exerciseCatContainer.style.display = 'flex';
                     document.getElementById('tab-btn-exercise').classList.add('active');
-                    inputEl.placeholder = '運動内容を入力';
-                    favBtn.style.display = 'none';
-                    galleryBtn.style.display = 'none';
-                    cameraBtn.style.display = 'none';
+                    renderExerciseCategoryFooter();
                     renderExerciseList();
                 } else if (viewName === 'food') {
                     currentCategory = 'food';
                     targetIndex = 1;
-                    document.body.classList.remove('no-footer');
+                    document.body.classList.remove('no-footer', 'is-exercise-mode', 'cat-collapsed');
                     if (footerBarEl) footerBarEl.style.display = 'flex';
+                    if (foodRecordBar) foodRecordBar.style.display = 'flex';
+                    if (exerciseCatContainer) exerciseCatContainer.style.display = 'none';
                     document.getElementById('tab-btn-food').classList.add('active');
-                    inputEl.placeholder = '食事内容を記録';
-                    favBtn.style.display = 'flex';
-                    galleryBtn.style.display = 'flex';
-                    cameraBtn.style.display = 'flex';
                     renderFoodList();
                 } else if (viewName === 'weight') {
                     currentCategory = 'weight';
                     targetIndex = 2;
+                    document.body.classList.remove('is-exercise-mode', 'cat-collapsed');
                     document.body.classList.add('no-footer');
                     if (footerBarEl) footerBarEl.style.display = 'none';
                     document.getElementById('tab-btn-weight').classList.add('active');
@@ -1504,6 +1839,139 @@
             if (currentCategory === 'settings') switchView('food');
             else switchView('settings');
         }
+
+        // --- 運動カテゴリ＆種目選択モーダル制御 ---
+        window.openExercisePresetModal = function(part) {
+            selectedPresetCategory = part;
+            const badge = document.getElementById('preset-modal-cat-badge');
+            badge.textContent = part;
+            badge.style.backgroundColor = window.getCategoryColor(part);
+            document.getElementById('new-preset-name-input').value = '';
+            renderExercisePresetList();
+            openModal('exercise-preset-modal');
+        };
+
+        function getCombinedPresetsForPart(part) {
+            if (!window.exercisePresets[part]) {
+                window.exercisePresets[part] = [];
+            }
+            const list = [...window.exercisePresets[part]];
+            (window.exerciseRecords || []).forEach(ex => {
+                let exPart = ex.part || "胸";
+                let pureName = ex.name || "";
+                const m = pureName.match(/^【(.*?)】\s*(.*)$/);
+                if (m) {
+                    exPart = m[1];
+                    pureName = m[2];
+                }
+                if (exPart === part && pureName && !list.includes(pureName)) {
+                    list.push(pureName);
+                }
+            });
+            return list;
+        }
+
+        function renderExercisePresetList() {
+            const container = document.getElementById('exercise-preset-list');
+            container.innerHTML = '';
+            const part = selectedPresetCategory;
+            const items = getCombinedPresetsForPart(part);
+
+            if (items.length === 0) {
+                container.innerHTML = `<div style="text-align: center; color: var(--text-sub); padding: 18px; font-size: 0.85rem;">種目が未登録です</div>`;
+                return;
+            }
+
+            items.forEach(exerciseName => {
+                const row = document.createElement('div');
+                row.className = 'preset-item-row';
+                row.onclick = () => recordExerciseByPreset(part, exerciseName);
+                row.innerHTML = `
+                    <span class="preset-item-name">${exerciseName}</span>
+                    <button class="preset-delete-btn" title="リストから削除" onclick="deleteExercisePreset(event, '${part}', '${exerciseName.replace(/'/g, "\\'")}')">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                    </button>
+                `;
+                container.appendChild(row);
+            });
+            lucide.createIcons();
+        }
+
+        window.recordExerciseByPreset = function(part, exerciseName) {
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            const isCardio = (part === '有酸素');
+
+            const pastMatches = (window.exerciseRecords || []).filter(e => {
+                const pure = (e.name || '').replace(/^【.*?】\s*/, '').trim();
+                return pure === exerciseName;
+            }).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            let initialSets = [{ weight: isCardio ? 30 : 60.0, reps: isCardio ? 5.0 : 10 }];
+            if (pastMatches.length > 0) {
+                const lastSets = normalizeExerciseSets(pastMatches[0].setsList || pastMatches[0].sets);
+                if (lastSets.length > 0) {
+                    initialSets = lastSets.map(s => ({ weight: s.weight, reps: s.reps }));
+                }
+            }
+
+            window.exerciseRecords.push({
+                id: 'e_' + Date.now(),
+                date: selectedDateStr,
+                part: part,
+                name: exerciseName,
+                setsList: initialSets,
+                sets: initialSets.map(s => `${s.weight} x ${s.reps}`).join('\n'),
+                recordTime: timeStr,
+                timestamp: Date.now()
+            });
+
+            localStorage.setItem('pfc_exercise_records', JSON.stringify(window.exerciseRecords));
+            if (window.syncDataToCloud) window.syncDataToCloud();
+
+            closeModal('exercise-preset-modal');
+            renderExerciseList();
+            renderWeeklyCalendar();
+            showToast(`「${exerciseName}」を記録しました`);
+        };
+
+        window.addAndSelectNewPreset = function() {
+            const input = document.getElementById('new-preset-name-input');
+            const newName = (input.value || '').trim();
+            if (!newName) {
+                alert('種目名を入力してください');
+                return;
+            }
+
+            const part = selectedPresetCategory;
+            if (!window.exercisePresets[part]) {
+                window.exercisePresets[part] = [];
+            }
+            if (!window.exercisePresets[part].includes(newName)) {
+                window.exercisePresets[part].push(newName);
+                localStorage.setItem('pfc_exercise_custom_presets', JSON.stringify(window.exercisePresets));
+                if (window.syncDataToCloud) window.syncDataToCloud();
+            }
+
+            input.value = '';
+            recordExerciseByPreset(part, newName);
+        };
+
+        window.deleteExercisePreset = function(event, part, exerciseName) {
+            if (event) event.stopPropagation();
+            if (!confirm(`「${exerciseName}」を種目リストから削除しますか？\n（※過去のトレーニング記録自体は消えません）`)) return;
+
+            if (window.exercisePresets[part]) {
+                window.exercisePresets[part] = window.exercisePresets[part].filter(n => n !== exerciseName);
+                localStorage.setItem('pfc_exercise_custom_presets', JSON.stringify(window.exercisePresets));
+                if (window.syncDataToCloud) window.syncDataToCloud();
+            }
+            renderExercisePresetList();
+        };
+
+        document.getElementById('new-preset-name-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') addAndSelectNewPreset();
+        });
 
         // --- 運動記録ロジック ---
         function normalizeExerciseSets(setsData) {
@@ -1537,7 +2005,7 @@
                 list.innerHTML = `
                     <div class="blank-state">
                         <i data-lucide="activity" style="width: 28px; height: 28px; margin: 0 auto 6px auto; opacity: 0.5;"></i>
-                        <div style="font-size: 0.85rem;">この日の運動記録がありません</div>
+                        <div style="font-size: 0.85rem;">この日の運動記録がありません<br><span style="font-size:0.75rem; opacity:0.8;">下のカテゴリボタンから種目を選んで記録できます</span></div>
                     </div>
                 `;
                 lucide.createIcons();
@@ -1559,7 +2027,7 @@
                 const labelCol2 = isCardio ? '距離' : '回数';
                 const unitCol2 = isCardio ? 'km' : '回';
 
-                const headerColor = exercisePartColors[part] || '#FDA4AF';
+                const headerColor = window.getCategoryColor(part);
                 const sets = normalizeExerciseSets(item.setsList || item.sets);
 
                 const card = document.createElement('div');
@@ -1608,7 +2076,7 @@
                         <tbody>${rowsHtml}</tbody>
                     </table>
                     <div class="workout-add-footer">
-                        <button class="workout-add-btn" onclick="quickAddExerciseSet(event, '${item.id}')" title="セットを追加">
+                        <button class="workout-add-btn" onclick="quickAddExerciseSet(event, '${item.id}')" title="追加">
                             <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
                         </button>
                     </div>
@@ -1675,7 +2143,7 @@
             localStorage.setItem('pfc_exercise_records', JSON.stringify(window.exerciseRecords));
             if (window.syncDataToCloud) window.syncDataToCloud();
             renderExerciseList();
-            showToast('セットを追加しました');
+            showToast('追加しました');
         };
 
         function openExerciseEditModal(item) {
@@ -1689,7 +2157,19 @@
                 part = match[1];
                 pureName = match[2];
             }
-            document.getElementById('edit-exercise-part').value = part;
+
+            const partSelect = document.getElementById('edit-exercise-part');
+            partSelect.innerHTML = '';
+            const cats = [...(window.exerciseCategories || defaultExerciseCategories)];
+            if (!cats.includes(part)) cats.push(part);
+            cats.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                partSelect.appendChild(opt);
+            });
+            partSelect.value = part;
+
             document.getElementById('edit-exercise-name').value = pureName;
             document.getElementById('edit-exercise-time').value = item.recordTime || "08:00";
 
@@ -1725,7 +2205,7 @@
             const row = document.createElement('div');
             row.className = 'set-editor-row';
             row.innerHTML = `
-                <span style="font-size:0.75rem; font-weight:600; color:var(--text-sub); white-space:nowrap; line-height:1;">第${rowIdx}set</span>
+                <span style="font-size:0.75rem; font-weight:600; color:var(--text-sub); white-space:nowrap; line-height:1;">${rowIdx}セット</span>
                 <input type="number" step="${isCardio ? '1' : '0.5'}" class="set-w-input" placeholder="0" value="${w !== undefined ? w : ''}">
                 <span class="unit-1" style="font-size:0.7rem; color:var(--text-sub);">${isCardio ? '分' : 'kg'}</span>
                 <input type="number" step="${isCardio ? '0.1' : '1'}" class="set-r-input" placeholder="0" value="${r !== undefined ? r : ''}">
@@ -1741,7 +2221,7 @@
         window.reindexEditorRows = function() {
             const rows = document.querySelectorAll('#exercise-sets-editor-container .set-editor-row');
             rows.forEach((r, idx) => {
-                r.querySelector('span').textContent = `第${idx + 1}set`;
+                r.querySelector('span').textContent = `${idx + 1}セット`;
             });
         };
 
@@ -1790,7 +2270,7 @@
             }
         };
 
-        // --- 運動履歴モーダル（開いたとき今月が選択されている仕様） ---
+        // --- 運動履歴モーダル ---
         window.openExerciseHistory = function(event, exerciseName, part) {
             if (event) event.stopPropagation();
             const cleanName = exerciseName.replace(/^【.*?】\s*/, '').trim();
@@ -1805,7 +2285,7 @@
             const monthsSet = new Set();
             matches.forEach(m => {
                 if (m.date) {
-                    monthsSet.add(m.date.substring(0, 7)); // "YYYY-MM"
+                    monthsSet.add(m.date.substring(0, 7));
                 }
             });
             const sortedMonths = Array.from(monthsSet).sort().reverse();
@@ -1825,7 +2305,7 @@
             if (sortedMonths.includes(currentYM)) {
                 selectEl.value = currentYM;
             } else if (sortedMonths.length > 0) {
-                selectEl.value = sortedMonths[0]; // 記録がある最新の月を選択
+                selectEl.value = sortedMonths[0];
             } else {
                 selectEl.value = 'all';
             }
@@ -1937,10 +2417,6 @@
                 document.getElementById('disp-metric-fatmass').innerHTML = `--<span>kg</span>`;
                 document.getElementById('disp-metric-lbm').innerHTML = `--<span>kg</span>`;
             }
-
-            const sorted = [...window.weightDataHistory].filter(w => w.weight).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-            const latest = sorted[sorted.length - 1];
-            // ヘッダーの「最新: ◯kg」表記は削除済
         }
 
         window.toggleMetricRuler = function(type) {
@@ -2044,7 +2520,6 @@
             renderWeeklyCalendar();
         }
 
-        // 安全な体重グラフ初期化関数
         function initOrUpdateWeightChart() {
             try {
                 const ctx = document.getElementById('weightChart');
@@ -2282,12 +2757,11 @@
         }
 
         // --- 高速・軽量モデル指定 ---
-async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
-    // 現在利用可能な現行モデルを候補として順番に指定
-    const candidateModels = [
-        "gemini-3.5-flash-lite",
-        "gemini-3.5-flash"
-    ];
+        async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
+            const candidateModels = [
+                "gemini-3.5-flash-lite",
+                "gemini-3.5-flash"
+            ];
             
             let prompt = "";
             if (imageBase64) {
@@ -2364,12 +2838,6 @@ async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
 
             input.blur();
 
-            if (currentCategory === 'exercise') {
-                pendingExerciseText = text;
-                openModal('exercise-category-modal');
-                return;
-            }
-
             const apiKey = window.geminiApiKey || localStorage.getItem('gemini_api_key');
             if (!apiKey) {
                 alert("Gemini APIキーが設定されていません。右上の歯車アイコン（設定画面）からキーを入力してください。");
@@ -2419,39 +2887,6 @@ async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
             handleInputChange();
         }
 
-        window.confirmExerciseCategory = function(part) {
-            closeModal('exercise-category-modal');
-            if (!pendingExerciseText) return;
-
-            const now = new Date();
-            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-            const isCardio = (part === '有酸素');
-            const defaultSets = [{ weight: isCardio ? 30 : 60.0, reps: isCardio ? 5.0 : 10 }];
-
-            window.exerciseRecords.push({
-                id: 'e_' + Date.now(),
-                date: selectedDateStr,
-                part: part,
-                name: pendingExerciseText,
-                setsList: defaultSets,
-                sets: defaultSets.map(s => `${s.weight} x ${s.reps}`).join('\n'),
-                recordTime: timeStr,
-                timestamp: Date.now()
-            });
-
-            localStorage.setItem('pfc_exercise_records', JSON.stringify(window.exerciseRecords));
-            if (window.syncDataToCloud) window.syncDataToCloud();
-
-            renderExerciseList();
-            renderWeeklyCalendar();
-            showToast('記録しました');
-
-            pendingExerciseText = "";
-            const input = document.getElementById('record-input');
-            input.value = '';
-            handleInputChange();
-        };
-
         function handleInputChange() {
             const inputVal = document.getElementById('record-input').value.trim();
             const footerIcons = document.getElementById('footer-icons');
@@ -2481,7 +2916,7 @@ async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
             if (e.key === 'Enter') submitRecord(false);
         });
 
-        // 複数カテゴリ円形グラデーション
+        // 複数カテゴリ円形グラデーション（文字色を var(--text-main) に統一）
         function getExerciseBadgeStyleForDay(dateISO) {
             const dayExercises = window.exerciseRecords.filter(e => e.date === dateISO);
             if (dayExercises.length === 0) return null;
@@ -2489,9 +2924,10 @@ async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
             const uniqueColors = [];
             dayExercises.forEach(ex => {
                 const part = ex.part || (ex.name.match(/^【(.*?)】/) ? ex.name.match(/^【(.*?)】/)[1] : null);
-                if (part && exercisePartColors[part]) {
-                    if (!uniqueColors.includes(exercisePartColors[part])) {
-                        uniqueColors.push(exercisePartColors[part]);
+                if (part) {
+                    const c = window.getCategoryColor(part);
+                    if (c && !uniqueColors.includes(c)) {
+                        uniqueColors.push(c);
                     }
                 }
             });
@@ -2502,7 +2938,7 @@ async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
             }
 
             if (uniqueColors.length === 1) {
-                return `background-color: ${uniqueColors[0]} !important; color: #1E293B !important; box-shadow: 0 1px 4px ${uniqueColors[0]}66;`;
+                return `background-color: ${uniqueColors[0]} !important; color: var(--text-main) !important; box-shadow: 0 1px 4px rgba(0,0,0,0.15);`;
             } else {
                 let gradStrs = [];
                 const step = 100 / uniqueColors.length;
@@ -2512,7 +2948,7 @@ async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
                     gradStrs.push(`${color} ${start}% ${end}%`);
                 });
                 const gradStr = `conic-gradient(${gradStrs.join(', ')})`;
-                return `background: ${gradStr} !important; color: #1E293B !important; box-shadow: 0 1px 4px rgba(0,0,0,0.15);`;
+                return `background: ${gradStr} !important; color: var(--text-main) !important; box-shadow: 0 1px 4px rgba(0,0,0,0.15);`;
             }
         }
 
@@ -2636,7 +3072,6 @@ async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
 
             const firstDayIndex = new Date(year, month, 1).getDay();
             const lastDate = new Date(year, month + 1, 0).getDate();
-            const todayISO = getTodayISO();
 
             for (let i = 0; i < firstDayIndex; i++) {
                 grid.appendChild(document.createElement('div'));
@@ -2645,7 +3080,6 @@ async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
             for (let d = 1; d <= lastDate; d++) {
                 const dateISO = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 const isSelected = (dateISO === selectedDateStr);
-                const isToday = (dateISO === todayISO);
 
                 const dEl = document.createElement('div');
                 dEl.style.aspectRatio = '1';
@@ -2731,9 +3165,18 @@ async function fetchGeminiNutrients(foodText, apiKey, imageBase64 = null) {
             const savedTheme = localStorage.getItem('pfc_theme_color');
             if (savedTheme) window.applyThemeColor(savedTheme, localStorage.getItem('pfc_theme_text') || '#2C4A4A');
 
+            renderExerciseCategoryFooter();
+            renderSettingsCategoryList();
             renderWeeklyCalendar();
             renderFoodList();
             switchView('food');
+
+            const newCatInput = document.getElementById('new-category-input');
+            if (newCatInput) {
+                newCatInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') addExerciseCategoryFromSettings();
+                });
+            }
 
             // --- スワイプジェスチャー ---
             let startX = 0;
